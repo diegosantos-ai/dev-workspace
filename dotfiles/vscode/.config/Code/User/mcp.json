@@ -1,132 +1,4 @@
 {
-	"servers": {
-		"MCP_DOCKER": {
-			"command": "docker",
-			"args": [
-				"mcp",
-				"gateway",
-				"run"
-			],
-			"type": "stdio"
-		},
-		"perplexity": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"-y",
-				"@perplexity-ai/mcp-server"
-			]
-		},
-		"antigravity": {
-			"type": "stdio",
-			"command": "python3",
-			"args": [
-				"~/.gemini/antigravity/start_mcp_server_production.py"
-			],
-			"env": {
-				"PYTHONUNBUFFERED": "1",
-				"MCP_SERVER_PORT": "8086"
-			}
-		},
-		"io.github.github/github-mcp-server": {
-			"type": "http",
-			"url": "https://api.githubcopilot.com/mcp/",
-			"gallery": "https://api.mcp.github.com",
-			"version": "0.31.0"
-		},
-		"chroma-core/chroma-mcp": {
-			"type": "stdio",
-			"command": "uvx",
-			"args": [
-				"chroma-mcp@v0.2.6"
-			],
-			"env": {
-				"CHROMA_CLIENT_TYPE": "ephemeral",
-				"CHROMA_DOTENV_PATH": "./.chroma_env",
-				"CHROMA_DATA_DIR": "./chroma_data",
-				"CHROMA_TENANT": "local-tenant",
-				"CHROMA_DATABASE": "local-db",
-				"CHROMA_API_KEY": "preencha_sua_api_key_aqui",
-				"CHROMA_HOST": "localhost",
-				"CHROMA_PORT": "8000",
-				"CHROMA_CUSTOM_AUTH_CREDENTIALS": "",
-				"CHROMA_SSL": "false"
-			},
-			"gallery": "https://api.mcp.github.com",
-			"version": "1.0.0"
-		},
-		"io.github.netdata/mcp-server": {
-			"type": "http",
-			"url": "https://app.netdata.cloud/api/v1/mcp",
-			"headers": {
-				"Authorization": "Bearer ${env:GITHUB_PAT_NETDATA}"
-			},
-			"gallery": "https://api.mcp.github.com",
-			"version": "2.9.0"
-		},
-		"io.github.upstash/context7": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"@upstash/context7-mcp@1.0.31"
-			],
-			"env": {
-				"CONTEXT7_API_KEY": "${input:CONTEXT7_API_KEY}"
-			},
-			"gallery": "https://api.mcp.github.com",
-			"version": "1.0.31"
-		},
-		"microsoft/playwright-mcp": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"@playwright/mcp@latest"
-			],
-			"gallery": "https://api.mcp.github.com",
-			"version": "0.0.1-seed"
-		},
-		"makenotion/notion-mcp-server": {
-			"type": "http",
-			"url": "https://mcp.notion.com/sse",
-			"gallery": "https://api.mcp.github.com",
-			"version": "1.0.0"
-		},
-		"com.supabase/mcp": {
-			"type": "http",
-			"url": "https://mcp.supabase.com/mcp",
-			"gallery": "https://api.mcp.github.com",
-			"version": "0.6.3"
-		},
-		"io.github.hashicorp/terraform-mcp-server": {
-			"type": "stdio",
-			"command": "docker",
-			"args": [
-				"run",
-				"-i",
-				"--rm",
-				"-e",
-				"TFE_ADDRESS=https://app.terraform.io",
-				"-e",
-				"ENABLE_TF_OPERATIONS=false",
-				"hashicorp/terraform-mcp-server:0.4.0"
-			],
-			"env": {
-				"TFE_ADDRESS": "https://app.terraform.io",
-				"ENABLE_TF_OPERATIONS": "false"
-			},
-			"gallery": "https://api.mcp.github.com",
-			"version": "0.4.0"
-		},
-		"io.github.vercel/next-devtools-mcp": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"next-devtools-mcp@0.3.6"
-			],
-			"gallery": "https://api.mcp.github.com",
-			"version": "0.3.6"
-		}
-	},
 	"inputs": [
 		{
 			"id": "chroma_client_type",
@@ -242,5 +114,78 @@
 				"false"
 			]
 		}
-	]
+	],
+	"servers": {
+		"io.github.github/github-mcp-server": {
+			"type": "http",
+			"url": "https://api.githubcopilot.com/mcp/",
+			"gallery": "https://api.mcp.github.com",
+			"version": "0.31.0"
+		},
+		"chroma-core/chroma-mcp": {
+			"type": "stdio",
+			"command": "uvx",
+			"args": [
+				"chroma-mcp@v0.2.6"
+			],
+			"env": {
+				"CHROMA_CLIENT_TYPE": "ephemeral",
+				"CHROMA_DOTENV_PATH": "./.chroma_env",
+				"CHROMA_DATA_DIR": "./chroma_data",
+				"CHROMA_TENANT": "local-tenant",
+				"CHROMA_DATABASE": "local-db",
+				"CHROMA_API_KEY": "preencha_sua_api_key_aqui",
+				"CHROMA_HOST": "localhost",
+				"CHROMA_PORT": "8000",
+				"CHROMA_CUSTOM_AUTH_CREDENTIALS": "",
+				"CHROMA_SSL": "false"
+			},
+			"gallery": "https://api.mcp.github.com",
+			"version": "1.0.0"
+		},
+		"microsoft/playwright-mcp": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@playwright/mcp@latest"
+			],
+			"gallery": "https://api.mcp.github.com",
+			"version": "0.0.1-seed"
+		},
+		"makenotion/notion-mcp-server": {
+			"type": "http",
+			"url": "https://mcp.notion.com/sse",
+			"gallery": "https://api.mcp.github.com",
+			"version": "1.0.0"
+		},
+		"io.github.hashicorp/terraform-mcp-server": {
+			"type": "stdio",
+			"command": "docker",
+			"args": [
+				"run",
+				"-i",
+				"--rm",
+				"-e",
+				"TFE_ADDRESS=https://app.terraform.io",
+				"-e",
+				"ENABLE_TF_OPERATIONS=false",
+				"hashicorp/terraform-mcp-server:0.4.0"
+			],
+			"env": {
+				"TFE_ADDRESS": "https://app.terraform.io",
+				"ENABLE_TF_OPERATIONS": "false"
+			},
+			"gallery": "https://api.mcp.github.com",
+			"version": "0.4.0"
+		},
+		"io.github.vercel/next-devtools-mcp": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"next-devtools-mcp@0.3.6"
+			],
+			"gallery": "https://api.mcp.github.com",
+			"version": "0.3.6"
+		}
+	}
 }

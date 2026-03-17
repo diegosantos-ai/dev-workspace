@@ -21,6 +21,14 @@
       - ca-certificates
       - gnupg
       - lsb-release
+      - vim
+      - ripgrep
+      - fzf
+      - bat
+      - traceroute
+      - python3-pip
+      - pipx
+      - gh
 
     user: "{{ lookup('env', 'USER') }}"
 
@@ -29,13 +37,13 @@
       apt:
         update_cache: yes
         cache_valid_time: 3600
-      when: ansible_os_family == "Debian"
+      when: ansible_facts['os_family'] == "Debian"
 
     - name: Instalar pacotes de sistema essenciais (Debian/Ubuntu)
       apt:
         name: "{{ system_packages }}"
         state: present
-      when: ansible_os_family == "Debian"
+      when: ansible_facts['os_family'] == "Debian"
 
     # Preparacao para GNU Stow
     - name: Garantir que diretorio base Code User existe na home
@@ -47,7 +55,7 @@
 
     - name: Executar GNU Stow para dotfiles (vscode)
       become_user: "{{ user }}"
-      shell: "stow -v -d {{ playbook_dir }}/../dotfiles -t /home/{{ user }} vscode"
+      shell: "stow --adopt -v -d {{ playbook_dir }}/../dotfiles -t /home/{{ user }} vscode"
       register: stow_output
       changed_when: "'LINK' in stow_output.stderr"
 
@@ -95,22 +103,52 @@
         version: v0.14.0
       ignore_errors: yes
 
-    - name: Instalar pacotes via Snap (Docker, Termius, DBeaver, VS Code, kubectl)
+    - name: Instalar pacotes via Snap (Modo Classico)
       community.general.snap:
-        name:
-          - docker
-          - termius-app
-          - dbeaver-ce
-          - code
-          - kubectl
-        classic: "{{ item in ['code', 'kubectl'] }}"
+        name: "{{ item }}"
+        classic: yes
+      loop:
+        - code
+        - kubectl
+      ignore_errors: yes
+
+    - name: Instalar pacotes via Snap (Modo Normal)
+      community.general.snap:
+        name: "{{ item }}"
       loop:
         - docker
         - termius-app
         - dbeaver-ce
-        - code
-        - kubectl
-      ignore_errors: yes # Snap isn't always installed
+      ignore_errors: yes
+
+    - name: Baixar script de instalacao do instalador da AWS CLI
+      unarchive:
+        src: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp
+        remote_src: yes
+      changed_when: false
+
+    - name: Rodar instalador da AWS CLI
+      command: /tmp/aws/install --update
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Adicionar chave GPG do Hashicorp (Terraform)
+      shell: "wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg"
+      args:
+        creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: Adicionar repositorio do Hashicorp (Terraform)
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com jammy main"
+        state: present
+        filename: hashicorp
+
+    - name: Instalar Terraform
+      apt:
+        name: terraform
+        state: present
+        update_cache: yes
 
     - name: Instalar extensoes do VS Code
       become_user: "{{ user }}"
