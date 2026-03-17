@@ -7,7 +7,6 @@ locals {
   }
 
   backend_bucket_name = "${var.project_name}-${var.environment}-tfstate"
-  dynamodb_table_name = "${var.project_name}-${var.environment}-terraform-locks"
 }
 
 resource "aws_s3_bucket" "terraform_state" {

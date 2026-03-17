@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034,SC2154,SC1090
+# shellcheck disable=SC2034,SC2154
+
 
 set -euo pipefail
 
@@ -11,13 +14,13 @@ NC='\033[0m'
 # Resolvendo os caminhos via Git (dinamicamente baseado no root do projeto)
 WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-CHECKLIST_PATH="$WORKSPACE_DIR/playbooks/checklist-manha.md"
+export CHECKLIST_PATH="$WORKSPACE_DIR/playbooks/checklist-manha.md"
 MANUAL_PATH="$WORKSPACE_DIR/rotina-devops.md"
-LINKS_PATH="$WORKSPACE_DIR/docs-referencia/links-uteis.md"
-AUDIT_SCRIPT="$WORKSPACE_DIR/scripts/check_devops_env.sh"
+export LINKS_PATH="$WORKSPACE_DIR/docs-referencia/links-uteis.md"
+export AUDIT_SCRIPT="$WORKSPACE_DIR/scripts/check_devops_env.sh"
 
-TOOLS_OK=0
-TOOLS_MISSING=0
+export export TOOLS_OK=0
+export TOOLS_MISSING=0
 DOCKER_STATUS="não verificado"
 CONTAINERS_RUNNING=0
 UPDATES_COUNT=0
