@@ -1,24 +1,4 @@
 terraform {
-  required_version = ">= 1.0"
-
-  required_providers {
-    ovh = {
-      source = "ovh/ovh"
-    }
-  }
-}
-
-terraform {
-  required_version = ">= 1.0.0"
-  required_providers {
-    ovh = {
-      source  = "ovh/ovh"
-      version = ">= 0.33.0"
-    }
-  }
-}
-
-terraform {
   required_version = ">= 1.0.0"
   required_providers {
     ovh = {

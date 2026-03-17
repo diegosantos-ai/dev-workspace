@@ -209,6 +209,3 @@ terraform plan
 ```
 
 ````
-
-
-

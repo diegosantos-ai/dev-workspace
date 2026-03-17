@@ -19,7 +19,7 @@ MANUAL_PATH="$WORKSPACE_DIR/rotina-devops.md"
 export LINKS_PATH="$WORKSPACE_DIR/docs-referencia/links-uteis.md"
 export AUDIT_SCRIPT="$WORKSPACE_DIR/scripts/check_devops_env.sh"
 
-export export TOOLS_OK=0
+export TOOLS_OK=0
 export TOOLS_MISSING=0
 DOCKER_STATUS="não verificado"
 CONTAINERS_RUNNING=0
@@ -65,7 +65,7 @@ check_updates_ubuntu() {
 
 check_updates_non_native() {
   print_header "ATUALIZAÇÕES NÃO-NATIVAS (Ambiente DevOps)"
-  
+
   # Checagem de Pre-Commit Hooks
   echo -e "--- Pre-Commit ---"
   if command -v pre-commit >/dev/null 2>&1; then
@@ -123,4 +123,3 @@ check_updates_ubuntu
 check_updates_non_native
 print_next_steps
 echo ""
-

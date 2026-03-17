@@ -7,4 +7,3 @@
 [credential "https://gist.github.com"]
 	helper =
 	helper = !/snap/gh/751/gh auth git-credential
-

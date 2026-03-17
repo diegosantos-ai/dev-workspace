@@ -15,7 +15,7 @@
       - zsh
       - unzip
       - jq
-    
+
     user: "{{ lookup('env', 'USER') }}"
 
   tasks:

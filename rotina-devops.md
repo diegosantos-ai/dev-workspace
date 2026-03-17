@@ -17,7 +17,7 @@ Ele deve me ajudar a:
 - trabalhar com método
 - registrar contexto para continuidade
 
-DevOps não é apenas executar comandos ou instalar ferramentas.  
+DevOps não é apenas executar comandos ou instalar ferramentas.
 É operar ambientes, serviços e projetos com previsibilidade, validação e disciplina.
 
 ---
@@ -513,6 +513,3 @@ então comecei o dia corretamente.
 Se eu não sei isso, estou apenas reagindo ao caos.
 
 ````
-
-
-

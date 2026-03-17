@@ -13,4 +13,3 @@
 - Prova de conhecimento em modulos: Estruturar o codigo em modulos reutilizaveis, demonstrando como escalar infraestruturas.
 - Gerenciamento de estado: Mostrar entendimento sobre o arquivo de estado (terraform.tfstate) e o uso do backend remoto para colaboracao em equipe.
 - GitOps/CI/CD: Integrar o Terraform com pipelines (Github Actions) para aplicar as mudanças de infraestrutura automaticamente após um git push.
-

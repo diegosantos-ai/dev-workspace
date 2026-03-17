@@ -1,6 +1,6 @@
 # 🤖 Manifesto & Governança para Agentes de IA (`AGENTS.md`)
 
-Este documento serve como a **Referência Arquitetural Oficial e Conjunto de Regras (System Prompting)** para toda IA (Copilot, Claude, GPT, etc) que operar dentro deste Workspace (`dev-workspace`). 
+Este documento serve como a **Referência Arquitetural Oficial e Conjunto de Regras (System Prompting)** para toda IA (Copilot, Claude, GPT, etc) que operar dentro deste Workspace (`dev-workspace`).
 
 **ATENÇÃO AGENTE:** Antes de planejar, sugerir comandos de terminal ou alterar arquivos, **você DEVE ler e submeter-se às regras abaixo**. Falhar em seguir estas diretrizes resultará em quebra da esteira de CI/CD (Shift-Left Security) e corrupção da arquitetura Premium estabelecida.
 

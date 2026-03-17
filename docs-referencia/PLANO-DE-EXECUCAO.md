@@ -1,6 +1,6 @@
 # Plano de Execução: Workspace DevOps "Premium Standard"
 
-Como especialista DevOps, a arquitetura-alvo que buscaremos transforma este repositório de um "guarda-arquivos" para um **Produto de Engenharia de Plataforma (Platform Engineering)**. 
+Como especialista DevOps, a arquitetura-alvo que buscaremos transforma este repositório de um "guarda-arquivos" para um **Produto de Engenharia de Plataforma (Platform Engineering)**.
 Tudo deve ser **idempotente** (pode rodar 1000 vezes com o mesmo resultado seguro), **reprodutível** (qualquer máquina) e **seguro** (Shift-Left security).
 
 ## 🎯 Arquitetura-Alvo & Padrões Adotados

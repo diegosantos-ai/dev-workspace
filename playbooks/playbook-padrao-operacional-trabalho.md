@@ -5,7 +5,7 @@ Este **Golden Path** define exatamente como nascem, operam e são migrados e rec
 ---
 
 ## 🚀 0. Primeiro Uso (Setup em Novos Ambientes)
-Sempre que formatar sua máquina ou assumir um novo equipamento, o projeto DevOps rege seu setup inicial através de automação idempotente. 
+Sempre que formatar sua máquina ou assumir um novo equipamento, o projeto DevOps rege seu setup inicial através de automação idempotente.
 
 **Passo a passo inquebrável:**
 1. Clone este repositório `dev-workspace` no seu novo destino de projetos limitando atuar dentro dele:
@@ -55,7 +55,7 @@ services:
     ports:
       - "${PROJECT_DB_PORT:-5432}:5432" # Injeção externa via .env
 ```
-> **Matriz de Portas por Projeto:**  
+> **Matriz de Portas por Projeto:**
 > Ao construir os arquivos via Copilot/IAs, force-os a utilizar de IDs base pra portas. Ex: Projeto de n8n empresa X = faixa `10xxx` (App=10080, DB=10543), enquanto Projeto Hub empresa Y = `11xxx` (App=11080). Garantia de zero "Address already in use".
 
 ---
@@ -75,5 +75,5 @@ Ao passar arquiteturas pra **"Clean Workspaces"** (`envs/` > `modules/`), cumpra
 3. O comando final e avaliador deve ser `terraform plan`. Seu log de retorno **deve ser obrigatoriamente** "No changes. Infrastructure base up-to-date". Se pedir para Destruir (Destroy: 1), a refatoração falhou e a estrutura deve ser revista antes do *apply*.
 
 ---
-**Revisão Final:**  
+**Revisão Final:**
 Você não clona nem codifica softwares diretamente dentro dessa Pasta Raiz DevOps. Isto aqui é o seu **Painel de Controle e Formulário (Cockpit)** de onde você rege e avalia todos os outros ambientes.
