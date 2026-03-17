@@ -1,39 +1,73 @@
 # Personal Dev Workspace & Platform Engineering (Cloud & MLOps)
 
-Bem-vindo ao meu centro de comando. Este repositório centraliza toda a automação, infraestrutura e fluxos de desenvolvimento da minha máquina local até a nuvem (AWS/OVH). O objetivo aqui é aplicar os conceitos de **Platform Engineering, Infraestrutura como Código (IaC)** e **Automação de SO (Ansible e Bash)** para garantir que qualquer ambiente de trabalho seja idempotente, recriável e seguro.
+![Platform](https://img.shields.io/badge/Platform-Dev%20Workspace-2F363D?style=for-the-badge)
+![CI](https://img.shields.io/badge/CI%2FCD-Pre-Commit-2088FF?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-mature-green?style=for-the-badge)
+
+Bem-vindo ao repositório central de automação e governança para máquinas de desenvolvimento e infraestrutura. Este projeto organiza os artefatos e processos usados para provisionar estações de trabalho idempotentes, módulos Terraform, e regras de governança (shift-left) aplicadas localmente e em CI.
+## Primeiros passos
+
+1. Clone o repositório e rode o bootstrap (máquina virgem):
+
+```bash
+git clone https://github.com/diegosantos-ai/dev-workspace.git
+cd dev-workspace
+./scripts/setup-machine.sh
+```
+
+2. Depois do bootstrap, execute a configuração recomendada:
+
+```bash
+make setup-workstation
+```
+
+3. Ative os dotfiles (GNU Stow):
+
+```bash
+cd dotfiles
+stow zsh
+stow git
+stow vscode
+```
+
+Esses passos garantem que sua estação esteja no estado padronizado pela plataforma.
+# Personal Dev Workspace — Platform Engineering (Cloud & MLOps)
+
+Bem-vindo ao repositório central de automação e plataforma. Este projeto define e aplica as políticas, ferramentas e padrões que mantenho como base para todas as minhas estações de trabalho e repositórios de infraestrutura.
+
+![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Quality-2F363D?style=for-the-badge)
 
 ---
 
-## [ ARQUITETURA ] Visão Geral
+## ![ARQUITETURA](https://img.shields.io/badge/-ARQUITETURA-2F363D?style=for-the-badge) Visão geral
 
-Este repositório está subdividido nas seguintes disciplinas lógicas:
+Este repositório agrupa:
 
-- **Automação de Máquina Local** (Ansible / Shell): Provisiona ferramentas, pacotes do SO, e injeta configurações.
-- **Dotfiles & Symlinks** (GNU Stow): Controle unificado dos arquivos de configuração como `.zshrc`, `.gitconfig` e configurações do VS Code (`settings.json`, extensões).
-- **Módulos de Infraestrutura** (Terraform): Modelos de código base e projetos práticos sobre AWS, provisionados via estado remoto e controlados por pipelines.
-- **Governança de Agentes** (Prompting & IA): Diretrizes robustas e guardrails para IAs atuarem como devs no repositório.
+- Automação de estação (Ansible / scripts)
+- Dotfiles e symlinks (GNU Stow)
+- Modelos e módulos de infraestrutura (Terraform)
+- Regras de governança e agentes (AGENTS.md, ADRs)
 
-Na raiz do repositório, garantimos a **Segurança Shift-Left**. Nenhum arquivo que possua hardcoded secrets ou lintings quebrados passa pelo framework `pre-commit` local que trava os _pushes_ indevidos.
+Mantemos a **Segurança Shift-Left** com `pre-commit` e detecção local de segredos para evitar vazamento antes do push.
 
 ---
 
-## [ ENTRYPOINT ] Primeiros Passos
+## ![ENTRYPOINT](https://img.shields.io/badge/-ENTRYPOINT-2F363D?style=for-the-badge) Primeiros passos
 
-### 1. Bootstraping (Máquina Virgem)
-Se você estiver numa máquina recém re-formatada baseada em Debian/Ubuntu, o script `setup-machine.sh` fará a injeção inicial estrita do gerenciador:
+1. Bootstrap (máquina nova):
+
 ```bash
 ./scripts/setup-machine.sh
 ```
 
-### 2. A Mágica (Configuração de Ferramentas)
-Com o Ansible em mãos, não instale pacotes isolados com `apt` ou `snap`. Invoque a configuração via `make`:
+2. Aplicar playbook principal (instala Ansible se necessário):
+
 ```bash
 make setup-workstation
 ```
-Isso instalará nativamente VS Code, Docker, utilitários do Kubernetes, linters, linguagens e todas as dependências em suas devidas versões homologadas no `local-setup.yml`.
 
-### 3. Dotfiles e Configurações Pessoais
-Com as ferramentas instaladas, a gestão do Zsh, Bash e Editor são propagadas (symlinks) pra raiz do seu repositório:
+3. Ativar dotfiles (stow):
+
 ```bash
 cd dotfiles
 stow zsh
@@ -43,22 +77,34 @@ stow vscode
 
 ---
 
-## [ DEV & CLOUD ] Rotinas de Deploy
+## ![DEV_&_CLOUD](https://img.shields.io/badge/-DEV_&_CLOUD-2F363D?style=for-the-badge) Rotinas principais
 
-A infraestrutura contida em `templates` ou implementada em `infra` sempre carrega recursos fragmentados e isolados. Sempre confie no Makefile na hora de invocar os comandos Terraform:
+Use o `Makefile` como ponto de entrada para tarefas comuns:
 
 ```bash
-# Entrar no diretório desejado (Ex: infra/teste-python)
-# Executar a formatação universal exigida pelo CI/CD:
-make format
+make format      # formata código / terraform
+make lint        # roda linters locais e pre-commit
+make test        # executa testes unitários
+```
 
-# Subir a infraestrutura
+Para infra (ex.: `templates/terraform-aws-base/envs/dev`):
+
+```bash
+cd infra/<stack>/envs/dev
+make plan
 make apply
 ```
 
-_*Nota: Você precisará definir variáveis sensíveis via `.env` explícito ou ter o `aws-cli` configurado com suas credenciais. Leia a documentação em cada template específico antes do apply._
+---
+
+## ![CHECKLISTS](https://img.shields.io/badge/-CHECKLISTS-2F363D?style=for-the-badge) Operações diárias
+
+Consulte `playbooks/` para runbooks, checklist de início de dia e procedimentos de validação.
 
 ---
 
-## [ CHECKLISTS ] Operações Diárias
-No diretório `playbooks/`, documentamos o estado mental do mantenedor. Lá você encontra passos desde um checklist de início de dia até protocolos de resiliência e validação antes da entrega. Leia os `.md` sempre que necessário se situar nas macro-tarefas.
+## Governança e Agentes
+
+Leia `AGENTS.md` e os ADRs em `docs-referencia/adr/` antes de submeter alterações significativas. As regras definem padrões de idempotência, segurança e separação de responsabilidades entre módulos e ambientes.
+
+---
