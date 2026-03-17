@@ -23,22 +23,22 @@ Ele precisa ser curto, consultável e operacional. Nada de virar enciclopédia t
 ## 1. Pastas principais
 
 ### Documentação de rotina
-- `/home/diegosantos/docs/rotina-devops/`
-- Checklist: `/home/diegosantos/docs/rotina-devops/checklist-manha.md`
-- Manual: `/home/diegosantos/docs/rotina-devops/rotina-devops.md`
-- Links úteis: `/home/diegosantos/docs/rotina-devops/links-uteis.md`
+- `~/dev-workspace/`
+- Checklist: `~/dev-workspace/checklist-manha.md`
+- Manual: `~/dev-workspace/rotina-devops.md`
+- Links úteis: `~/dev-workspace/links-uteis.md`
 
 ### Scripts
-- `/home/diegosantos/scripts/`
-- Auditoria do ambiente: `/home/diegosantos/scripts/check_devops_env.sh`
-- Ritual da manhã: `/home/diegosantos/scripts/morning_check.sh`
+- `~/dev-workspace/scripts/`
+- Auditoria do ambiente: `~/dev-workspace/scripts/check_devops_env.sh`
+- Ritual da manhã: `~/dev-workspace/scripts/morning_check.sh`
 
 ### Labs
-- `/home/diegosantos/labs/`
-- Lab OVH Terraform: `/home/diegosantos/labs/ovh-terraform`
+- `~/labs/`
+- Lab OVH Terraform: `~/labs/ovh-terraform`
 
 ### Projetos
-- `/home/diegosantos/projetos/`
+- `~/projetos/`
 
 ---
 
@@ -46,25 +46,25 @@ Ele precisa ser curto, consultável e operacional. Nada de virar enciclopédia t
 
 ### Ritual da manhã
 ```bash
-/home/diegosantos/scripts/morning_check.sh
+~/dev-workspace/scripts/morning_check.sh
 ````
 
 ### Auditoria completa do ambiente
 
 ```bash
-/home/diegosantos/scripts/check_devops_env.sh
+~/dev-workspace/scripts/check_devops_env.sh
 ```
 
 ### Abrir checklist
 
 ```bash
-xdg-open /home/diegosantos/docs/rotina-devops/checklist-manha.md
+xdg-open ~/dev-workspace/checklist-manha.md
 ```
 
 ### Abrir manual
 
 ```bash
-xdg-open /home/diegosantos/docs/rotina-devops/rotina-devops.md
+xdg-open ~/dev-workspace/rotina-devops.md
 ```
 
 ---
@@ -124,7 +124,7 @@ deactivate
 ### Entrar no lab OVH Terraform
 
 ```bash
-cd /home/diegosantos/labs/ovh-terraform
+cd ~/labs/ovh-terraform
 ```
 
 ### Validar o lab OVH Terraform
@@ -196,13 +196,13 @@ git remote -v
 Pasta:
 
 ```bash
-/home/diegosantos/labs/ovh-terraform
+~/labs/ovh-terraform
 ```
 
 Validação:
 
 ```bash
-cd /home/diegosantos/labs/ovh-terraform
+cd ~/labs/ovh-terraform
 terraform fmt
 terraform validate
 terraform plan

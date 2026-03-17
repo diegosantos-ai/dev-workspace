@@ -119,7 +119,7 @@ if ! shopt -oq posix; then
 fi
 
 # opencode
-export PATH=/home/diegosantos/.opencode/bin:$PATH
+export PATH=~/.opencode/bin:$PATH
 
 # Created by `pipx` on 2026-03-08 21:03:14
-export PATH="$PATH:/home/diegosantos/.local/bin"
+export PATH="$PATH:~/.local/bin"

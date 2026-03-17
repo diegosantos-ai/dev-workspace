@@ -21,7 +21,7 @@
 			"type": "stdio",
 			"command": "python3",
 			"args": [
-				"/home/diegosantos/.gemini/antigravity/start_mcp_server_production.py"
+				"~/.gemini/antigravity/start_mcp_server_production.py"
 			],
 			"env": {
 				"PYTHONUNBUFFERED": "1",

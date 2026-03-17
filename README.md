@@ -37,8 +37,8 @@ graph TD;
 Clone o repositório e rode o comando principal da nossa Plataforma. Assegure a infra local de "Cockpit":
 
 ```bash
-git clone https://github.com/diegosantos-ai/dev-workspace.git ~/docs/dev-workspace
-cd ~/docs/dev-workspace
+git clone https://github.com/diegosantos-ai/dev-workspace.git ~/dev-workspace
+cd ~/dev-workspace
 sudo apt update && sudo apt install make -y
 make setup
 ```

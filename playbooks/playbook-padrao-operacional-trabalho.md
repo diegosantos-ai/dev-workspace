@@ -10,8 +10,8 @@ Sempre que formatar sua máquina ou assumir um novo equipamento, o projeto DevOp
 **Passo a passo inquebrável:**
 1. Clone este repositório `dev-workspace` no seu novo destino de projetos limitando atuar dentro dele:
    ```bash
-   git clone https://github.com/diegosantos-ai/dev-workspace.git ~/docs/dev-workspace
-   cd ~/docs/dev-workspace
+   git clone https://github.com/diegosantos-ai/dev-workspace.git ~/dev-workspace
+   cd ~/dev-workspace
    ```
 2. Inicialize o Bootstrap do sistema que rodará o Ansible nos bastidores e linkará seus dotfiles (VS Code, terminal, regras globais de IA):
    ```bash

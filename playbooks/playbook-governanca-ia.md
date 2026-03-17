@@ -9,7 +9,7 @@ Você **NÃO** precisa copiar regras (`AGENTS.md`) soltas para dentro da pasta d
 
 **A Solução de "Referência Absoluta":**
 Sempre que ligar um modelo (Cursor, Cline, Github Copilot, Claude CLI) num projeto legado, inicie o Chat com este prompt-base (Mestre):
-> *"Atue como Senior Platform Engineer. Antes de me sugerir qualquer refatoração, leia estritamente as regras de ouro documentadas no arquivo global em: `/home/diegosantos/docs/dev-workspace/playbooks/playbook-padrao-operacional-trabalho.md`."*
+> *"Atue como Senior Platform Engineer. Antes de me sugerir qualquer refatoração, leia estritamente as regras de ouro documentadas no arquivo global em: `~/dev-workspace/playbooks/playbook-padrao-operacional-trabalho.md`."*
 
 No caso do VS Code (Copilot), resolvemos isso definindo a configuração: `github.copilot.chat.codeGeneration.instructions` global no seu `settings.json`. O modelo injeta essa instrução a cada mensagem sua sem você perceber. Acabei de ativar isso no seu Setup.
 

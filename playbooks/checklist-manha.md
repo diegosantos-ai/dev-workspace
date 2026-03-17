@@ -3,7 +3,7 @@
 > Objetivo: começar o dia com clareza, controle e prioridade definida, aproveitando a automação do nosso Cockpit.
 
 ## 1. Auditoria e Telemetria (Automática)
-- [ ] Abrir o terminal de controle (*Cockpit*): `cd ~/docs/dev-workspace`
+- [ ] Abrir o terminal de controle no diretório onde clonou o workspace (ex: `cd ~/dev-workspace`)
 - [ ] Executar a varredura do dia: `make morning`
 - [ ] Analisar o output: Existem alertas críticos de segurança? Serviços base offline? Dependências pendentes de atualização não-nativas?
 

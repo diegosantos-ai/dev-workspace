@@ -41,6 +41,14 @@
 
     - name: Executar GNU Stow para dotfiles (vscode)
       become_user: "{{ user }}"
-      shell: "stow -v -d /home/{{ user }}/docs/dev-workspace/dotfiles -t /home/{{ user }} vscode"
+      shell: "stow -v -d {{ playbook_dir }}/../dotfiles -t /home/{{ user }} vscode"
       register: stow_output
       changed_when: "'LINK' in stow_output.stderr"
+
+    - name: Restaurar backup de configurações
+      become_user: "{{ user }}"
+      unarchive:
+        src: "{{ playbook_dir }}/../backup-setup.tar.gz"
+        dest: "/home/{{ user }}"
+        remote_src: yes
+        creates: "/home/{{ user }}/.config/Code/User/settings.json"
