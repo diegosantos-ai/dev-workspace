@@ -22,4 +22,3 @@ alias l='ls -CF'
 
 # Prompt simples
 PROMPT='%F{green}%n@%m%f:%F{blue}%~%f$ '
-

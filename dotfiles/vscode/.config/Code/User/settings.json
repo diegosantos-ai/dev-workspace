@@ -22,5 +22,6 @@
         "vscode-kubernetes.helm-path-linux": "/home/diego/.local/state/vs-kubernetes/tools/helm/linux-amd64/helm",
         "vscode-kubernetes.minikube-path-linux": "/home/diego/.local/state/vs-kubernetes/tools/minikube/linux-amd64/minikube",
         "vscode-kubernetes.kubectl-path-linux": "/home/diego/.local/state/vs-kubernetes/tools/kubectl/kubectl"
-    }
+    },
+    "geminicodeassist.project": "gen-lang-client-0286256478"
 }

@@ -160,4 +160,3 @@
         - ms-python.python
         - ms-kubernetes-tools.vscode-kubernetes-tools
       ignore_errors: yes
-
