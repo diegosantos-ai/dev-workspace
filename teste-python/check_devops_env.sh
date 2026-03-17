@@ -59,6 +59,64 @@ check_docker_access() {
   fi
 }
 
+# Detecta DBeaver (CLI, processo em execução ou entrada .desktop)
+check_dbeaver() {
+  if command -v dbeaver >/dev/null 2>&1 || command -v dbeaver-ce >/dev/null 2>&1; then
+    echo -e "${GREEN}[OK]${NC} DBeaver (CLI disponível)"
+    local ver
+    ver=$(bash -lc "dbeaver --version 2>/dev/null || dbeaver-ce --version 2>/dev/null" | head -n 1)
+    [[ -n "$ver" ]] && echo "     $ver"
+    return
+  fi
+
+  if pgrep -f '[d]beaver' >/dev/null 2>&1; then
+    echo -e "${GREEN}[OK]${NC} DBeaver (processo em execução)"
+    return
+  fi
+
+  if ls /usr/share/applications/*dbeaver*.desktop >/dev/null 2>&1 || ls ~/.local/share/applications/*dbeaver*.desktop >/dev/null 2>&1; then
+    echo -e "${GREEN}[OK]${NC} DBeaver (desktop entry encontrado)"
+    return
+  fi
+
+  echo -e "${RED}[MISSING]${NC} DBeaver"
+}
+
+# Detecta Docker Desktop especificamente, ou indicação de Docker Engine/CLI
+check_docker_desktop() {
+  # Se existir o CLI do docker, verifica se parece ser Docker Desktop
+  if command -v docker >/dev/null 2>&1; then
+    if systemctl list-units --type=service --no-legend | grep -qi 'docker-desktop'; then
+      echo -e "${GREEN}[OK]${NC} Docker Desktop (service docker-desktop encontrado)"
+      return
+    fi
+
+    if pgrep -f 'com.docker' >/dev/null 2>&1 || pgrep -f 'Docker Desktop' >/dev/null 2>&1; then
+      echo -e "${GREEN}[OK]${NC} Docker Desktop (processo em execução)"
+      return
+    fi
+
+    if [[ -f /usr/share/applications/com.docker.docker.desktop ]] || [[ -f ~/.local/share/applications/com.docker.docker.desktop ]]; then
+      echo -e "${GREEN}[OK]${NC} Docker Desktop (desktop entry encontrado)"
+      return
+    fi
+
+    # Se nada indicar Desktop, mas docker existe, alerta que é apenas CLI/Engine
+    echo -e "${YELLOW}[WARN]${NC} Docker instalado, mas parece ser apenas Docker Engine/CLI (não Docker Desktop)"
+    local v
+    v=$(docker --version 2>/dev/null || true)
+    [[ -n "$v" ]] && echo "     $v"
+  else
+    # Tenta detectar Docker Desktop sem o CLI (casos raros)
+    if systemctl list-units --type=service --no-legend | grep -qi 'docker-desktop' || pgrep -f 'com.docker' >/dev/null 2>&1 || [[ -f /usr/share/applications/com.docker.docker.desktop ]] || [[ -f ~/.local/share/applications/com.docker.docker.desktop ]]; then
+      echo -e "${GREEN}[OK]${NC} Docker Desktop (instalado, docker CLI não encontrado)"
+      return
+    fi
+
+    echo -e "${RED}[MISSING]${NC} Docker Desktop / Docker CLI"
+  fi
+}
+
 check_github_ssh() {
   if [[ -f "$HOME/.ssh/id_ed25519.pub" || -f "$HOME/.ssh/id_rsa.pub" ]]; then
     echo -e "${GREEN}[OK]${NC} Chave SSH encontrada"
@@ -122,12 +180,21 @@ check_cmd npm "npm" "npm --version"
 
 print_header "BANCO / DADOS"
 check_cmd psql "PostgreSQL client" "psql --version"
-check_cmd dbeaver "DBeaver" "dbeaver --version"
+check_dbeaver
 
 print_header "DOCKER"
-check_cmd docker "Docker" "docker --version"
-check_cmd docker "Docker Compose plugin" "docker compose version"
-check_docker_access
+check_docker_desktop
+if command -v docker >/dev/null 2>&1; then
+  check_cmd docker "Docker" "docker --version"
+  # verifica Compose plugin se o CLI existir
+  if docker compose version >/dev/null 2>&1; then
+    echo -e "${GREEN}[OK]${NC} Docker Compose plugin"
+    echo "     $(docker compose version 2>/dev/null | head -n1)"
+  else
+    echo -e "${YELLOW}[WARN]${NC} Docker Compose plugin ausente ou não acessível"
+  fi
+  check_docker_access
+fi
 
 print_header "GITHUB / SSH"
 check_cmd ssh "OpenSSH client" "ssh -V"
