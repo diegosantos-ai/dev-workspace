@@ -27,7 +27,11 @@ check_cmd() {
     echo -e "${GREEN}[OK]${NC} $label"
     if [[ -n "$version_cmd" ]]; then
       local version_output
-      version_output=$(bash -lc "$version_cmd" 2>/dev/null | head -n 1)
+      if command -v timeout >/dev/null 2>&1; then
+        version_output=$(timeout 3 bash -lc "$version_cmd" 2>/dev/null | head -n 1 || true)
+      else
+        version_output=$(bash -lc "$version_cmd" 2>/dev/null | head -n 1 || true)
+      fi
       if [[ -n "$version_output" ]]; then
         echo "     $version_output"
       fi
@@ -56,6 +60,26 @@ check_docker_access() {
       echo -e "${YELLOW}[WARN]${NC} Docker instalado, mas sem acesso direto ou daemon parado"
       echo "     Dica: verifique se o serviço está rodando e se seu usuário está no grupo docker"
     fi
+  fi
+}
+
+check_docker_compose_plugin() {
+  if ! command -v docker >/dev/null 2>&1; then
+    return
+  fi
+
+  # Detecta o subcomando sem depender do daemon.
+  if docker --help 2>/dev/null | grep -qE '^[[:space:]]+compose[[:space:]]'; then
+    local compose_ver
+    compose_ver=$(docker compose version 2>/dev/null | head -n1 || true)
+    if [[ -n "$compose_ver" ]]; then
+      echo -e "${GREEN}[OK]${NC} Docker Compose plugin"
+      echo "     $compose_ver"
+    else
+      echo -e "${GREEN}[OK]${NC} Docker Compose plugin (subcomando disponível)"
+    fi
+  else
+    echo -e "${RED}[MISSING]${NC} Docker Compose plugin"
   fi
 }
 
@@ -101,8 +125,9 @@ check_docker_desktop() {
       return
     fi
 
-    # Se nada indicar Desktop, mas docker existe, alerta que é apenas CLI/Engine
-    echo -e "${YELLOW}[WARN]${NC} Docker instalado, mas parece ser apenas Docker Engine/CLI (não Docker Desktop)"
+    # Se nada indicar Desktop, mas docker existe, sinaliza ausência do Desktop.
+    echo -e "${RED}[MISSING]${NC} Docker Desktop"
+    echo "     Docker Engine/CLI detectado no sistema"
     local v
     v=$(docker --version 2>/dev/null || true)
     [[ -n "$v" ]] && echo "     $v"
@@ -186,19 +211,13 @@ print_header "DOCKER"
 check_docker_desktop
 if command -v docker >/dev/null 2>&1; then
   check_cmd docker "Docker" "docker --version"
-  # verifica Compose plugin se o CLI existir
-  if docker compose version >/dev/null 2>&1; then
-    echo -e "${GREEN}[OK]${NC} Docker Compose plugin"
-    echo "     $(docker compose version 2>/dev/null | head -n1)"
-  else
-    echo -e "${YELLOW}[WARN]${NC} Docker Compose plugin ausente ou não acessível"
-  fi
+  check_docker_compose_plugin
   check_docker_access
 fi
 
 print_header "GITHUB / SSH"
 check_cmd ssh "OpenSSH client" "ssh -V"
-check_cmd ssh-keygen "ssh-keygen" "ssh-keygen -h"
+check_cmd ssh-keygen "ssh-keygen"
 check_cmd gh "GitHub CLI" "gh --version"
 check_github_ssh
 check_file "$HOME/.gitconfig" "Arquivo ~/.gitconfig"
