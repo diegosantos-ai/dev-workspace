@@ -26,11 +26,10 @@ jobs:
         with:
           terraform_version: 1.8.0
 
-      - name: Install Shellcheck & TFLint & TFSec
+      - name: Install Shellcheck & TFLint
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
