@@ -69,7 +69,7 @@ check_docker_compose_plugin() {
   fi
 
   # Detecta o subcomando sem depender do daemon.
-  if docker --help 2>/dev/null | grep -qE '^[[:space:]]+compose[[:space:]]'; then
+  if docker --help 2>/dev/null | grep -qE '^[[:space:]]+compose\*?[[:space:]]'; then
     local compose_ver
     compose_ver=$(docker compose version 2>/dev/null | head -n1 || true)
     if [[ -n "$compose_ver" ]]; then
