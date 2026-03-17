@@ -15,6 +15,12 @@
       - zsh
       - unzip
       - jq
+      - wget
+      - htop
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
 
     user: "{{ lookup('env', 'USER') }}"
 
@@ -52,3 +58,68 @@
         dest: "/home/{{ user }}"
         remote_src: yes
         creates: "/home/{{ user }}/.config/Code/User/settings.json"
+
+    # Custom additions for DevOps Checklist
+    - name: Garantir que Zsh seja o shell padrão
+      user:
+        name: "{{ user }}"
+        shell: /bin/zsh
+
+    - name: Instalar Oh My Zsh
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/ohmyzsh/ohmyzsh.git
+        dest: "/home/{{ user }}/.oh-my-zsh"
+        depth: 1
+      ignore_errors: yes
+
+    - name: Instalar Zsh autosuggestions
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/zsh-users/zsh-autosuggestions
+        dest: "/home/{{ user }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+      ignore_errors: yes
+
+    - name: Instalar Zsh syntax highlighting
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+        dest: "/home/{{ user }}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+      ignore_errors: yes
+
+    - name: Instalar ASDF
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/asdf-vm/asdf.git
+        dest: "/home/{{ user }}/.asdf"
+        version: v0.14.0
+      ignore_errors: yes
+
+    - name: Instalar pacotes via Snap (Docker, Termius, DBeaver, VS Code, kubectl)
+      community.general.snap:
+        name:
+          - docker
+          - termius-app
+          - dbeaver-ce
+          - code
+          - kubectl
+        classic: "{{ item in ['code', 'kubectl'] }}"
+      loop:
+        - docker
+        - termius-app
+        - dbeaver-ce
+        - code
+        - kubectl
+      ignore_errors: yes # Snap isn't always installed
+
+    - name: Instalar extensoes do VS Code
+      become_user: "{{ user }}"
+      command: "code --install-extension {{ item }} --force"
+      loop:
+        - GitHub.copilot
+        - HashiCorp.terraform
+        - ms-azuretools.vscode-docker
+        - ms-python.python
+        - ms-kubernetes-tools.vscode-kubernetes-tools
+      ignore_errors: yes
+
