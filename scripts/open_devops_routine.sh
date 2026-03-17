@@ -1,23 +1,29 @@
 #!/usr/bin/env bash
 
-set -u -o pipefail
+set -euo pipefail
 
-CHECKLIST="/home/diegosantos/docs/rotina-devops/checklist-manha.md"
-MANUAL="/home/diegosantos/docs/rotina-devops/rotina-devops.md"
-LINKS="/home/diegosantos/docs/rotina-devops/links-uteis.md"
-MORNING_SCRIPT="/home/diegosantos/scripts/morning_check.sh"
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-notify-send "Rotina DevOps" "Abra o checklist, leia o estado do ambiente e defina sua entrega do dia."
+CHECKLIST="$WORKSPACE_DIR/playbooks/checklist-manha.md"
+MANUAL="$WORKSPACE_DIR/rotina-devops.md"
+LINKS="$WORKSPACE_DIR/docs-referencia/links-uteis.md"
+MORNING_SCRIPT="$WORKSPACE_DIR/scripts/morning_check.sh"
 
-xdg-open "$CHECKLIST" >/dev/null 2>&1 &
-sleep 1
-xdg-open "$MANUAL" >/dev/null 2>&1 &
-sleep 1
+echo "🚀 Rodando auditoria passiva matinal..."
+bash "$MORNING_SCRIPT"
 
-# Descomente a linha abaixo se quiser abrir também os links úteis
-# xdg-open "$LINKS" >/dev/null 2>&1 &
+echo "🔔 Abrindo documentações na interface..."
+# Evita quebrar se o notify-send/xdg não existir num server headless
+if command -v notify-send >/dev/null; then
+    notify-send "Rotina DevOps" "Abra o checklist, leia o estado do ambiente e defina sua entrega."
+fi
 
-# Descomente uma das opções abaixo se quiser abrir o terminal automaticamente
-
-# gnome-terminal -- bash -lc "$MORNING_SCRIPT; exec bash"
-# x-terminal-emulator -e bash -lc "$MORNING_SCRIPT; exec bash"
+if command -v xdg-open >/dev/null; then
+    xdg-open "$CHECKLIST" >/dev/null 2>&1 &
+    sleep 1
+    xdg-open "$MANUAL" >/dev/null 2>&1 &
+else
+    echo "[!] Interface gráfica inativa. Os arquivos para leitura são:"
+    echo "- $CHECKLIST"
+    echo "- $MANUAL"
+fi

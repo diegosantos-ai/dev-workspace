@@ -21,3 +21,9 @@ update: ## Atualiza repositórios, dotfiles e pacotes locais
 	@echo "Atualizando ambiente local..."
 	@git pull origin main
 	# Adicionar comandos de update do sistema operacional aqui
+
+morning: ## Roda a rotina matinal (abre arquivos de playbook e executa o check)
+@bash scripts/open_devops_routine.sh
+
+audit: ## Dispara script completo de auditoria do sistema operacional e CLI libs
+@bash scripts/check_devops_env.sh
