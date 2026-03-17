@@ -1,0 +1,46 @@
+---
+- name: Setup Local Workstation
+  hosts: localhost
+  connection: local
+  become: yes
+  become_method: sudo
+
+  vars:
+    # Defina aqui os pacotes base para seu ambiente de engenharia
+    system_packages:
+      - curl
+      - git
+      - stow
+      - tmux
+      - zsh
+      - unzip
+      - jq
+    
+    user: "{{ lookup('env', 'USER') }}"
+
+  tasks:
+    - name: Atualizar apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Instalar pacotes de sistema essenciais (Debian/Ubuntu)
+      apt:
+        name: "{{ system_packages }}"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    # Preparacao para GNU Stow
+    - name: Garantir que diretorio base Code User existe na home
+      become_user: "{{ user }}"
+      file:
+        path: "/home/{{ user }}/.config/Code/User"
+        state: directory
+        mode: '0755'
+
+    - name: Executar GNU Stow para dotfiles (vscode)
+      become_user: "{{ user }}"
+      shell: "stow -v -d /home/{{ user }}/docs/dev-workspace/dotfiles -t /home/{{ user }} vscode"
+      register: stow_output
+      changed_when: "'LINK' in stow_output.stderr"

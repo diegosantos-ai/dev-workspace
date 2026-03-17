@@ -1,0 +1,9 @@
+[user]
+	name = Diego Santos
+	email = santos.diegoj86@gmail.com
+[credential "https://github.com"]
+	helper = 
+	helper = !/snap/gh/751/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/snap/gh/751/gh auth git-credential

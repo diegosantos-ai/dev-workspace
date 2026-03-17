@@ -1,0 +1,16 @@
+{
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "explorer.confirmDelete": false,
+    "chat.viewSessions.orientation": "stacked",
+    "chat.tools.terminal.autoApprove": {
+        "./scripts/export_session_context.sh": true,
+        "/^bash \\./scripts/export_session_context\\.sh$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    },
+    "git.enableSmartCommit": true,
+    "python.analysis.typeCheckingMode": "standard",
+    "explorer.confirmDragAndDrop": false
+}
