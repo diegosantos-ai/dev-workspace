@@ -22,7 +22,8 @@ Este repositório deixou de ser um conjunto de scripts soltos para se tornar um 
 - **USE** GNU Stow para dotfiles. Se precisar adicionar uma nova configuração de terminal (ex: `nvim`), os arquivos devem ir para `/dotfiles/nvim/` respeitando a árvore de espelhamento do OS, para que o Stow crie os symlinks corretamente.
 
 ### ☁️ Infraestrutura as Code (Terraform)
-- **NÃO** crie arquivos soltos (`.tf`) na raiz de `templates/` ou `ovh-terraform/`.
+- **NÃO** crie arquivos soltos (`.tf`) na raiz do repositório ou em `templates/`.
+- **Infra Viva (`infra/`):** Instancie e gerencie provisionamentos reais EXCLUSIVAMENTE dentro de subpastas em `infra/` (ex: `infra/meu-lab/`), baseando-se nos modelos de `templates/`.
 - **Módulos Virtuais (`modules/`):** Recursos (`compute`, `network`, etc) DEVEM estar destituídos de ambiente. NUNCA coloque backend variables, instâncias de `provider` diretas ou valores hardcoded aqui.
 - **Ambientes (`envs/<env>/`):** É aqui que as variáveis são passadas (`terraform.tfvars`) e onde o state reside. Sempre aponte os módulos usando path relativo (`../../modules/<nome>`).
 
