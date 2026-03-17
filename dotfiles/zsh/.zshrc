@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
 # ~/.zshrc (Gerenciado via GNU Stow)
 
 # Habilitar autocompletar
@@ -20,3 +22,4 @@ alias l='ls -CF'
 
 # Prompt simples
 PROMPT='%F{green}%n@%m%f:%F{blue}%~%f$ '
+
