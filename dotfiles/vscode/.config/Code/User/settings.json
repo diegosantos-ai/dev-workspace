@@ -1,16 +1,21 @@
 {
-    "git.autofetch": true,
-    "git.confirmSync": false,
-    "explorer.confirmDelete": false,
-    "chat.viewSessions.orientation": "stacked",
-    "chat.tools.terminal.autoApprove": {
-        "./scripts/export_session_context.sh": true,
-        "/^bash \\./scripts/export_session_context\\.sh$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
-    },
-    "git.enableSmartCommit": true,
-    "python.analysis.typeCheckingMode": "standard",
-    "explorer.confirmDragAndDrop": false
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "explorer.confirmDelete": false,
+  "chat.viewSessions.orientation": "stacked",
+  "chat.tools.terminal.autoApprove": {
+    "./scripts/export_session_context.sh": true,
+    "/^bash \\./scripts/export_session_context\\.sh$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  },
+  "git.enableSmartCommit": true,
+  "python.analysis.typeCheckingMode": "standard",
+  "explorer.confirmDragAndDrop": false,
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "text": "ATENÇÃO OBRIGATÓRIA: Todo o código e arquitetura deve seguir estritamente o padrão da nossa Plataforma. Regras: 1. NUNCA exponha portas fixas em docker-compose (use ${VAR_PORT:-xxxx}:xxxx e .env). 2. Códigos Terraform devem SEMPRE usar modularização (separação logic-state - pasta envs/ e modules/) e blocos `moved` para refatorações. 3. Zero credenciais salvas em texto. Você atua como SRE/Platform Engineer Senior. Quando confrontado entre estilos de linguagens diferentes (Claude/Gemini/Codex), mantenha o estilo arquitetural rigoroso de Clean Code e Idempotência."
+    }
+  ]
 }

@@ -1,56 +1,23 @@
-# Checklist: Setup Nova Máquina (DevOps)
+# 💻 Spec do Novo Setup (Inventário de Máquina)
 
-## Fase 1: Base do Sistema e Segurança
-- [ ] Atualização de pacotes do sistema (apt/dnf)
-- [ ] Ferramentas utilitárias essenciais (`curl`, `wget`, `jq`, `unzip`, `htop`, `tmux`/`screen`)
-- [ ] Configuração do Git (nome, email, alias, core.editor)
-- [ ] Geração e configuração de chaves SSH (GitHub, GitLab, servidores externos)
-- [ ] Exportação de Variáveis de Ambiente e credenciais sensíveis (TFE_TOKEN, PATs de acesso) no arquivo de profile (ex: `~/.bashrc` ou `~/.zshrc`)
+> **Aviso:** O "setup visual manual" está obsoleto. A infraestrutura do seu notebook local agora é declarativa (Software-Defined Workstation). Apenas acompanhe a máquina fazendo o trabalho.
 
-## Fase 2: Terminal e Produtividade
-- [ ] Instalar Zsh
-- [ ] Framework de Shell (Oh My Zsh ou Starship)
-- [ ] Plugins de produtividade (`zsh-autosuggestions`, `zsh-syntax-highlighting`)
-- [ ] Copiar `.bashrc` ou `.zshrc` atual (alias, exports)
+## 🚀 Como Provisionar uma Máquina Nova
 
-## Fase 3: Aplicativos GUI Essenciais
-- [ ] **Docker Desktop** (para gerenciamento visual dos containers)
-- [ ] **DBeaver** (para gerenciamento de banco de dados)
-- [ ] **Termius** (antigo terminus - cliente SSH/SFTP)
-
-## Fase 4: Core DevOps & Infra como Código
-- [ ] Terraform (ou gerenciador de versão como `tfenv`)
-- [ ] Provedores/CLI de Nuvem (OVH CLI, AWS CLI, etc.)
-- [ ] kubectl
-- [ ] K9s (interface terminal para Kubernetes)
-
-## Fase 5: Linguagens e Desenvolvimento
-- [ ] ASDF ou gerenciadores de versão dedicados (pyenv, nvm)
-- [ ] Python, pip, docker-compose
-- [ ] Node.js (caso necessário para scripts)
-
-## Fase 6: IDE e Editores (VS Code)
-- [ ] Instalar VS Code
-- [ ] Restaurar arquivo `settings.json`
-- [ ] Restaurar configurações do `mcp.json`
-- [ ] Instalar extensões:
-  - GitHub Copilot
-  - HashiCorp Terraform
-  - Docker
-  - Python
-  - Kubernetes
-
----
-
-## 📦 Como Restaurar o Backup na Nova Máquina
-
-1. Transfira o arquivo `backup-setup.tar.gz` (gerado na máquina antiga) para a pasta "Home" (`~/`) da sua nova máquina.
-2. Abra o terminal na nova máquina e vá para a sua pasta Home:
+1. Instale requerimentos mínimos (Git).
+2. Clone este repositório base (`dev-workspace`)
+3. E rode o inicializador universal:
    ```bash
-   cd ~/
+   make setup
    ```
-3. Extraia os arquivos do backup. Eles já vão cair exatamente nas pastas corretas (`~/.config/Code/User/...` e `~/docs/rotina-devops/...`):
-   ```bash
-   tar -xzvf backup-setup.tar.gz
-   ```
-4. Após isso, basta abrir o VS Code, e suas configurações e atalhos estarão restaurados, incluindo os prompts do `mcp.json`.
+
+## 📦 O que o "make setup" (Ansible + Stow) entrega automaticamente:
+- **Core OS & Utilitários:** Ferramentas de terminal e manipulação (`curl`, `jq`, `unzip`, `tmux`).
+- **Automação & Infra:** CLI de controle de nuvem, ecossistema Python (venv) ativo.
+- **Dotfiles & Produtividade:** Configurações de seu Shell (Zsh) e do VS Code (Snippets, Settings, atalhos) lincadas simbolicamente. Modificou num lugar? Versiona automaticamente.
+
+## 🔐 Pós-Setup (Ações Manuais Seguras)
+*Aqui reside o que você não pôs na automação pública por segurança:*
+- [ ] Geração de Chaves SSH (`ssh-keygen -t ed25519 -C "seu@email.com"`).
+- [ ] Recuperar cópia dos secrets de ambiente (Vault, 1Password) injetados restritamente no profile local.
+- [ ] Assinar/Autenticar nas CLIs que cobram sessão browser (AWS SSO, Docker Login).

@@ -1,326 +1,79 @@
-# **PLAYBOOK — Padrão Operacional de Trabalho**
+# 📖 PPO: Padrão Operacional de Trabalho e Arquitetura
 
-## **Objetivo**
-
-Este documento registra o padrão operacional que será usado na execução dos projetos de portfólio DevOps.
-
-A função deste playbook é reduzir retrabalho, manter consistência de execução e dar clareza sobre:
-
-* onde estou  
-* o que devo fazer agora  
-* qual é a ordem correta  
-* como validar cada etapa  
-* quando algo pode ser considerado concluído
+Este **Golden Path** define exatamente como nascem, operam e são migrados e recuperados todos os projetos sob o padrão Premium DevOps.
 
 ---
 
-## **Princípios de execução**
+## 🚀 0. Primeiro Uso (Setup em Novos Ambientes)
+Sempre que formatar sua máquina ou assumir um novo equipamento, o projeto DevOps rege seu setup inicial através de automação idempotente. 
 
-### **1\. Primeiro definir o padrão**
-
-Antes de executar, definir com clareza:
-
-* estrutura  
-* nomes  
-* ordem  
-* critério de conclusão  
-* o que não deve mudar
-
-### **2\. Depois executar em cima do padrão**
-
-Evitar ficar renomeando, reorganizando ou refazendo o mesmo trabalho sem motivo técnico real.
-
-### **3\. Só mudar o padrão com justificativa**
-
-Mudanças de padrão só devem acontecer quando houver:
-
-* risco operacional  
-* inconsistência técnica  
-* simplificação real  
-* ganho claro de rastreabilidade
-
-### **4\. Feito não é igual a validado**
-
-Uma atividade só pode ser considerada concluída depois de validada.
-
-### **5\. Não começar no impulso**
-
-Antes de alterar qualquer coisa, validar:
-
-* estado atual  
-* contexto do projeto  
-* impacto da mudança  
-* forma de validação
+**Passo a passo inquebrável:**
+1. Clone este repositório `dev-workspace` no seu novo destino de projetos limitando atuar dentro dele:
+   ```bash
+   git clone https://github.com/diegosantos-ai/dev-workspace.git ~/docs/dev-workspace
+   cd ~/docs/dev-workspace
+   ```
+2. Inicialize o Bootstrap do sistema que rodará o Ansible nos bastidores e linkará seus dotfiles (VS Code, terminal, regras globais de IA):
+   ```bash
+   make setup
+   ```
+3. Feche o terminal e abra o VS Code em sua nova home. As regras (God Prompts) do Github Copilot já estarão ativadas.
+4. Para validar que tudo está vivo, rode a verificação e inicie o dia:
+   ```bash
+   make morning
+   ```
 
 ---
 
-## **Padrão de organização no Trello**
-
-### **Listas fixas**
-
-* Backlog  
-* Próximo ciclo  
-* Em andamento  
-* Bloqueado  
-* Em validação  
-* Concluído
-
-### **Regra de uso das listas**
-
-#### **Backlog**
-
-Tudo que existe para fazer, mas ainda não entrou na vez.
-
-#### **Próximo ciclo**
-
-Itens que estão prontos para serem executados em seguida.
-
-#### **Em andamento**
-
-O que está aberto agora.
-
-#### **Bloqueado**
-
-Itens travados por dúvida, erro, dependência externa ou decisão pendente.
-
-#### **Em validação**
-
-Itens em que a alteração já foi feita, mas ainda falta validar.
-
-#### **Concluído**
-
-Só entra o que foi realmente fechado e validado.
-
-### **Padrão de nome dos cards**
-
-Formato fixo:
-
-`PXX - Ação objetiva`
-
-Exemplos:
-
-* `P01 - Criar README inicial`  
-* `P01 - Preencher .gitignore`  
-* `P01 - Definir requirements.txt`  
-* `P01 - Validar execução local`
-
-### **Card macro**
-
-Formato:
-
-`Bootstrap do projeto 01`
-
-Usar esse card para acompanhar a fase estrutural do projeto com checklist interna.
+## 🏗️ 1. O Padrão Universal (Nascimento de Projetos)
+Todo novo repositório isolado de cliente/serviço que nascer a partir de hoje deve OBRIGATORIAMENTE possuir a seguinte fundação:
+1. **Entrypoint Único (`Makefile`):** Ninguém adivinha comandos imperativos extênsos. A automação local de todo projeto reside num `make test`, `make build`, etc.
+2. **Shift-Left Security (`.pre-commit-config.yaml`):** Protegendo de ponta a ponta commits contra senhas vazadas (Gitleaks) e IaC frágil (TFLint).
+3. **Identidade Declarativa:** `README.md` limpo possuindo badges da qualidade CI e diagrama Mermaid explicando o design.
+4. **CI/CD Mínimo:** Processos automatizados no `.github/workflows/` (ou análogo) que amarrem o repasse de verificação de qualidade à branch principal.
 
 ---
 
-## **Padrão de branches**
-
-### **Estratégia atual**
-
-* `main` como branch principal  
-* sem `develop` por enquanto  
-* uma branch por contexto de trabalho
-
-### **Prefixos permitidos**
-
-* `feature/`  
-* `fix/`  
-* `docs/`  
-* `refactor/`  
-* `chore/`  
-* `test/`  
-* `experiment/`
-
-### **Regra prática**
-
-Criar uma nova branch quando mudar:
-
-* objetivo  
-* tipo de trabalho  
-* contexto técnico  
-* escopo da mudança
-
-### **Exemplo atual**
-
-* `feature/bootstrap-fastapi`
+## 🛟 2. Adequação de Projetos Legados (Spaghetti Recovery)
+Ao assumir um projeto caótico fora do padrão, siga essa engrenagem infalível:
+1. **Congelar e Auditar:** Não implemente features de cara. Faça varreduras manuais. Execute Gitleaks e Checkov no ambiente estático.
+2. **Implementar Grades (Fase "Zero Trust"):** Insira o `.pre-commit` e conserte a formatação (Lint) geral antes de mexer na lógica de negócio.
+3. **Mover e Refatorar para o Padrão:** Separe configurações "hardcoded", isole senhas, crie o Makefile e divida a responsabilidade do código usando os pilares da seção 1.
 
 ---
 
-## **Padrão de início de projeto**
+## 🐳 3. Governança Docker (Anticolisão de Portas)
+A regra fundamental ao gerenciar múltiplos projetos locais é **NUNCA fazer variação dura (hardcode) de portas expostas em arquivos `docker-compose.yml`**.
 
-### **Fase 1 — Bootstrap**
+**O Padrão Golden Path (CORRETO):**
+Use injeção via `.env` com Fallbacks que facilitam tanto execução por IAs quanto setups manuais em outros PCs.
 
-1. definir objetivo  
-2. definir escopo inicial  
-3. criar estrutura de pastas e arquivos  
-4. iniciar Git  
-5. criar branch de trabalho  
-6. preencher README inicial  
-7. preencher `.gitignore`  
-8. definir `requirements.txt`
-
-### **Fase 2 — Ambiente local**
-
-9. criar `.venv`  
-10. ativar `.venv`  
-11. instalar dependências
-
-### **Fase 3 — Implementação mínima**
-
-12. criar a aplicação mínima  
-13. validar execução local
-
-### **Fase 4 — Empacotamento**
-
-14. criar Dockerfile  
-15. validar build  
-16. validar execução do container
-
-### **Fase 5 — Versionamento**
-
-17. revisar `git status`  
-18. commitar  
-19. integrar de volta na `main` quando o ciclo fechar
+```yaml
+services:
+  db:
+    image: postgres
+    ports:
+      - "${PROJECT_DB_PORT:-5432}:5432" # Injeção externa via .env
+```
+> **Matriz de Portas por Projeto:**  
+> Ao construir os arquivos via Copilot/IAs, force-os a utilizar de IDs base pra portas. Ex: Projeto de n8n empresa X = faixa `10xxx` (App=10080, DB=10543), enquanto Projeto Hub empresa Y = `11xxx` (App=11080). Garantia de zero "Address already in use".
 
 ---
 
-## **Regra para o primeiro commit**
+## ☁️ 4. Refatoração e Manutenção do Terraform (Safe Migration)
+Você NUNCA deve alterar o local (pathing) ou reestruturar arquivos de IaC pesados (ex: mudar um `main.tf` base para dentro de uma pasta `modules/compute`) sem explicitar isso para o Provedor. Se não ele "destruirá" a sua máquina AWS pra criar ela denovo no "novo endereço".
 
-O primeiro commit não deve ser feito apenas porque o repositório foi criado.
-
-O primeiro commit deve representar uma base coerente do projeto.
-
-### **Mínimo esperado antes do primeiro commit**
-
-* README inicial útil  
-* `.gitignore` correto  
-* `requirements.txt` definido  
-* estrutura do projeto coerente
-
-### **Ideal**
-
-Além do mínimo acima, já ter a entrega mínima validada localmente.
+Ao passar arquiteturas pra **"Clean Workspaces"** (`envs/` > `modules/`), cumpra a "Migração Cirúrgica":
+1. Mova esteticamente os blocos ao local de destino.
+2. Crie e assine o bloco `moved {}` referenciando que a infra só trocou de pasta de configuração (do raiz para o módulo).
+   ```terraform
+   moved {
+     from = aws_instance.web
+     to   = module.compute.aws_instance.web
+   }
+   ```
+3. O comando final e avaliador deve ser `terraform plan`. Seu log de retorno **deve ser obrigatoriamente** "No changes. Infrastructure base up-to-date". Se pedir para Destruir (Destroy: 1), a refatoração falhou e a estrutura deve ser revista antes do *apply*.
 
 ---
-
-## **Padrão de README inicial**
-
-O README inicial não precisa estar completo, mas precisa ser útil.
-
-### **Deve conter no mínimo**
-
-* nome do projeto  
-* objetivo  
-* escopo inicial  
-* stack  
-* estrutura inicial  
-* próximos passos
-
-### **Modelo base**
-
-\# nome-do-projeto
-
-\#\# Objetivo  
-Descrever o que o projeto prova e qual problema resolve.
-
-\#\# Escopo inicial  
-\- item 1  
-\- item 2  
-\- item 3
-
-\#\# Stack  
-\- tecnologia 1  
-\- tecnologia 2  
-\- tecnologia 3
-
-\#\# Estrutura inicial  
-\- pasta/arquivo e finalidade
-
-\#\# Próximos passos  
-1\. passo 1  
-2\. passo 2  
-3\. passo 3
-
----
-
-## **Padrão de validação**
-
-Antes de mover qualquer item para `Concluído`, validar:
-
-* a mudança realmente foi feita  
-* o comportamento esperado aconteceu  
-* não ficou pendência escondida  
-* a documentação mínima foi ajustada, se necessário
-
-### **Regra**
-
-Se mexeu mas ainda não validou, vai para `Em validação`, não para `Concluído`.
-
----
-
-## **Padrão de rotina diária**
-
-### **Início do dia**
-
-Responder:
-
-* qual card está em andamento  
-* qual é o próximo passo  
-* existe algo bloqueado  
-* o ambiente está pronto
-
-### **Durante o trabalho**
-
-Responder:
-
-* continuo no mesmo contexto  
-* o card ainda está bem definido  
-* preciso quebrar a atividade  
-* existe algo a validar antes de seguir
-
-### **Fechamento do ciclo**
-
-Responder:
-
-* o que foi concluído  
-* o que foi validado  
-* o que ficou bloqueado  
-* qual é o próximo passo do próximo turno
-
----
-
-## **Aplicação imediata no Projeto 01**
-
-### **Projeto**
-
-`devopsjr-api-cicd`
-
-### **Fase atual**
-
-Bootstrap do projeto.
-
-### **Próximo ciclo atual**
-
-* `P01 - Criar README inicial`  
-* `P01 - Preencher .gitignore`  
-* `P01 - Definir requirements.txt`
-
-### **Só depois disso**
-
-* implementar aplicação mínima  
-* validar localmente  
-* criar Dockerfile  
-* validar container  
-* commitar
-
----
-
-## **Regra final**
-
-Este playbook existe para manter consistência.
-
-A regra é simples:
-
-**definir o padrão uma vez, executar com método e só ajustar quando houver motivo técnico real.**
-
+**Revisão Final:**  
+Você não clona nem codifica softwares diretamente dentro dessa Pasta Raiz DevOps. Isto aqui é o seu **Painel de Controle e Formulário (Cockpit)** de onde você rege e avalia todos os outros ambientes.
