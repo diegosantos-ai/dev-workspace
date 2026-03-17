@@ -17,7 +17,7 @@ graph TD;
     B --> B2(GNU Stow Dotfiles)
 
     C --> C1(AWS Premium Templates)
-    C --> C2(OVH Cloud)
+    C --> C2(OVH Premium Templates)
     C1 --> C1a(envs/dev - envs/prod)
     C1 --> C1b(modules/compute, network...)
 
