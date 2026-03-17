@@ -39,6 +39,7 @@ Clone o repositório e rode o comando principal da nossa Plataforma. Assegure a 
 ```bash
 git clone https://github.com/diegosantos-ai/dev-workspace.git ~/docs/dev-workspace
 cd ~/docs/dev-workspace
+sudo apt update && sudo apt install make -y
 make setup
 ```
 Para inicializar seu dia com os Checks (Docker, Git, Sec), basta rodar `make morning`.
