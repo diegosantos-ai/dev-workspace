@@ -27,6 +27,6 @@ echo "🛠️ Executando Playbook Ansible para provisionamento da máquina..."
 WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$WORKSPACE_DIR"
 
-ansible-playbook ansible/local-setup.yml -K
+ANSIBLE_HOST_KEY_CHECKING=False LC_ALL=C.UTF-8 ansible-playbook ansible/local-setup.yml -K
 
 echo "✨ Setup concluído com sucesso!"
