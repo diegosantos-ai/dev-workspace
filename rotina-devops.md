@@ -53,7 +53,7 @@ Objetivo: entrar em contexto antes de agir.
 ### Comando principal
 
 ```bash
-/home/diegosantos/scripts/morning_check.sh
+scripts/morning_check.sh
 ````
 
 ```
@@ -251,7 +251,7 @@ Antes de alterar um projeto existente:
 ### Exemplo
 
 ```bash
-cd /home/diegosantos/labs/ovh-terraform
+cd ovh-terraform
 git status
 terraform fmt
 terraform validate
@@ -484,14 +484,14 @@ Nem todo sinal exige ação imediata.
 
 ## Documentos
 
-* `/home/diegosantos/docs/rotina-devops/checklist-manha.md`
-* `/home/diegosantos/docs/rotina-devops/links-uteis.md`
-* `/home/diegosantos/docs/rotina-devops/rotina-devops.md`
+* `playbooks/checklist-manha.md`
+* `docs-referencia/links-uteis.md`
+* `rotina-devops.md`
 
 ## Scripts
 
-* `/home/diegosantos/scripts/morning_check.sh`
-* `/home/diegosantos/scripts/check_devops_env.sh`
+* `scripts/morning_check.sh`
+* `teste-python/check_devops_env.sh`
 
 ---
 
