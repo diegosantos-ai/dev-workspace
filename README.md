@@ -1,61 +1,64 @@
-# 🚀 Workspace DevOps & Platform Engineering
+# Personal Dev Workspace & Platform Engineering (Cloud & MLOps)
 
-[![CI - Lint & Security](https://github.com/diegosantos-ai/dev-workspace/actions/workflows/ci-lint-sec.yml/badge.svg)](https://github.com/diegosantos-ai/dev-workspace/actions/workflows/ci-lint-sec.yml)
-[![CI - Terraform Plan](https://github.com/diegosantos-ai/dev-workspace/actions/workflows/terraform-plan.yml/badge.svg)](https://github.com/diegosantos-ai/dev-workspace/actions/workflows/terraform-plan.yml)
-
-Bem-vindo ao centro nervoso de infraestrutura, automação e configurações (dotfiles) orientadas ao mais alto padrão de mercado. Este repositório atua como um produto contínuo de Engenharia de Plataforma.
-
-## 🏗️ Arquitetura do Workspace
-
-```mermaid
-graph TD;
-    A[Workspace DevOps] --> B(📁 Automação de Máquina);
-    A --> C(📁 Infraestrutura as Code - IaC);
-    A --> D(📁 Documentação & Playbooks);
-
-    B --> B1(Ansible Playbooks)
-    B --> B2(GNU Stow Dotfiles)
-
-    C --> C1(AWS Premium Templates)
-    C --> C2(OVH Premium Templates)
-    C1 --> C1a(envs/dev - envs/prod)
-    C1 --> C1b(modules/compute, network...)
-
-    D --> D1(ADRs - Decisões Arquiteturais)
-    D --> D2(Playbooks de Operação)
-```
-
-## 🛠️ Capacidades Principais
-
-- **🛡️ Shift-Left Security:** Nenhum segredo ou configuração ruim passa localmente graças a stack estrita de Hooks (`pre-commit`, `gitleaks`, `tflint`, `tfsec`, `shellcheck`).
-- **♻️ Automação Idempotente:** O Setup de suas novas máquinas está garantido por **Ansible** via `make setup`.
-- **☁️ IaC Desacoplada:** Código de Nuvem padronizado em Workspaces Isolados (`multi-ambiente`) garantindo 0 risco de explosão e reutilização máxima.
-- **🤖 AI Governance (Prompt-as-Code):** O ambiente orquestra agentes de IA baseando-se em diretivas injetadas diretamente nas configurações do compilador/Editor (via dotfiles). Zero alucinação nos setups.
-
-## 🚀 Como Iniciar (Nova Máquina)
-
-Clone o repositório e rode o comando principal da nossa Plataforma. Assegure a infra local de "Cockpit":
-
-```bash
-git clone https://github.com/diegosantos-ai/dev-workspace.git ~/dev-workspace
-cd ~/dev-workspace
-sudo apt update && sudo apt install make -y
-make setup
-```
-Para inicializar seu dia com os Checks (Docker, Git, Sec), basta rodar `make morning`.
-
-## 📐 Padrões & Regras de Design
-
-Antes de alterar o comportamento arquitetural do repositório, consulte nossos Registros de Decisão e Setup:
-1. **ADRs (`docs-referencia/adr`):** Registro de decisões técnicas.
-2. **PPO (`playbooks/`):** Os procedimentos universais e operacionais.
+Bem-vindo ao meu centro de comando. Este repositório centraliza toda a automação, infraestrutura e fluxos de desenvolvimento da minha máquina local até a nuvem (AWS/OVH). O objetivo aqui é aplicar os conceitos de **Platform Engineering, Infraestrutura como Código (IaC)** e **Automação de SO (Ansible e Bash)** para garantir que qualquer ambiente de trabalho seja idempotente, recriável e seguro.
 
 ---
 
-## 💼 Sobre esta Arquitetura (Skills Profiling)
-Este repositório não é um mero acumulador de scripts bash, mas sim a prova-de-conceito de proficiência sólida em **Engenharia de Plataforma e SRE**. Ele evidencia domínio real sobre:
-*   **Idempotência e Declaratividade:** Capacidade de abolir manuais em favor de IaC madura e configurações gerenciadas (Ansible + GNU Stow).
-*   **Segurança Incorporada (Shift-Left):** Estruturação que prova que a segurança não ocorre "na nuvem", mas é travada no pre-commit (Gitleaks, Checkov) em tempo de desenvolvimento.
-*   **DX / Experiência do Desenvolvedor:** Capacidade vital de reduzir carga cognitiva da equipe através de ferramentas centralizadas (entrypoints em `Makefile` e Telemetria Matinal via CLI isolada).
-*   **AI Architecture Governance:** Visão avançada no controle de grandes modelos de linguagem (LLMs). Engenharia de Prompt centralizada no pipeline do time, garantindo que IAs não gerem desvio do padrão arquitetural de refatoração ou acasalamento de módulos.
-*   **Gestão de Estado em Terraform:** Maturidade inegociável na separação de logic states (Environments Vs. Modules blocks e state lock via DynamoDB/S3).
+## [ ARQUITETURA ] Visão Geral
+
+Este repositório está subdividido nas seguintes disciplinas lógicas:
+
+- **Automação de Máquina Local** (Ansible / Shell): Provisiona ferramentas, pacotes do SO, e injeta configurações.
+- **Dotfiles & Symlinks** (GNU Stow): Controle unificado dos arquivos de configuração como `.zshrc`, `.gitconfig` e configurações do VS Code (`settings.json`, extensões).
+- **Módulos de Infraestrutura** (Terraform): Modelos de código base e projetos práticos sobre AWS, provisionados via estado remoto e controlados por pipelines.
+- **Governança de Agentes** (Prompting & IA): Diretrizes robustas e guardrails para IAs atuarem como devs no repositório.
+
+Na raiz do repositório, garantimos a **Segurança Shift-Left**. Nenhum arquivo que possua hardcoded secrets ou lintings quebrados passa pelo framework `pre-commit` local que trava os _pushes_ indevidos.
+
+---
+
+## [ ENTRYPOINT ] Primeiros Passos
+
+### 1. Bootstraping (Máquina Virgem)
+Se você estiver numa máquina recém re-formatada baseada em Debian/Ubuntu, o script `setup-machine.sh` fará a injeção inicial estrita do gerenciador:
+```bash
+./scripts/setup-machine.sh
+```
+
+### 2. A Mágica (Configuração de Ferramentas)
+Com o Ansible em mãos, não instale pacotes isolados com `apt` ou `snap`. Invoque a configuração via `make`:
+```bash
+make setup-workstation
+```
+Isso instalará nativamente VS Code, Docker, utilitários do Kubernetes, linters, linguagens e todas as dependências em suas devidas versões homologadas no `local-setup.yml`.
+
+### 3. Dotfiles e Configurações Pessoais
+Com as ferramentas instaladas, a gestão do Zsh, Bash e Editor são propagadas (symlinks) pra raiz do seu repositório:
+```bash
+cd dotfiles
+stow zsh
+stow git
+stow vscode
+```
+
+---
+
+## [ DEV & CLOUD ] Rotinas de Deploy
+
+A infraestrutura contida em `templates` ou implementada em `infra` sempre carrega recursos fragmentados e isolados. Sempre confie no Makefile na hora de invocar os comandos Terraform:
+
+```bash
+# Entrar no diretório desejado (Ex: infra/teste-python)
+# Executar a formatação universal exigida pelo CI/CD:
+make format
+
+# Subir a infraestrutura
+make apply
+```
+
+_*Nota: Você precisará definir variáveis sensíveis via `.env` explícito ou ter o `aws-cli` configurado com suas credenciais. Leia a documentação em cada template específico antes do apply._
+
+---
+
+## [ CHECKLISTS ] Operações Diárias
+No diretório `playbooks/`, documentamos o estado mental do mantenedor. Lá você encontra passos desde um checklist de início de dia até protocolos de resiliência e validação antes da entrega. Leia os `.md` sempre que necessário se situar nas macro-tarefas.

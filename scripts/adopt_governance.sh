@@ -53,7 +53,7 @@ if command -v pre-commit &> /dev/null; then
 else
     echo "[ WARN ] 'pre-commit' não achado via shell normal, instalando pacote local via python..."
     pip3 install --user pre-commit --quiet || echo "[ FATAL ] Erro ao tentar usar pip3. Instale manualmente: pip install pre-commit"
-    
+
     # Recarrega variáveis do pip e instala
     export PATH="$HOME/.local/bin:$PATH"
     pre-commit install
