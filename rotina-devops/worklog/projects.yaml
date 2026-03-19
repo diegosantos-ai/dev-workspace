@@ -1,0 +1,8 @@
+# Lista de projetos válidos para categorização rápida
+projects:
+  - id: dev-workspace
+    description: "Automação, padronização e arquitetura local"
+  - id: projeto-x
+    description: "Projeto principal em desenvolvimento ativo"
+  - id: lab-docker
+    description: "Laboratório de infraestrutura e viabilização de containers"

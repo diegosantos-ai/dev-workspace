@@ -36,3 +36,18 @@ test-skills: ## Confirma se o Servidor MCP das Skills compila sem erros
 	@echo "Testando build do servidor MCP de Skills..."
 	@cd skills-mcp && npm install && npm run build
 	@echo "✅ Servidor MCP validado e pronto para consumo!"
+
+# --- Rotina DevOps (Worklog) ---
+.PHONY: day-start log day-close week-close
+
+day-start: ## Inicia o worklog do dia e abre no VS Code
+	@bash rotina-devops/scripts/worklog-start.sh
+
+log: ## Adiciona registro no log. (Sem args = interativo. Ex args: make log ARGS="proj tipo acao res imp")
+	@bash rotina-devops/scripts/worklog-add.sh $(ARGS)
+
+day-close: ## Faz o fechamento e resumo do dia atual
+	@bash rotina-devops/scripts/worklog-close.sh
+
+week-close: ## Gera relatório consolidado da semana
+	@bash rotina-devops/scripts/worklog-weekly.sh

@@ -1,0 +1,3 @@
+# Ignorar arquivos diários e semanais locais para não poluir o repositório
+daily/*.md
+weekly/*.md
