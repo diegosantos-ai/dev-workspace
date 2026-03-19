@@ -1,0 +1,18 @@
+=========================================
+ Relatório de Auditoria: 2026-03-19_11-08-07
+=========================================
+
+[ 1. Ferramentas Core e Versões ]
+-----------------------------------------
+[ OK ] Docker: Docker version 29.3.0, build 5927d80
+[ OK ] Python: Python 3.13.7
+[ OK ] Terraform: Terraform v1.14.7
+
+[ 2. CI/CD Local (Shift-Left) ]
+-----------------------------------------
+[ FAIL ] Pre-commit não encontrado. Risco em pipelines!
+[ OK ] Shellcheck: Presente para linting de scripts bash
+
+=========================================
+ Fim da Auditoria.
+=========================================
