@@ -35,10 +35,41 @@ Todo novo repositório isolado de cliente/serviço que nascer a partir de hoje d
 ---
 
 ## 🛟 2. Adequação de Projetos Legados (Spaghetti Recovery)
-Ao assumir um projeto caótico fora do padrão, siga essa engrenagem infalível:
-1. **Congelar e Auditar:** Não implemente features de cara. Faça varreduras manuais. Execute Gitleaks e Checkov no ambiente estático.
-2. **Implementar Grades (Fase "Zero Trust"):** Insira o `.pre-commit` e conserte a formatação (Lint) geral antes de mexer na lógica de negócio.
-3. **Mover e Refatorar para o Padrão:** Separe configurações "hardcoded", isole senhas, crie o Makefile e divida a responsabilidade do código usando os pilares da seção 1.
+Ao assumir um projeto caótico ou em andamento (criado fora do novo padrão de Plataforma), siga este guia passo a passo infalível para injetar a Governança local.
+
+### 🛠️ Guia Prático de Adoção
+
+**1. Acesse a raiz direcional do projeto a ser adequado:**
+```bash
+cd ~/caminho/para/seu/projeto-em-andamento
+```
+*O que faz:* Navega até o repositório que precisa receber as travas e o manifesto de segurança.
+
+**2. Execute o Scaffolder de Governança do Dev-Workspace:**
+```bash
+~/dev-workspace/scripts/adopt_governance.sh .
+```
+*O que faz:* Roda o script da plataforma apontando para o diretório atual (`.`). Ele proativamente confere se há repositório Git, instala silenciosamente o núcleo do pre-commit via Python, injeta as regras de verificação `.pre-commit-config.yaml`, traz o Entrypoint (`Makefile`) e copia o manifesto `AGENTS.md`.
+
+**3. Valide o "Shift-Left Security" (Linting Inicial):**
+```bash
+make lint
+```
+*O que faz:* Executa as baterias de verificação em todos os arquivos históricos do projeto. Corrige massivamente espaços vazios indesejados, padroniza as quebras de linha (`EOF`) e avalia chaves/credenciais expostas no código de forma retroativa.
+
+**4. Comite o novo escudo da Plataforma:**
+```bash
+git add .
+git commit -m "chore: adocao dos padroes dev-workspace de governanca"
+```
+*O que faz:* Salva todo o maquinário de prevenção e formatação e estabelece um ponto de corte (baseline) de qualidade pro futuro.
+
+### 🌟 O que muda e o que melhora no projeto adequando-o?
+
+- **Prevenção de Desastres na Origem:** Com a injeção do pre-commit local, a partir de agora chaves AWS, tokens de API ou falhas de IaC (via TFLint/Shellcheck) impedirão você (ou a sua automação) de realizar um `git commit` ruim.
+- **Auto-Cura de Formatações Bobas:** Erros entre Windows (CRLF) e Unix (LF), ou espaços em branco sobrando em dezenas de arquivos, quebrando diffs visuais em repositórios, são agora higienizados automaticamente ao comitar.
+- **Entrypoint Único (`Makefile`):** Fim dos longos scripts manuais documentados só "na cabeça do desenvolvedor". Se vai validar, é `make lint`. Se quer preparar algo, há um target central e universal, ajudando Agentes a saberem de modo previsível onde orquestrar ações.
+- **Respeito dos Agentes (God Prompting):** O artefato injetado (`AGENTS.md`) serve como uma diretriz severa para que nenhuma IA operando dentro daquele projeto "invente a roda", escrevendo YAMLs e Terraform que ignorem nossos padrões de Zero-Trust e Idempotência.
 
 ---
 

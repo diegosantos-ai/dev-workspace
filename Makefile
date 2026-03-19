@@ -15,7 +15,7 @@ setup: ## Bootstrapping inicial da nova máquina (instala pacotes, links de dotf
 
 lint: ## Roda linters em todo o repositório (Shell, Terraform, Python, Markdown)
 	@echo "Executando pre-commit hooks..."
-	@pre-commit run --all-files
+	PATH="$$HOME/.local/bin:$$PATH" pre-commit run --all-files
 
 update: ## Atualiza repositórios, dotfiles e pacotes locais
 	@echo "Atualizando ambiente local..."
