@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 CHECKLIST="$WORKSPACE_DIR/playbooks/checklist-manha.md"
 MANUAL="$WORKSPACE_DIR/rotina-devops.md"

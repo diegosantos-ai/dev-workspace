@@ -37,7 +37,7 @@ Sua infra de motores (Servidor MCP, n8n, Qdrant) roda no background da sua máqu
 1. Vá para o repo novo:
    `cd /caminho/do/projeto-novo`
 2. Puxe a esteira de Git Hooks e Makefile:
-   `bash /home/diego/dev-workspace/scripts/adopt_governance.sh`
+   `bash /home/diego/dev-workspace/gestao-centralizada-agents/scripts/adopt_governance.sh`
 3. Copie as rédeas da IA (Os Manifestos):
    `cp /home/diego/dev-workspace/AGENTS.md ./`
    `cp -r /home/diego/dev-workspace/gestao-centralizada-agents/agents-personas ./`

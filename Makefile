@@ -11,11 +11,11 @@ help: ## Mostra esta mensagem de ajuda
 
 setup: ## Bootstrapping inicial da nova máquina (instala pacotes, links de dotfiles)
 	@echo "Iniciando setup da máquina..."
-	@bash scripts/setup-machine.sh
+	@bash ansible/scripts/setup-machine.sh
 
 setup-agents: ## Provisiona orquestradores e IAs centralizadas via pipx
 	@echo "Iniciando setup do motor de Agentes IA..."
-	@bash scripts/setup-agents.sh
+	@bash gestao-centralizada-agents/scripts/setup-agents.sh
 
 lint: ## Roda linters em todo o repositório (Shell, Terraform, Python, Markdown)
 	@echo "Executando pre-commit hooks..."
@@ -33,7 +33,7 @@ env-check: ## Rodar verificação rápida de sanidade do sistema para o dia a di
 	@bash sanidade-ambiente/scripts/daily-check.sh
 
 morning: ## Roda a rotina matinal (abre arquivos de playbook e executa o check)
-	@bash scripts/open_devops_routine.sh
+	@bash rotina-devops/scripts/open_devops_routine.sh
 
 audit: ## Dispara script completo de auditoria do sistema operacional e CLI libs
 	@bash sanidade-ambiente/scripts/env-audit.sh
