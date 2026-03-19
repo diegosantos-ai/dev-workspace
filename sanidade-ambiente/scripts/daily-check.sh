@@ -64,17 +64,17 @@ check_dir() {
 }
 
 check_docker_daemon() {
-    if docker info >/dev/null 2>&1; then 
+    if docker info >/dev/null 2>&1; then
         COUNT_OK=$((COUNT_OK + 1))
-    else 
+    else
         FAILS+=("Docker Daemon offline ou sem permissão. (Dica: systemctl start docker)")
     fi
 }
 
 check_git_repo() {
-    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then 
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         COUNT_OK=$((COUNT_OK + 1))
-    else 
+    else
         FAILS+=("O diretório atual não é ou não está mapeado em um repositório Git")
     fi
 }

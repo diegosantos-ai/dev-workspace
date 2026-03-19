@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #-------------------------------------------------------------------------------
 # DESCRIÇÃO: Gera a base para o fechamento da semana para revisão manual.
-# ARQUITETURA: Prepara o arquivo semanal mantendo segurança contra sobrescrita e 
+# ARQUITETURA: Prepara o arquivo semanal mantendo segurança contra sobrescrita e
 #              lista os daily logs recentes para facilitar a consulta.
 #-------------------------------------------------------------------------------
 

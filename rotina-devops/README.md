@@ -8,7 +8,7 @@ Um microssistema focado em CLI para gerenciamento de tempo, registro diário de 
 
 **O que é:** Um rastreador de atividades (worklog) puramente baseado em arquivos Markdown (texto plano) manipulados via scripts Bash inteligentes.
 
-**O problema:** Durante o dia, um engenheiro muda de contexto dezenas de vezes (troubleshooting, reuniões, infraestrutura, estudos). Preencher ferramentas visuais complexas (Jira, Notion, planilhas) gera atrito e quebra o estado de *flow*. Resultado: na sexta-feira, é difícil lembrar dos micro-impactos e das pequenas entregas. 
+**O problema:** Durante o dia, um engenheiro muda de contexto dezenas de vezes (troubleshooting, reuniões, infraestrutura, estudos). Preencher ferramentas visuais complexas (Jira, Notion, planilhas) gera atrito e quebra o estado de *flow*. Resultado: na sexta-feira, é difícil lembrar dos micro-impactos e das pequenas entregas.
 
 A `rotina-devops` resolve isso através do terminal. O engenheiro abre o dia, insere logs ao longo das tarefas e fecha o expediente utilizando comandos rápidos que não exigem a abertura obrigatória de sistemas pesados.
 
@@ -19,7 +19,7 @@ A `rotina-devops` resolve isso através do terminal. O engenheiro abre o dia, in
 ```mermaid
 graph TD
     %% Nós
-    START[☀️ worklog-start] 
+    START[☀️ worklog-start]
     MD_DAILY[(📄 YYYY-MM-DD.md)]
     ADD[⚡ worklog-add]
     CLOSE[🌙 worklog-close]
@@ -32,11 +32,11 @@ graph TD
     MD_DAILY --> WORK
     WORK -->|Task Feita| ADD
     ADD -->|Adiciona linha| MD_DAILY
-    
+
     %% Conexões Fim de dia/Semana
     WORK -->|Fim do Expediente| CLOSE
     CLOSE -->|Preenche resumo| MD_DAILY
-    
+
     %% Consolidação
     MD_DAILY -.->|Referência Histórica| WEEKLY
     WEEKLY -->|Gera Consolidação| MD_WEEKLY
