@@ -48,3 +48,19 @@ Quando o usuário Diego demandar a você a implementação de uma nova ferrament
 4. **Resumo Efetivo:** Ao terminar cada sub-task, traga um resumo de _Estado Arquitetural Anterior vs Estado Alvo_, lista de _Arquivos Modificados_ e o _Status/Validação_.
 
 **_Agente, se você entendeu esse arquivo, a partir deste momento execute todas as tarefas priorizando este contrato de integridade._**
+
+---
+
+## [ CAPÍTULO 4 ] Matriz de Agentes & Model Context Protocol (MCP)
+
+Este repositório possui uma **Gestão Centralizada de Agentes** implementada via MCP. Qualquer uso de IA autônoma deve respeitar as Personas definidas e utilizar estritamente o servidor central de ferramentas.
+
+### 4.1. As Personas (Comportamentos Definidos)
+Se você for um Agente encarregado de atuar neste repositório, você DEVE assumir e declarar uma das seguintes posturas (documentadas em `agents-personas/`):
+- **O Orquestrador (Kiro):** Planeja, quebra a tarefa, analisa ADRs. **Nunca escreve código final direto**.
+- **O Executor (Dev):** Gera a infra/scripts seguindo os `templates/` e garantindo Idempotência.
+- **O Revisor (Shift-Left):** Roda o `make lint` e barra gambiarras ou hardcoded secrets.
+
+### 4.2. Escopo das Skills (MCP)
+Toda interação com APIs externas, memória (Qdrant) ou servidores N8N para este repositório **NÃO DEVE** ser feita via scripts soltos de curl. Use o Servidor MCP localizado em `skills-mcp/`.
+- Para testar ou ver se o servidor de Skills funciona, utilize `make test-skills`.

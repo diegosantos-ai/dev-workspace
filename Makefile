@@ -13,6 +13,10 @@ setup: ## Bootstrapping inicial da nova máquina (instala pacotes, links de dotf
 	@echo "Iniciando setup da máquina..."
 	@bash scripts/setup-machine.sh
 
+setup-agents: ## Provisiona orquestradores e IAs centralizadas via pipx
+	@echo "Iniciando setup do motor de Agentes IA..."
+	@bash scripts/setup-agents.sh
+
 lint: ## Roda linters em todo o repositório (Shell, Terraform, Python, Markdown)
 	@echo "Executando pre-commit hooks..."
 	PATH="$$HOME/.local/bin:$$PATH" pre-commit run --all-files
@@ -27,3 +31,8 @@ morning: ## Roda a rotina matinal (abre arquivos de playbook e executa o check)
 
 audit: ## Dispara script completo de auditoria do sistema operacional e CLI libs
 	@bash scripts/check_devops_env.sh
+
+test-skills: ## Confirma se o Servidor MCP das Skills compila sem erros
+	@echo "Testando build do servidor MCP de Skills..."
+	@cd skills-mcp && npm install && npm run build
+	@echo "✅ Servidor MCP validado e pronto para consumo!"
