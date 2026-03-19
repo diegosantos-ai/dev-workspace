@@ -9,7 +9,7 @@ WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CHECKLIST="$WORKSPACE_DIR/playbooks/checklist-manha.md"
 MANUAL="$WORKSPACE_DIR/rotina-devops.md"
 LINKS="$WORKSPACE_DIR/docs-referencia/links-uteis.md"
-MORNING_SCRIPT="$WORKSPACE_DIR/scripts/morning_check.sh"
+MORNING_SCRIPT="$WORKSPACE_DIR/sanidade-ambiente/scripts/daily-check.sh"
 
 echo "🚀 Rodando auditoria passiva matinal..."
 bash "$MORNING_SCRIPT"

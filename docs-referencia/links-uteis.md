@@ -4,11 +4,11 @@
 * quais comandos você mais usa
 * quais projetos existem
 * como validar cada tipo de projeto
-* onde agir quando o `morning_check.sh` mostrar alguma coisa
+* onde agir quando o `sanidade-ambiente/scripts/daily-check.sh` mostrar alguma coisa
 
 A lógica fica linda e útil assim:
 
-* `morning_check.sh` = mostra a foto do ambiente
+* `sanidade-ambiente/scripts/daily-check.sh` = mostra a foto do ambiente
 * `checklist-manha.md` = organiza sua leitura e decisão
 * `links-uteis.md` = te dá caminho rápido para agir
 * `rotina-devops.md` = manual completo
@@ -31,7 +31,7 @@ Ele precisa ser curto, consultável e operacional. Nada de virar enciclopédia t
 ### Scripts
 - `~/dev-workspace/scripts/`
 - Auditoria do ambiente: `~/dev-workspace/scripts/check_devops_env.sh`
-- Ritual da manhã: `~/dev-workspace/scripts/morning_check.sh`
+- Ritual da manhã: `~/dev-workspace/scripts/sanidade-ambiente/scripts/daily-check.sh`
 
 ### Labs
 - `~/labs/`
@@ -46,7 +46,7 @@ Ele precisa ser curto, consultável e operacional. Nada de virar enciclopédia t
 
 ### Ritual da manhã
 ```bash
-~/dev-workspace/scripts/morning_check.sh
+~/dev-workspace/scripts/sanidade-ambiente/scripts/daily-check.sh
 ````
 
 ### Auditoria completa do ambiente

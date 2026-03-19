@@ -53,7 +53,7 @@ Objetivo: entrar em contexto antes de agir.
 ### Comando principal
 
 ```bash
-scripts/morning_check.sh
+scripts/sanidade-ambiente/scripts/daily-check.sh
 ````
 
 ```
@@ -71,7 +71,7 @@ Objetivo: entender se minha máquina está pronta para o trabalho do dia.
 
 ### Interpretação correta
 
-O `morning_check.sh` funciona como uma foto operacional rápida do ambiente.
+O `sanidade-ambiente/scripts/daily-check.sh` funciona como uma foto operacional rápida do ambiente.
 
 Ele não substitui observabilidade completa, mas mostra:
 
@@ -458,7 +458,7 @@ Nem todo sinal exige ação imediata.
 
 ## Manhã
 
-1. rodar `morning_check.sh`
+1. rodar `sanidade-ambiente/scripts/daily-check.sh`
 2. abrir checklist da manhã
 3. revisar projeto principal
 4. validar estado atual
@@ -490,7 +490,7 @@ Nem todo sinal exige ação imediata.
 
 ## Scripts
 
-* `scripts/morning_check.sh`
+* `scripts/sanidade-ambiente/scripts/daily-check.sh`
 * `teste-python/check_devops_env.sh`
 
 ---

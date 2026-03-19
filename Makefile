@@ -26,11 +26,17 @@ update: ## Atualiza repositórios, dotfiles e pacotes locais
 	@git pull origin main
 	# Adicionar comandos de update do sistema operacional aqui
 
+# --- Sanidade e Setup Operacional ---
+.PHONY: env-check
+
+env-check: ## Rodar verificação rápida de sanidade do sistema para o dia a dia
+	@bash sanidade-ambiente/scripts/daily-check.sh
+
 morning: ## Roda a rotina matinal (abre arquivos de playbook e executa o check)
 	@bash scripts/open_devops_routine.sh
 
 audit: ## Dispara script completo de auditoria do sistema operacional e CLI libs
-	@bash scripts/check_devops_env.sh
+	@bash sanidade-ambiente/scripts/env-audit.sh
 
 test-skills: ## Confirma se o Servidor MCP das Skills compila sem erros
 	@echo "Testando build do servidor MCP de Skills..."
