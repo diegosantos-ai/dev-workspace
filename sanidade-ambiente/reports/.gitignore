@@ -1,0 +1,6 @@
+# Ignora relatórios mas mantém a pasta
+*.log
+*.json
+*.md
+!README.md
+!.gitkeep
