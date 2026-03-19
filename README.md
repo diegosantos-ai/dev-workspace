@@ -1,35 +1,3 @@
-# Personal Dev Workspace & Platform Engineering (Cloud & MLOps)
-
-![Platform](https://img.shields.io/badge/Platform-Dev%20Workspace-2F363D?style=for-the-badge)
-![CI](https://img.shields.io/badge/CI%2FCD-Pre-Commit-2088FF?style=for-the-badge)
-![Status](https://img.shields.io/badge/status-mature-green?style=for-the-badge)
-
-Bem-vindo ao repositório central de automação e governança para máquinas de desenvolvimento e infraestrutura. Este projeto organiza os artefatos e processos usados para provisionar estações de trabalho idempotentes, módulos Terraform, e regras de governança (shift-left) aplicadas localmente e em CI.
-## Primeiros passos
-
-1. Clone o repositório e rode o bootstrap (máquina virgem):
-
-```bash
-git clone https://github.com/diegosantos-ai/dev-workspace.git
-cd dev-workspace
-./scripts/setup-machine.sh
-```
-
-2. Depois do bootstrap, execute a configuração recomendada:
-
-```bash
-make setup-workstation
-```
-
-3. Ative os dotfiles (GNU Stow):
-
-```bash
-cd dotfiles
-stow zsh
-stow git
-stow vscode
-```
-
 Esses passos garantem que sua estação esteja no estado padronizado pela plataforma.
 # Personal Dev Workspace — Platform Engineering (Cloud & MLOps)
 
