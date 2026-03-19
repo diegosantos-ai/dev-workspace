@@ -40,7 +40,7 @@ Sua infra de motores (Servidor MCP, n8n, Qdrant) roda no background da sua máqu
    `bash /home/diego/dev-workspace/scripts/adopt_governance.sh`
 3. Copie as rédeas da IA (Os Manifestos):
    `cp /home/diego/dev-workspace/AGENTS.md ./`
-   `cp -r /home/diego/dev-workspace/agents-personas ./`
+   `cp -r /home/diego/dev-workspace/gestao-centralizada-agents/agents-personas ./`
 
 Pronto. O Copilot agora obedece esse sistema lá dentro.
 

@@ -13,5 +13,5 @@ Este novo arranjo Resolve:
 ## Qual é o objetivo agora?
 Estabelecer um plano de fundação ("Cockpit de IA") baseado nos pilares de *Platform Engineering* já documentados no nosso arquivo `AGENTS.md`.
 O escopo agora mira em:
-1. Migrar a ideia de "Skills Customizadas" para **Servidores MCP padronizados** (`/skills-mcp/`).
+1. Migrar a ideia de "Skills Customizadas" para **Servidores MCP padronizados** (`/gestao-centralizada-agents/skills-mcp/`).
 2. Empacotar localmente ferramentas de Observabilidade (LLM tracing) e Memória (Vector DB) usando orquestração já existente (Docker/n8n) para que as decisões dos agentes sejam analisadas e não esquecidas.

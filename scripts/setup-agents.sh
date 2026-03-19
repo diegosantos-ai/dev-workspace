@@ -43,7 +43,7 @@ LANGFUSE_SECRET_KEY=""
 LANGFUSE_HOST="http://localhost:3000"
 
 # [ MCP Skills Path ]
-MCP_SKILLS_PATH="$HOME/dev-workspace/skills-mcp"
+MCP_SKILLS_PATH="${REPO_ROOT}/gestao-centralizada-agents/skills-mcp"
 ENVEOF
     echo -e "   [ OK ] Arquivo base .agents-env gerado com sucesso."
 else

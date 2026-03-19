@@ -34,7 +34,7 @@ audit: ## Dispara script completo de auditoria do sistema operacional e CLI libs
 
 test-skills: ## Confirma se o Servidor MCP das Skills compila sem erros
 	@echo "Testando build do servidor MCP de Skills..."
-	@cd skills-mcp && npm install && npm run build
+	@cd gestao-centralizada-agents/skills-mcp && npm install && npm run build
 	@echo "✅ Servidor MCP validado e pronto para consumo!"
 
 # --- Rotina DevOps (Worklog) ---

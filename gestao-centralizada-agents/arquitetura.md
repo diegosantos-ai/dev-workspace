@@ -12,6 +12,6 @@ Atuamos com a premissa de um *Golden Path*, onde a máquina atua restrita aos li
 - **3. O Crítico (Revisor Shift-Left):** Jamais escreve, ele apenas injeta restrições: aplica `tflint`, analisa `gitleaks` e confere se a saída do Criador respeitou a governança do workspace.
 
 ### 3. Ecossistema MCP (Memória e Habilidades)
-- **Diretório Local:** `dev-workspace/skills-mcp/`
+- **Diretório Local:** `dev-workspace/gestao-centralizada-agents/skills-mcp/`
 - **Por que MCP?:** Ao invés de um padrão limitante de `.md` consumido exclusivamente via scripts Python, nossas competências (ex: validar qualidade de dados, buscar senhas do dev-workspace e interagir com logs de IaC) se tornarão "Servidores de Ferramentas MCP". Isso significa que elas podem ser consumidas tanto por runtimes CLI na máquina principal quanto pela própria IDE (GitHub Copilot / Cursor).
 - **Observabilidade:** Um container dedicado (ex: Langfuse/ChromaDB leves) injetado ao projeto receberá logs sobre: "Quantos tokens foram gastos?" e "Por que o agente tomou essa decisão estrutural?". Esta é a nossa blindagem anti-alucinação persistente.

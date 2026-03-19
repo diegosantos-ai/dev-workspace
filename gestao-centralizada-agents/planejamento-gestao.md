@@ -19,7 +19,7 @@ Este documento divide a implementação da nossa plataforma de IA em fases macro
 ## Fase 3: Estruturação MCP (Skills & Ferramentas)
 **Objetivo:** Abandonar scripts pythons espalhados e criar a base do "Model Context Protocol", permitindo que IDEs e CLI leiam o mesmo diretório de Skills.
 
-- [x] **Task 3.1:** Criar o diretório `/skills-mcp/` na raiz do `dev-workspace` e documentar seu propósito internamente via `README.md`.
+- [x] **Task 3.1:** Criar o diretório `/gestao-centralizada-agents/skills-mcp/` na raiz do `dev-workspace` e documentar seu propósito internamente via `README.md`.
 - [x] **Task 3.2:** Desenvolver e testar o template da primeira *Skill MCP* (ex: um validador de secrets simplificado que qualquer IA possa consumir).
 - [x] **Task 3.3:** Adicionar target `make test-skills` no Makefile para validar se os servidores MCP instanciam corretamente sem quebrar na máquina local.
 

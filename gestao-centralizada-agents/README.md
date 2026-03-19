@@ -23,7 +23,7 @@ make start-orquestrador
 ## 🧪 Como Validar as Skills
 
 **3. Instancie e valide as ferramentas (Skills MCP)**
-Todo novo conjunto de ferramentas adicionadas na pasta `/skills-mcp/` precisa respeitar o protocolo:
+Todo novo conjunto de ferramentas adicionadas na pasta `/gestao-centralizada-agents/skills-mcp/` precisa respeitar o protocolo:
 ```bash
 make test-skills
 ```

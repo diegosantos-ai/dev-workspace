@@ -58,7 +58,7 @@ make test        # executa testes unitários
 Para infra (ex.: `templates/terraform-aws-base/envs/dev`):
 
 ```bash
-cd infra/<stack>/envs/dev
+cd gestao-centralizada-agents/infra/<stack>/envs/dev
 make plan
 make apply
 ```
@@ -99,7 +99,7 @@ graph TD
     AI -.->|Roda Lint / Pre-Commit| P3
 
     %% Servidor e Comunicação
-    AI -->|JSON-RPC via stdio| MCP[⚙️ Servidor MCP \n/skills-mcp]
+    AI -->|JSON-RPC via stdio| MCP[⚙️ Servidor MCP \n/gestao-centralizada-agents/skills-mcp]
 
     %% Cockpit Local e Nuvem
     subgraph Cockpit Operacional

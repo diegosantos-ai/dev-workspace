@@ -23,7 +23,7 @@ Este repositório deixou de ser um conjunto de scripts soltos para se tornar um 
 
 ### [ B ] Infraestrutura as Code (Terraform)
 - **NÃO** crie arquivos soltos (`.tf`) na raiz do repositório ou em `templates/`.
-- **Infra Viva (`infra/`):** Instancie e gerencie provisionamentos reais EXCLUSIVAMENTE dentro de subpastas em `infra/` (ex: `infra/meu-lab/`), baseando-se nos modelos de `templates/`.
+- **Infra Viva (`gestao-centralizada-agents/infra/`):** Instancie e gerencie provisionamentos reais EXCLUSIVAMENTE dentro de subpastas em `gestao-centralizada-agents/infra/` (ex: `gestao-centralizada-agents/infra/meu-lab/`), baseando-se nos modelos de `templates/`.
 - **Módulos Virtuais (`modules/`):** Recursos (`compute`, `network`, etc) DEVEM estar destituídos de ambiente. NUNCA coloque backend variables, instâncias de `provider` diretas ou valores hardcoded aqui.
 - **Ambientes (`envs/<env>/`):** É aqui que as variáveis são passadas (`terraform.tfvars`) e onde o state reside. Sempre aponte os módulos usando path relativo (`../../modules/<nome>`).
 
@@ -56,11 +56,11 @@ Quando o usuário Diego demandar a você a implementação de uma nova ferrament
 Este repositório possui uma **Gestão Centralizada de Agentes** implementada via MCP. Qualquer uso de IA autônoma deve respeitar as Personas definidas e utilizar estritamente o servidor central de ferramentas.
 
 ### 4.1. As Personas (Comportamentos Definidos)
-Se você for um Agente encarregado de atuar neste repositório, você DEVE assumir e declarar uma das seguintes posturas (documentadas em `agents-personas/`):
+Se você for um Agente encarregado de atuar neste repositório, você DEVE assumir e declarar uma das seguintes posturas (documentadas em `gestao-centralizada-agents/agents-personas/`):
 - **O Orquestrador (Kiro):** Planeja, quebra a tarefa, analisa ADRs. **Nunca escreve código final direto**.
-- **O Executor (Dev):** Gera a infra/scripts seguindo os `templates/` e garantindo Idempotência.
+- **O Executor (Dev):** Gera a gestao-centralizada-agents/infra/scripts seguindo os `templates/` e garantindo Idempotência.
 - **O Revisor (Shift-Left):** Roda o `make lint` e barra gambiarras ou hardcoded secrets.
 
 ### 4.2. Escopo das Skills (MCP)
-Toda interação com APIs externas, memória (Qdrant) ou servidores N8N para este repositório **NÃO DEVE** ser feita via scripts soltos de curl. Use o Servidor MCP localizado em `skills-mcp/`.
+Toda interação com APIs externas, memória (Qdrant) ou servidores N8N para este repositório **NÃO DEVE** ser feita via scripts soltos de curl. Use o Servidor MCP localizado em `gestao-centralizada-agents/skills-mcp/`.
 - Para testar ou ver se o servidor de Skills funciona, utilize `make test-skills`.
