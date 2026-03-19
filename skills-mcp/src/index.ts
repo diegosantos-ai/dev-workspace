@@ -71,11 +71,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "trigger_n8n_workflow") {
     const { webhookPath, payload = {} } = args as any;
     const n8nUrl = process.env.N8N_URL || "https://n8n.nexobasis.com.br";
-    
+
     try {
       const fullUrl = `${n8nUrl}/webhook/${webhookPath}`;
       const response = await axios.post(fullUrl, payload);
-      
+
       return {
         content: [
           {

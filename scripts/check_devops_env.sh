@@ -107,6 +107,11 @@ check_docker_access() {
     return
   fi
 
+  local is_docker_desktop="no"
+  if docker context ls 2>/dev/null | grep -q "desktop-linux"; then
+    is_docker_desktop="yes"
+  fi
+
   local in_group="no"
   local docker_status="unknown"
   local docker_error=""
@@ -124,8 +129,12 @@ check_docker_access() {
     if [[ "$in_group" == "yes" ]]; then
       echo "     Usuário no grupo docker: sim"
     else
-      echo "     Usuário no grupo docker: não"
-      echo "     Observação: acesso funcionando por outro contexto/sessão"
+      if [[ "$is_docker_desktop" == "yes" ]]; then
+        echo "     Docker Desktop detectado: sim (dispensa grupo 'docker')"
+      else
+        echo "     Usuário no grupo docker: não"
+        echo "     Observação: acesso funcionando por outro contexto/sessão"
+      fi
     fi
     return
   fi
@@ -137,9 +146,14 @@ check_docker_access() {
     echo "     Usuário no grupo docker: sim"
     echo "     Provável causa: sessão não recarregada corretamente ou daemon com problema"
   else
-    echo "     Usuário no grupo docker: não"
-    echo "     Ação: sudo usermod -aG docker \$USER"
-    echo "     Depois faça logout/login completo"
+    if [[ "$is_docker_desktop" == "yes" ]]; then
+      echo "     Docker Desktop instalado mas sem resposta."
+      echo "     Ação: Inicie o serviço com 'systemctl --user start docker-desktop'"
+    else
+      echo "     Usuário no grupo docker: não"
+      echo "     Ação: sudo usermod -aG docker \$USER"
+      echo "     Depois faça logout/login completo"
+    fi
   fi
 
   local err_text

@@ -29,6 +29,9 @@
       - python3-pip
       - pipx
       - gh
+      - pass
+      - qemu-kvm
+      - uidmap
 
     user: "{{ lookup('env', 'USER') }}"
 
@@ -116,9 +119,23 @@
       community.general.snap:
         name: "{{ item }}"
       loop:
-        - docker
         - termius-app
         - dbeaver-ce
+      ignore_errors: yes
+
+    - name: Baixar Docker Desktop (.deb)
+      get_url:
+        url: "https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb"
+        dest: "/tmp/docker-desktop.deb"
+        timeout: 120
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Instalar Docker Desktop
+      apt:
+        deb: "/tmp/docker-desktop.deb"
+        state: present
+        update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
       ignore_errors: yes
 
     - name: Baixar script de instalacao do instalador da AWS CLI

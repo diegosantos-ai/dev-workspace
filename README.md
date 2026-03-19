@@ -92,22 +92,22 @@ graph TD
         P2(🏗️ 2. Agente Executor)
         P3(🛡️ 3. Agente Revisor)
     end
-    
+
     %% Cargas Cognitivas
     AI -.->|Planeja e delega| P1
     AI -.->|Usa Templates Locais| P2
     AI -.->|Roda Lint / Pre-Commit| P3
-    
+
     %% Servidor e Comunicação
     AI -->|JSON-RPC via stdio| MCP[⚙️ Servidor MCP \n/skills-mcp]
-    
+
     %% Cockpit Local e Nuvem
     subgraph Cockpit Operacional
         MCP -->|Tool: check_qdrant_status| Q[(🧠 Memória Vetorial \nQdrant Local)]
         MCP -->|Tool: trigger_n8n_workflow| N8N[⚡ Orquestrador Cloud \nn8n Webhooks]
         N8N -.->|"Telemetria LLM"| LF[📊 Langfuse \nObservabilidade]
     end
-    
+
     %% Output
     Q -.->|Carrega Histórico de ADRs| AI
     N8N -->|Executa Deploys via Pipeline| Infra[☁️ Infraestrutura / Cloud]
@@ -116,7 +116,7 @@ graph TD
     classDef ai fill:#623CE4,stroke:#fff,stroke-width:2px,color:#fff;
     classDef mcp fill:#2496ED,stroke:#fff,stroke-width:2px,color:#fff;
     classDef governanca fill:#2F363D,stroke:#fff,color:#fff;
-    
+
     class AI ai;
     class MCP,Q,N8N,LF mcp;
     class P1,P2,P3 governanca;

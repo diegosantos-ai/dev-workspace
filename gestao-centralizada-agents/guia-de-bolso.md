@@ -1,6 +1,6 @@
 # 📘 Guia de Bolso: Operando a Plataforma de Agentes
 
-Este guia serve como a referência primária (Cheat Sheet) de uso no dia a dia para a **Gestão Centralizada de Agentes**. 
+Este guia serve como a referência primária (Cheat Sheet) de uso no dia a dia para a **Gestão Centralizada de Agentes**.
 
 ## 1. O que é essa Feature?
 Chega de *prompts* genéricos. Essa feature transforma a IA do seu editor (Ex: GitHub Copilot) em um funcionário de plataforma disciplinado. Ela entrega:
@@ -20,13 +20,13 @@ Chega de *prompts* genéricos. Essa feature transforma a IA do seu editor (Ex: G
 
 Ao abrir o chat da IA, em vez de pedir algo livre, você **anexa a Mente (Persona)** usando o comando `#file` e cita a regra do jogo:
 
-*   **Para Arquitetura & Planejamento:** 
+*   **Para Arquitetura & Planejamento:**
     *   *Prompt:* "Atue como o `#01-orquestrador.md`. Analise a pasta `docs-referencia` e me dê um ADR sobre adicionar um Redis à infra."
-*   **Para Código Infra/App:** 
+*   **Para Código Infra/App:**
     *   *Prompt:* "Atue como `#02-executor.md`. Gere o diretório `infra/redis` usando a base do nosso `#templates`. Não declare variáveis sem usar arquivos `.tfvars` isolados."
-*   **Para Revisão:** 
+*   **Para Revisão:**
     *   *Prompt:* "Atue como `#03-revisor.md`. Olhe a aba de Source Control, veja se as minhas edições YAML passariam no `make lint`."
-*   **Para Acionar Automações Reais:** 
+*   **Para Acionar Automações Reais:**
     *   *Prompt:* "Acesse a tool do MCP `trigger_n8n_workflow`, envie para webhook `deploy-prod` com payload `{'env': 'producao'}`."
 
 ---

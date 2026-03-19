@@ -41,6 +41,9 @@ check_docker() {
       echo "Containers em execução: $CONTAINERS_RUNNING"
     else
       echo -e "${YELLOW}[WARN]${NC} Docker instalado, mas daemon bloqueado ou offline"
+      if systemctl --user is-enabled docker-desktop >/dev/null 2>&1; then
+        echo -e "${YELLOW}[ACTION]${NC} Docker Desktop detectado. Para iniciar: systemctl --user start docker-desktop"
+      fi
     fi
   else
     echo -e "${RED}[MISSING]${NC} Docker não encontrado"
