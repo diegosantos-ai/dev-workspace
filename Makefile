@@ -2,7 +2,7 @@
 
 # ==============================================================================
 # Variável Global de Plataforma (Platform Engineering)
-# Permite que este Makefile seja copiado via 'adopt_governance' para qualquer
+# Permite que este Makefile seja copiado via 'adopt-governance' para qualquer
 # outro repositório cliente e continue ativando as automações centrais.
 # ==============================================================================
 # Verifica se estamos rodando de dentro do próprio diretório clonado para adotar raiz atual
@@ -47,7 +47,7 @@ env-check: ## Rodar verificação rápida de sanidade do sistema para o dia a di
 	@bash $(DEV_WORKSPACE)/sanidade-ambiente/scripts/daily-check.sh
 
 morning: ## Roda a rotina matinal (abre arquivos de playbook e executa o check)
-	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/open_devops_routine.sh
+	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/open-devops-routine.sh
 
 audit: ## Dispara script completo de auditoria do sistema operacional e CLI libs
 	@bash $(DEV_WORKSPACE)/sanidade-ambiente/scripts/env-audit.sh
