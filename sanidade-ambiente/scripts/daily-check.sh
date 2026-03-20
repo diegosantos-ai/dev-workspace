@@ -64,10 +64,11 @@ check_dir() {
 }
 
 check_docker_daemon() {
+    # Verifica tanto se o Info retorna (daemon online) quando se o socket permite leitura
     if docker info >/dev/null 2>&1; then
         COUNT_OK=$((COUNT_OK + 1))
     else
-        FAILS+=("Docker Daemon offline ou sem permissão. (Dica: systemctl start docker)")
+        FAILS+=("Docker Daemon offline ou sem permissão de acesso ao socket (Dica: systemctl start docker / usermod -aG docker)")
     fi
 }
 
@@ -79,19 +80,47 @@ check_git_repo() {
     fi
 }
 
+check_git_config() {
+    if git config user.name >/dev/null 2>&1 && git config user.email >/dev/null 2>&1; then
+        COUNT_OK=$((COUNT_OK + 1))
+    else
+        FAILS+=("Git não configurado. Defina user.name e user.email.")
+    fi
+}
+
+check_github_ssh() {
+    if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+        COUNT_OK=$((COUNT_OK + 1))
+    else
+        WARNS+=("SSH para GitHub não autenticado (ou chave ausente). Commit/Push podem falhar por permissão.")
+    fi
+}
+
+check_precommit_setup() {
+    if command -v pre-commit >/dev/null 2>&1; then
+        if [ -f ".git/hooks/pre-commit" ]; then
+            COUNT_OK=$((COUNT_OK + 1))
+        else
+            WARNS+=("pre-commit não foi ativado neste repositório. Rode 'pre-commit install' para ativar ou 'make bootstrap' para corrigir.")
+        fi
+    else
+        WARNS+=("Comando pre-commit não encontrado.")
+    fi
+}
+
 # ==============================================================================
 # Execução Simplificada
 # ==============================================================================
-echo -e "${BOLD}Iniciando Checagem Diária...${NC}"
+echo -e "${BOLD}Iniciando Checagem Diária do Ambiente DevOps...${NC}"
 
 # Core
 check_cmd "bash" "Interpretador Bash"
-check_cmd "git" "Git"
-check_cmd "make" "Make"
+check_cmd "git" "Git CLI"
+check_cmd "make" "Make (Orquestrador)"
 
 # Ferramentas
 check_cmd "docker" "Docker CLI"
-check_cmd "docker-compose" "Docker Compose" "WARN" # Fallback, a v2 usa plugin
+check_cmd "docker-compose" "Docker Compose V1" "WARN" # Fallback
 if ! docker compose version >/dev/null 2>&1; then
      WARNS+=("Docker Compose V2 (plugin) ausente ou desatualizado.")
 fi
@@ -101,22 +130,25 @@ check_cmd "pipx" "Gestor de Agentes (PIPX)" "WARN"
 # Operação
 check_docker_daemon
 check_git_repo
+check_git_config
+check_github_ssh
+check_precommit_setup
 check_dir "rotina-devops" "Módulo de Worklogs" "WARN"
 check_dir "sanidade-ambiente" "Módulo de Saúde (atual)" "FAIL"
 
 # ==============================================================================
 # Saída Desidratada (DX Elegante)
 # ==============================================================================
-echo -e "Verificados: ${BOLD}${COUNT_OK} itens OK${NC}.\n"
+echo -e "Verificados: ${BOLD}${COUNT_OK} itens reativos e operacionais${NC}.\n"
 
 if [ ${#FAILS[@]} -eq 0 ] && [ ${#WARNS[@]} -eq 0 ]; then
-    echo -e "${GREEN}✅ TUDO VERDE. Ambiente pronto para o trabalho!${NC}"
+    echo -e "${GREEN}✅ TUDO VERDE. Ambiente pronto e validado para o trabalho!${NC}"
     exit 0
 fi
 
 # Se houverem avisos (Não bloqueantes)
 if [ ${#WARNS[@]} -gt 0 ]; then
-    echo -e "${YELLOW}⚠️  Atenção (Opcionais faltantes):${NC}"
+    echo -e "${YELLOW}⚠️  Atenção (Opcionais ou Boas Práticas faltantes):${NC}"
     for w in "${WARNS[@]}"; do echo -e "  - $w"; done
     echo ""
 fi
@@ -125,10 +157,10 @@ fi
 if [ ${#FAILS[@]} -gt 0 ]; then
     echo -e "${RED}❌ FALHA ESTRUTURAL (Correção Necessária):${NC}"
     for f in "${FAILS[@]}"; do echo -e "  - $f"; done
-    echo -e "\n${BOLD}${RED}>>> AMBIENTE BLOQUEADO. RODE OS FIXES ANTES DE INICIAR. <<<${NC}"
+    echo -e "\n${BOLD}${RED}>>> AMBIENTE BLOQUEADO PARA PUSH. RODE OS FIXES ANTES DE INICIAR. <<<${NC}"
     exit 1
 fi
 
 # Retorna 0 mesmo com Warns, pois Warn não bloqueia pipeline.
-echo -e "${YELLOW}Ambiente liberado com restrições.${NC}"
+echo -e "${YELLOW}Ambiente operante, porém com restrições indicadas acima.${NC}"
 exit 0

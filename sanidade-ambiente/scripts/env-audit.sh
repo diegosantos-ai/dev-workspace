@@ -4,65 +4,85 @@ set -euo pipefail
 # ==============================================================================
 # Script: env-audit.sh
 # Propósito: Auditoria estendida do ambiente (Ferramentas, Versões e Segurança).
-# Status: Implementação Base Inicial (V1)
+# Status: Implementação V2 (Checks Operacionais)
 # ==============================================================================
 
-# Cores e Formatação
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
-
+RED='\033[0;31m'
 NC='\033[0m'
 
-# Diretório base para relatórios (resolve em relação a posição do script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPORT_DIR="${SCRIPT_DIR}/../reports"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 REPORT_FILE="${REPORT_DIR}/audit-${TIMESTAMP}.log"
 
-echo -e "${CYAN}======================================================================${NC}"
-echo -e "${CYAN}                AUDITORIA EXTENDIDA DE AMBIENTE (v1)                  ${NC}"
-echo -e "${CYAN}======================================================================${NC}"
-echo "Iniciando varredura detalhada de componentes e versões..."
+mkdir -p "$REPORT_DIR"
 
-# Redirecionando a saída padrão para terminal E para arquivo de log simultaneamente usando tee
+echo -e "${CYAN}======================================================================${NC}"
+echo -e "${CYAN}                AUDITORIA ESTENDIDA DE AMBIENTE (v2)                  ${NC}"
+echo -e "${CYAN}======================================================================${NC}"
+echo "Iniciando varredura detalhada e operacional..."
+
 {
     echo "========================================="
     echo " Relatório de Auditoria: $TIMESTAMP"
     echo "========================================="
 
-    echo -e "\n[ 1. Ferramentas Core e Versões ]"
+    echo -e "\n[ 1. Ferramentas Core e Operação Real ]"
     echo "-----------------------------------------"
-    if command -v docker >/dev/null 2>&1; then
-        echo "[ OK ] Docker: $(docker --version)"
+    if docker ps >/dev/null 2>&1; then
+        echo "[ OK ] Docker CLI: $(docker --version)"
+        echo "[ OK ] Docker Daemon: Respondendo (Socket OK)"
     else
-        echo "[ FAIL ] Docker CLI não instalado"
+        echo "[ FAIL ] Docker Daemon não responde ou CLI ausente"
     fi
 
-    if command -v python3 >/dev/null 2>&1; then
-        echo "[ OK ] Python: $(python3 --version)"
+    if command -v python3 >/dev/null 2>&1 && python3 -c 'print("OK")' >/dev/null 2>&1; then
+        echo "[ OK ] Python3: $(python3 --version) (Executável)"
     else
-        echo "[ FAIL ] Python3 não instalado"
+        echo "[ FAIL ] Python3 com problemas ou ausente"
     fi
 
     if command -v terraform >/dev/null 2>&1; then
         echo "[ OK ] Terraform: $(terraform --version | head -n 1)"
     else
-        echo "[ WARN ] Terraform não encontrado. (Ignorar se não atuar com IaC)"
+        echo "[ WARN ] Terraform não encontrado"
     fi
 
-    echo -e "\n[ 2. CI/CD Local (Shift-Left) ]"
+    echo -e "\n[ 2. Estado de Conectividade e Redes ]"
     echo "-----------------------------------------"
-    if command -v pre-commit >/dev/null 2>&1; then
-        echo "[ OK ] Pre-commit: Instalado e ativo no path"
+    if ping -c 1 github.com >/dev/null 2>&1 || curl -s -m 3 https://github.com >/dev/null; then
+        echo "[ OK ] Conectividade com github.com"
     else
-        echo "[ FAIL ] Pre-commit não encontrado. Risco em pipelines!"
+        echo "[ FAIL ] Sem acesso aos servidores do GitHub"
+    fi
+    ssh_out=$(ssh -T git@github.com 2>&1 || true)
+    if echo "$ssh_out" | grep -q "successfully authenticated"; then
+        echo "[ OK ] SSH Auth: GitHub conectado com sucesso"
+    else
+        echo "[ WARN ] SSH Auth: Sem acesso configurado de SSH ao GitHub"
     fi
 
-    if command -v shellcheck >/dev/null 2>&1; then
-        echo "[ OK ] Shellcheck: Presente para linting de scripts bash"
+    echo -e "\n[ 3. CI/CD Local (Shift-Left) ]"
+    echo "-----------------------------------------"
+    if pre-commit --version >/dev/null 2>&1; then
+        echo "[ OK ] Pre-commit Binary: $(pre-commit --version)"
     else
-        echo "[ WARN ] Shellcheck não instalado. Qualidade de scripts comprometida."
+        echo "[ FAIL ] Pre-commit CLI não encontrado no PATH"
+    fi
+
+    if [ -f "${SCRIPT_DIR}/../../.git/hooks/pre-commit" ]; then
+        echo "[ OK ] Pre-commit Hooks: Ativos no repositório local"
+    else
+        echo "[ FAIL ] Pre-commit Hooks inativos (Rode 'pre-commit install')"
+    fi
+
+    if shellcheck --version >/dev/null 2>&1; then
+        echo "[ OK ] Shellcheck: $(shellcheck --version | grep version: | awk '{print $2}')"
+    else
+        echo "[ WARN ] Shellcheck não está no PATH local."
     fi
 
     echo -e "\n========================================="
