@@ -61,6 +61,13 @@ test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de I
 	@cd $(DEV_WORKSPACE)/gestao-centralizada-agents/skills-mcp && npm install && npm run build
 	@echo "✅ Servidor MCP validado e pronto para consumo!"
 
+adopt: ## Enquadra um repositório externo nas regras da plataforma (uso: make adopt TARGET=/caminho/do/projeto)
+	@if [ -z "$(TARGET)" ]; then \
+		echo "Uso correto: make adopt TARGET=/caminho/do/projeto-legado"; \
+		exit 1; \
+	fi
+	@bash $(DEV_WORKSPACE)/gestao-centralizada-agents/scripts/adopt-governance.sh $(TARGET)
+
 # ==========================================
 # 📅 ROTINA DE DEVOPS (WORKLOG)
 # ==========================================

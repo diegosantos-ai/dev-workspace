@@ -3,9 +3,9 @@
 # set -e (Não utilizamos -e global aqui para evitar saída prematura do grep e comandos de verificação)
 
 TARGET_DIR="${1:-$(pwd)}"
-# Descobre dinamicamente a localização deste script (dev-workspace)
-WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-GOVERNANCE_TEXT="$WORKSPACE_DIR/templates/agent-governance-snippet.md"
+# Força o diretório raiz exato deste workspace baseando-se no caminho fixo deste repo principal
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+GOVERNANCE_TEXT="$WORKSPACE_DIR/gestao-centralizada-agents/agent-governance-snippet.md"
 
 echo "================================================="
 echo "[ INIT ] Iniciando Adoção de Governança (Dev-Workspace)"
