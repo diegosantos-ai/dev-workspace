@@ -4,7 +4,7 @@ Módulo core responsável por garantir que a infraestrutura local, agentes de IA
 
 ## 🎯 O Problema que Resolve
 
-Muitos dias de engenharia são desperdiçados rodando scripts sem perceber que o daemon do Docker falhou, que credenciais expiraram ou que os linters sumiram do `$PATH`. 
+Muitos dias de engenharia são desperdiçados rodando scripts sem perceber que o daemon do Docker falhou, que credenciais expiraram ou que os linters sumiram do `$PATH`.
 Ao invés de investigar problemas na hora do "apagão", a `sanidade-ambiente` age de forma pre-emptiva (*Shift-Left*), bloqueando execuções de risco e sinalizando problemas operacionais no minuto 0 do dia de trabalho.
 
 ## ⚙️ Diferença de Escopo
@@ -36,20 +36,20 @@ sanidade-ambiente/
 flowchart TD
     A[Início do Dia / Comando Make] --> B{make morning / make env-check}
     B --> C[Executa daily-check.sh]
-    
+
     C --> D{Analisa Ferramentas Base}
     D -->|Testa CLI| E[Docker, Git, Bash, Make]
-    
+
     C --> F{Analisa Motor e Agentes}
     F -->|Testa Dependências| G[Python3, PIPX]
-    
+
     C --> H{Analisa Operação}
     H -->|Testa Conectividade e Mounts| I[Docker Daemon & Diretórios Core]
 
     E --> J((Agregador de Status))
     G --> J
     I --> J
-    
+
     J -->|Nenhum FAIL| K[✅ SAUDÁVEL - Pronto para trabalho]
     J -->|> 0 WARN| L[⚠️ ATENÇÃO - Operacional mas com pendências]
     J -->|> 0 FAIL| M[❌ BLOQUEADO - Erro crasso, correção manual exigida]
@@ -58,13 +58,13 @@ flowchart TD
     classDef C_OK fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff;
     classDef C_WARN fill:#ca8a04,stroke:#333,stroke-width:2px,color:#fff;
     classDef C_FAIL fill:#dc2626,stroke:#333,stroke-width:2px,color:#fff;
-    
+
     class K C_OK;
     class L C_WARN;
     class M C_FAIL;
 ```
 
-**Legenda do Fluxo (30 segundos):** 
+**Legenda do Fluxo (30 segundos):**
 O trigger é acionado (manualmente ou pela rotina matinal). O script audita categorias operacionais divididas em Blocos de CLI (ferramentas vitais), Motores (Para as IAs locais não quebrarem) e Operação (Se o hardware/mounts estão ok). Logo em seguida compila tudo classificando como Seguro (Verde), Degradado (Amarelo) ou Falha Crítica de Infra (Vermelho).
 
 ---

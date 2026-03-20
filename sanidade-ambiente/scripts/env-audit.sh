@@ -11,7 +11,7 @@ set -euo pipefail
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
-RED='\033[0;31m'
+
 NC='\033[0m'
 
 # Diretório base para relatórios (resolve em relação a posição do script)
@@ -33,35 +33,35 @@ echo "Iniciando varredura detalhada de componentes e versões..."
 
     echo -e "\n[ 1. Ferramentas Core e Versões ]"
     echo "-----------------------------------------"
-    if command -v docker >/dev/null 2>&1; then 
+    if command -v docker >/dev/null 2>&1; then
         echo "[ OK ] Docker: $(docker --version)"
-    else 
+    else
         echo "[ FAIL ] Docker CLI não instalado"
     fi
 
-    if command -v python3 >/dev/null 2>&1; then 
+    if command -v python3 >/dev/null 2>&1; then
         echo "[ OK ] Python: $(python3 --version)"
-    else 
+    else
         echo "[ FAIL ] Python3 não instalado"
     fi
 
-    if command -v terraform >/dev/null 2>&1; then 
+    if command -v terraform >/dev/null 2>&1; then
         echo "[ OK ] Terraform: $(terraform --version | head -n 1)"
-    else 
+    else
         echo "[ WARN ] Terraform não encontrado. (Ignorar se não atuar com IaC)"
     fi
 
     echo -e "\n[ 2. CI/CD Local (Shift-Left) ]"
     echo "-----------------------------------------"
-    if command -v pre-commit >/dev/null 2>&1; then 
+    if command -v pre-commit >/dev/null 2>&1; then
         echo "[ OK ] Pre-commit: Instalado e ativo no path"
-    else 
+    else
         echo "[ FAIL ] Pre-commit não encontrado. Risco em pipelines!"
     fi
 
-    if command -v shellcheck >/dev/null 2>&1; then 
+    if command -v shellcheck >/dev/null 2>&1; then
         echo "[ OK ] Shellcheck: Presente para linting de scripts bash"
-    else 
+    else
         echo "[ WARN ] Shellcheck não instalado. Qualidade de scripts comprometida."
     fi
 

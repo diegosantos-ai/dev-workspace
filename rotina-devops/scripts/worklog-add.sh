@@ -27,7 +27,7 @@ if [[ $# -eq 0 ]]; then
     echo "📝 Adicionando Log (Modo Interativo)"
     echo "---------------------------------------------------------"
     read -r -p "▶ Projeto (ex: dev-workspace): " PROJETO
-    
+
     # Loop de Validação: Tipo
     while true; do
         read -r -p "▶ Tipo (planejamento|execucao|correcao|documentacao|estudo|manutencao): " TIPO
@@ -39,7 +39,7 @@ if [[ $# -eq 0 ]]; then
 
     read -r -p "▶ Ação (o que foi feito?): " ACAO
     read -r -p "▶ Resultado (qual foi a entrega?): " RESULTADO
-    
+
     # Loop de Validação: Impacto
     while true; do
         read -r -p "▶ Impacto (baixo|medio|alto): " IMPACTO

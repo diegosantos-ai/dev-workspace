@@ -3,7 +3,8 @@
 # set -e (Não utilizamos -e global aqui para evitar saída prematura do grep e comandos de verificação)
 
 TARGET_DIR="${1:-$(pwd)}"
-WORKSPACE_DIR="$HOME/dev-workspace"
+# Descobre dinamicamente a localização deste script (dev-workspace)
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 GOVERNANCE_TEXT="$WORKSPACE_DIR/templates/agent-governance-snippet.md"
 
 echo "================================================="

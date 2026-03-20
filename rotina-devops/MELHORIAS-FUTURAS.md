@@ -1,6 +1,6 @@
 # Backlog de Melhorias Futuras (Rotina DevOps)
 
-Este documento registra ideias de evolução para o sistema de worklog. 
+Este documento registra ideias de evolução para o sistema de worklog.
 **Regra de Ouro (Filtro de Qualidade):** Nenhuma sugestão aqui pode ser apenas "maquiagem" visual ou adicionar complexidade desnecessária. Toda melhoria deve reduzir o esforço cognitivo e manter a resiliência (idempotência e portabilidade) dos scripts, sem engessar a rotina do engenheiro.
 
 ---

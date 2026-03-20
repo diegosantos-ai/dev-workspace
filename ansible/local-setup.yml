@@ -32,6 +32,7 @@
       - pass
       - qemu-kvm
       - uidmap
+      - shellcheck
 
     user: "{{ lookup('env', 'USER') }}"
 
@@ -120,7 +121,18 @@
         name: "{{ item }}"
       loop:
         - termius-app
-        - dbeaver-ce
+      ignore_errors: yes
+
+    - name: Verificar se DBeaver já está instalado
+      shell: "command -v dbeaver-ce || command -v dbeaver || snap list dbeaver-ce || dpkg -l | grep -q dbeaver"
+      register: dbeaver_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Instalar DBeaver CE via Snap
+      community.general.snap:
+        name: dbeaver-ce
+      when: dbeaver_check.rc != 0
       ignore_errors: yes
 
     - name: Baixar Docker Desktop (.deb)

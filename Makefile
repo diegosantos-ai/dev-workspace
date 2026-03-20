@@ -5,7 +5,14 @@
 # Permite que este Makefile seja copiado via 'adopt_governance' para qualquer
 # outro repositório cliente e continue ativando as automações centrais.
 # ==============================================================================
-DEV_WORKSPACE ?= $(HOME)/dev-workspace
+# Verifica se estamos rodando de dentro do próprio diretório clonado para adotar raiz atual
+ifeq ($(shell basename $(CURDIR)),dev-workspace)
+    DEV_WORKSPACE_DEFAULT := $(CURDIR)
+else
+    DEV_WORKSPACE_DEFAULT := $(HOME)/dev-workspace
+endif
+
+DEV_WORKSPACE ?= $(DEV_WORKSPACE_DEFAULT)
 
 .PHONY: help setup lint test update dbg
 
