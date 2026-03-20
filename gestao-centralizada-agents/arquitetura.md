@@ -1,17 +1,19 @@
 # 📐 Arquitetura: Plataforma de Agentes
 
-## Como as partes se organizam e se relacionam?
-Atuamos com a premissa de um *Golden Path*, onde a máquina atua restrita aos limites de arquitetura definidos. Separamos responsabilidades em 3 camadas claras:
+## Topologia do Sistema
+Este repositório adota um modelo operacional estrito (Golden Path) para IAs. As responsabilidades são segregadas em três camadas arquiteturais para mitigar execuções destrutivas e alucinações.
 
-### 1. Engine de Orquestração (Controle e Workflows)
-- Todo o peso cíclico transacional reside no **n8n / Makefile Base**. Em vez de rodarmos múltiplos agentes independentes em loops no ar, nós empacotamos e atrelamos as tarefas principais ao orquestrador visual. Ele possui "Triggers" e "Nodes" validados.
+### 1. Engine de Orquestração (Workflows)
+A gestão de estado e sequenciamento de rotinas não é delegada à inferência do LLM. O orquestrador visual (n8n) e o CLI (Makefile) retêm o controle do ciclo de vida das requisições. 
 
-### 2. A Tríade de Agentes (Workers MVP)
-- **1. O Orquestrador (Manager):** Interpreta o desejo de software/setup e escolhe quais skills/ferramentas serão usadas. É o único capaz de encadear ferramentas MCP.
-- **2. O Executor (Criador):** Gera `Terraform`, lógicas em Python ou provisionamento através dos artefatos da plataforma (`templates/*`).
-- **3. O Crítico (Revisor Shift-Left):** Jamais escreve, ele apenas injeta restrições: aplica `tflint`, analisa `gitleaks` e confere se a saída do Criador respeitou a governança do workspace.
+### 2. Personas (Comportamentos Definidos)
+O fluxo de trabalho autônomo é balizado por três instâncias de contexto (Personas), cada uma com escopo e limitações bem definidas nas chamadas do servidor MCP:
 
-### 3. Ecossistema MCP (Memória e Habilidades)
-- **Diretório Local:** `dev-workspace/gestao-centralizada-agents/skills-mcp/`
-- **Por que MCP?:** Ao invés de um padrão limitante de `.md` consumido exclusivamente via scripts Python, nossas competências (ex: validar qualidade de dados, buscar senhas do dev-workspace e interagir com logs de IaC) se tornarão "Servidores de Ferramentas MCP". Isso significa que elas podem ser consumidas tanto por runtimes CLI na máquina principal quanto pela própria IDE (GitHub Copilot / Cursor).
-- **Observabilidade:** Um container dedicado (ex: Langfuse/ChromaDB leves) injetado ao projeto receberá logs sobre: "Quantos tokens foram gastos?" e "Por que o agente tomou essa decisão estrutural?". Esta é a nossa blindagem anti-alucinação persistente.
+- **Orquestrador (Kiro):** Atua como roteador de contexto. Interpreta a requisição inicial, mapeia os artefatos locais, consulta os Architecture Decision Records (ADRs) e distribui a carga de execução. É proibido de gerar código final diretamente.
+- **Executor (Dev):** Atua na síntese. Gera scripts e módulos Terraform baseando-se estritamente na árvore de `templates/`. Garante a aplicação de idempotência e de separação de ambientes definida pela plataforma.
+- **Revisor (Shift-Left):** Atua na auditoria. Valida a configuração por meio de ferramentas estáticas (`make lint`, `tflint`, `shellcheck`, `gitleaks`). Bloqueia qualquer PR ou refatoração que apresente credenciais em plain text ou contornos locais (`ignore_errors`).
+
+### 3. Integração com Servidor MCP (Skills)
+- **Caminho Fisico:** `dev-workspace/gestao-centralizada-agents/skills-mcp/`
+- **Justificativa Operacional:** O uso do protocolo Model Context Protocol (MCP) padroniza a entrega e a consumição de ferramentas (`skills`) de forma agnóstica às extensões da IDE (Copilot/Cursor) e CLI. As integrações via APIs (GitHub, Gerenciadores de Senha, Terraform Cloud) operam via JSON-RPC restrito.
+- **Camada de Memória:** Estruturas relacionais em um vector database (ex: Qdrant) garantem persistência de contexto em sessões distintas, permitindo rastrear o histórico de decisões e custo de inferência (observabilidade LLMOps).
