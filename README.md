@@ -1,131 +1,181 @@
-Esses passos garantem que sua estação esteja no estado padronizado pela plataforma.
 # Personal Dev Workspace — Platform Engineering (Cloud & MLOps)
 
-Bem-vindo ao repositório central de automação e plataforma. Este projeto define e aplica as políticas, ferramentas e padrões que mantenho como base para todas as minhas estações de trabalho e repositórios de infraestrutura.
+Repositório central para padronização de ambiente de desenvolvimento, automação local, templates de infraestrutura, rotinas operacionais e organização de ferramentas de apoio para engenharia de plataforma.
 
-![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Quality-2F363D?style=for-the-badge)
-
----
-
-## ![ARQUITETURA](https://img.shields.io/badge/-ARQUITETURA-2F363D?style=for-the-badge) Visão geral
-
-Este repositório agrupa:
-
-- Automação de estação (Ansible / scripts)
-- Dotfiles e symlinks (GNU Stow)
-- Modelos e módulos de infraestrutura (Terraform)
-- Regras de governança e agentes (AGENTS.md, ADRs)
-
-Mantemos a **Segurança Shift-Left** com `pre-commit` e detecção local de segredos para evitar vazamento antes do push.
+![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Quality-2F363D?style=for-the-badge) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 
 ---
 
-## ![ENTRYPOINT](https://img.shields.io/badge/-ENTRYPOINT-2F363D?style=for-the-badge) Primeiros passos
+## Visão geral
 
-1. Bootstrap (máquina nova):
+Este repositório consolida os principais componentes do meu workspace de engenharia de plataforma. O objetivo é manter um ambiente reproduzível, organizado e versionado, com foco em:
+
+- automação de setup local
+- gerenciamento de dotfiles
+- templates de infraestrutura com Terraform
+- rotinas operacionais e checklists
+- validações locais de qualidade e sanidade
+- organização de apoio para uso controlado de agentes de IA
+
+A proposta é reduzir configuração manual, aumentar previsibilidade e manter um padrão único para operação e evolução do ambiente de trabalho.
+
+---
+
+## Estrutura do projeto
+
+O repositório está organizado em cinco frentes principais:
+
+1. **Automação de máquina e dotfiles**  
+   Provisionamento e configuração do ambiente local com Ansible, scripts de bootstrap e GNU Stow.
+
+2. **Infraestrutura como código**  
+   Templates e estruturas reutilizáveis em Terraform para provisionamento e experimentação em cloud.
+
+3. **Governança de agentes de IA**  
+   Documentação, regras operacionais e integrações locais para uso mais controlado de ferramentas assistidas por IA.
+
+4. **Rotina operacional**  
+   Checklists, playbooks e apoio à rotina de trabalho diária.
+
+5. **Qualidade e validação**  
+   Hooks locais, linting e verificações de ambiente antes de alterações ou pushes.
+
+---
+
+## Entrypoints principais
+
+O `Makefile` concentra os comandos mais usados no dia a dia e funciona como ponto de entrada do repositório.
 
 ```bash
-./scripts/setup-machine.sh
-```
-
-2. Aplicar playbook principal (instala Ansible se necessário):
-
-```bash
-make setup-workstation
-```
-
-3. Ativar dotfiles (stow):
-
-```bash
-cd dotfiles
-stow zsh
-stow git
-stow vscode
-```
+make help          # Lista os comandos disponíveis
+make setup         # Bootstrap inicial da máquina e aplicação de dotfiles
+make lint          # Executa validações locais e pre-commit
+make env-check     # Verifica a sanidade do ambiente
+make morning       # Inicia a rotina operacional da manhã
+make log           # Registra atualizações no worklog
+````
 
 ---
 
-## ![DEV_&_CLOUD](https://img.shields.io/badge/-DEV_&_CLOUD-2F363D?style=for-the-badge) Rotinas principais
+## Automação de máquina
 
-Use o `Makefile` como ponto de entrada para tarefas comuns:
+A configuração local segue um fluxo baseado em bootstrap via shell, aplicação de playbooks com Ansible e gerenciamento de dotfiles com GNU Stow.
 
-```bash
-make format      # formata código / terraform
-make lint        # roda linters locais e pre-commit
-make test        # executa testes unitários
-```
+### Componentes principais
 
-Para infra (ex.: `templates/terraform-aws-base/envs/dev`):
+* **`ansible/local-setup.yml`**
+  Playbook principal para configuração da máquina local, incluindo pacotes, shell, repositórios e serviços base.
 
-```bash
-cd gestao-centralizada-agents/infra/<stack>/envs/dev
-make plan
-make apply
-```
+* **`dotfiles/`**
+  Arquivos de configuração versionados para shell, editor, Git e outras ferramentas do ambiente.
+
+Esse modelo permite reproduzir a estação de trabalho com menos configuração manual e com maior controle sobre mudanças.
 
 ---
 
-## ![CHECKLISTS](https://img.shields.io/badge/-CHECKLISTS-2F363D?style=for-the-badge) Operações diárias
+## Infraestrutura com Terraform
 
-Consulte `playbooks/` para runbooks, checklist de início de dia e procedimentos de validação.
+O diretório `templates/` reúne estruturas reutilizáveis para provisionamento em cloud, com separação entre módulos e ambientes.
+
+### Princípios adotados
+
+* **modularização**
+  Recursos e lógica ficam isolados em `modules/`.
+
+* **separação por ambiente**
+  Contextos como `dev` e `prod` são consumidos em `envs/`, com variáveis e estado próprios.
+
+* **gestão de credenciais fora do código**
+  Secrets e credenciais não devem ser versionados nem hardcoded no repositório.
+
+A intenção é manter os templates reutilizáveis, legíveis e seguros para evolução posterior.
 
 ---
 
-## Governança e Agentes
+## Validação local e workflows
 
-Leia `AGENTS.md` e os ADRs em `docs-referencia/adr/` antes de submeter alterações significativas. As regras definem padrões de idempotência, segurança e separação de responsabilidades entre módulos e ambientes.
+O repositório adota validações locais para reduzir erro operacional e evitar problemas simples antes de chegar em CI.
+
+### Camadas de validação
+
+* **`pre-commit`**
+  Execução de hooks para lint, validação de arquivos e detecção de problemas comuns.
+
+* **ferramentas de verificação**
+  Uso de utilitários como `shellcheck`, validações YAML e scanners de secrets, conforme configurado no projeto.
+
+* **checagens de ambiente**
+  Scripts em `sanidade-ambiente/` ajudam a verificar se dependências e ferramentas essenciais estão disponíveis e consistentes.
+
+* **GitHub Actions**
+  Estrutura preparada para execução de validações automatizadas em pull requests e pipelines.
 
 ---
 
-## ![IA_AGENTS](https://img.shields.io/badge/-IA_&_AGENTES-8A2BE2?style=for-the-badge) Gestão Centralizada de Agentes (AI Cockpit)
+## Rotina operacional
 
-Para manter a governança arquitetural com uso de IA (ex: GitHub Copilot), foi desenvolvida uma **Plataforma de Agentes em Tríade** conectada a um Servidor MCP, garantindo que IAs codifiquem seguindo nossos templates, possuam memória do projeto e executem webhooks em nuvem.
+Além da automação técnica, o repositório também concentra material de apoio para organização operacional do dia a dia.
+
+### Diretórios relacionados
+
+* **`playbooks/`**
+  Documentação de processo, guias rápidos e referências operacionais.
+
+* **`rotina-devops/`**
+  Checklists, anotações de rotina e apoio à organização de trabalho e acompanhamento de contexto.
+
+Essa parte existe para dar suporte à execução com mais clareza, previsibilidade e continuidade entre sessões de trabalho.
+
+---
+
+## Gestão de agentes de IA
+
+O repositório também inclui uma camada de organização para uso de agentes de IA com regras, contexto e integrações locais.
 
 ```mermaid
 graph TD
-    %% Entidades Principais
-    User[👨‍💻 Engenheiro de Software] -->|Contexto via Chat e Prompts| AI{🤖 Agente de IA / Copilot}
+    User[Engenheiro de Software] -->|Contexto via prompts| AI[Agente de IA]
 
-    %% Matriz de Personas (Regras)
-    subgraph Governança Restrita
-        P1(📐 1. Agente Orquestrador)
-        P2(🏗️ 2. Agente Executor)
-        P3(🛡️ 3. Agente Revisor)
+    subgraph Governança
+        P1[Agente Orquestrador]
+        P2[Agente Executor]
+        P3[Agente Revisor]
     end
 
-    %% Cargas Cognitivas
-    AI -.->|Planeja e delega| P1
-    AI -.->|Usa Templates Locais| P2
-    AI -.->|Roda Lint / Pre-Commit| P3
+    AI -.->|Planejamento| P1
+    AI -.->|Execução guiada| P2
+    AI -.->|Validação e revisão| P3
 
-    %% Servidor e Comunicação
-    AI -->|JSON-RPC via stdio| MCP[⚙️ Servidor MCP \n/gestao-centralizada-agents/skills-mcp]
+    AI -->|JSON-RPC via stdio| MCP[Servidor MCP]
 
-    %% Cockpit Local e Nuvem
-    subgraph Cockpit Operacional
-        MCP -->|Tool: check_qdrant_status| Q[(🧠 Memória Vetorial \nQdrant Local)]
-        MCP -->|Tool: trigger_n8n_workflow| N8N[⚡ Orquestrador Cloud \nn8n Webhooks]
-        N8N -.->|"Telemetria LLM"| LF[📊 Langfuse \nObservabilidade]
+    subgraph Integrações
+        MCP --> Q[Qdrant Local]
+        MCP --> N8N[n8n]
     end
-
-    %% Output
-    Q -.->|Carrega Histórico de ADRs| AI
-    N8N -->|Executa Deploys via Pipeline| Infra[☁️ Infraestrutura / Cloud]
-
-    %% Estilos
-    classDef ai fill:#623CE4,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef mcp fill:#2496ED,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef governanca fill:#2F363D,stroke:#fff,color:#fff;
-
-    class AI ai;
-    class MCP,Q,N8N,LF mcp;
-    class P1,P2,P3 governanca;
 ```
 
-### 🧩 Entendendo o Fluxo (Legenda):
-- **O Cérebro Limitado (Personas)**: A inteligência artificial neste repositório não tem permissão para escrever código "free-style". Ela é forçada a assumir o papel restrito de arquitetura, execução (copiando templates) ou de auditor severo (Shift-Left).
-- **O Tradutor (Servidor MCP)**: É um motor TypeScript local que ensina para as IAs como interagir com as ferramentas da nossa plataforma.
-- **A Memória (Qdrant Vector DB)**: Roda embarcado localmente. Permite à IA resgatar "experiências passadas" e diretrizes para ter contexto _antes_ de conversar com o usuário.
-- **Os Braços Mecânicos (n8n + Langfuse)**: Em vez do Agente cuspir scripts Python inseguros, ele aperta "botões" no n8n na nuvem, que por sua vez cuida da orquestração real sem expor nossa máquina. O Langfuse rastreia todo custo, tokens e falhas desse fluxo em uma dashboard.
+Essa estrutura é usada para apoiar fluxos locais com mais controle sobre contexto, papéis e ferramentas disponíveis.
 
-> 💡 **Para operar a IA no dia a dia**, leia o **[Guia de Bolso Oficial](gestao-centralizada-agents/guia-de-bolso.md)** contendo os atalhos e promptings reais.
+Para uso prático, consulte o guia em:
+
+`gestao-centralizada-agents/guia-de-bolso.md`
+
+---
+
+## Objetivo do repositório
+
+Este workspace existe para centralizar o que sustenta meu ambiente de trabalho em engenharia de plataforma:
+
+* setup local reproduzível
+* configuração versionada
+* automação de tarefas recorrentes
+* templates de infraestrutura
+* validação antes de mudança
+* apoio operacional no dia a dia
+
+A prioridade aqui não é manter um ambiente utilizável, consistente e fácil de evoluir.
+
+---
+
+
+```
