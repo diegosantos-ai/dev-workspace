@@ -29,7 +29,7 @@ else
 fi
 
 echo "Executing Ansible Playbook..."
-WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$WORKSPACE_DIR"
 
 ANSIBLE_HOST_KEY_CHECKING=False LC_ALL=C.UTF-8 ansible-playbook ansible/local-setup.yml --extra-vars "user=$REAL_USER"

@@ -47,7 +47,7 @@ cd ~/caminho/para/seu/projeto-em-andamento
 
 **2. Execute o Scaffolder de Governança do Dev-Workspace:**
 ```bash
-~/dev-workspace/gestao-centralizada-agents/scripts/adopt_governance.sh .
+~/dev-workspace/gestao-centralizada-agents/scripts/adopt-governance.sh .
 ```
 *O que faz:* Roda o script da plataforma apontando para o diretório atual (`.`). Ele proativamente confere se há repositório Git, instala silenciosamente o núcleo do pre-commit via Python, injeta as regras de verificação `.pre-commit-config.yaml`, traz o Entrypoint (`Makefile`) e copia o manifesto `AGENTS.md`.
 

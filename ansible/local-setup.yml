@@ -32,6 +32,7 @@
       - pass
       - qemu-kvm
       - uidmap
+      - shellcheck
 
     user: "{{ lookup('env', 'USER') }}"
 
@@ -62,13 +63,6 @@
       register: stow_output
       changed_when: "'LINK' in stow_output.stderr"
 
-    - name: Restaurar backup de configurações
-      become_user: "{{ user }}"
-      unarchive:
-        src: "{{ playbook_dir }}/../backup-setup.tar.gz"
-        dest: "/home/{{ user }}"
-        remote_src: yes
-        creates: "/home/{{ user }}/.config/Code/User/settings.json"
 
     # Custom additions for DevOps Checklist
     - name: Garantir que Zsh seja o shell padrão
@@ -82,21 +76,18 @@
         repo: https://github.com/ohmyzsh/ohmyzsh.git
         dest: "/home/{{ user }}/.oh-my-zsh"
         depth: 1
-      ignore_errors: yes
 
     - name: Instalar Zsh autosuggestions
       become_user: "{{ user }}"
       git:
         repo: https://github.com/zsh-users/zsh-autosuggestions
         dest: "/home/{{ user }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
-      ignore_errors: yes
 
     - name: Instalar Zsh syntax highlighting
       become_user: "{{ user }}"
       git:
         repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
         dest: "/home/{{ user }}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-      ignore_errors: yes
 
     - name: Instalar ASDF
       become_user: "{{ user }}"
@@ -104,7 +95,6 @@
         repo: https://github.com/asdf-vm/asdf.git
         dest: "/home/{{ user }}/.asdf"
         version: v0.14.0
-      ignore_errors: yes
 
     - name: Instalar pacotes via Snap (Modo Classico)
       community.general.snap:
@@ -113,15 +103,25 @@
       loop:
         - code
         - kubectl
-      ignore_errors: yes
+      failed_when: false # Ignore if Snap is broken/missing (e.g. WSL)
 
     - name: Instalar pacotes via Snap (Modo Normal)
       community.general.snap:
         name: "{{ item }}"
       loop:
         - termius-app
-        - dbeaver-ce
-      ignore_errors: yes
+      failed_when: false
+
+    - name: Verificar se DBeaver já está instalado
+      shell: "command -v dbeaver-ce || command -v dbeaver || snap list dbeaver-ce || dpkg -l | grep -q dbeaver"
+      register: dbeaver_check
+      changed_when: false
+
+    - name: Instalar DBeaver CE via Snap
+      community.general.snap:
+        name: dbeaver-ce
+      when: dbeaver_check.rc != 0
+      failed_when: false
 
     - name: Baixar Docker Desktop (.deb)
       get_url:
@@ -136,7 +136,6 @@
         state: present
         update_cache: yes
       when: ansible_facts['os_family'] == "Debian"
-      ignore_errors: yes
 
     - name: Baixar script de instalacao do instalador da AWS CLI
       unarchive:
@@ -169,11 +168,10 @@
 
     - name: Instalar extensoes do VS Code
       become_user: "{{ user }}"
-      command: "code --install-extension {{ item }} --force"
+      shell: "command -v code > /dev/null && code --install-extension {{ item }} --force || true"
       loop:
         - GitHub.copilot
         - HashiCorp.terraform
         - ms-azuretools.vscode-docker
         - ms-python.python
         - ms-kubernetes-tools.vscode-kubernetes-tools
-      ignore_errors: yes

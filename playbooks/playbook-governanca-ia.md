@@ -1,36 +1,34 @@
-# 🧠 Playbook: Governança de IA (LLM, Copilot, MCP)
+# Manual de Operação: Governança de Agentes IA
 
-Este guia resolve o problema das "IAs Frankenstein", garantindo que qualquer grande modelo de linguagem (LLM) atuando localmente na sua máquina trabalhe sob as exatas mesmas regras e mantenha seu ambiente limpo.
+Este documento define as regras arquiteturais, diretrizes de system prompting e boas práticas para operação de grandes modelos de linguagem (LLMs) neste ambiente e em projetos derivados.
 
----
+## 1. Escopo e Referência Absoluta (Prompt-base)
 
-## 1. O Problema do "Espaço Absurdo" e Copiar Pastas
-Você **NÃO** precisa copiar regras (`AGENTS.md`) soltas para dentro da pasta de cada cliente que você atende, poluindo o Git deles.
+Agentes autônomos e assistentes de código não devem operar sem carregamento de contexto. A injeção de instruções (`System Prompt`) deve referenciar o repositório central (`dev-workspace`) em vez de manter cópias não atualizadas de diretrizes (`AGENTS.md`) em cada repositório-cliente.
 
-**A Solução de "Referência Absoluta":**
-Sempre que ligar um modelo (Cursor, Cline, Github Copilot, Claude CLI) num projeto legado, inicie o Chat com este prompt-base (Mestre):
-> *"Atue como Senior Platform Engineer. Antes de me sugerir qualquer refatoração, leia estritamente as regras de ouro documentadas no arquivo global em: `~/dev-workspace/playbooks/playbook-padrao-operacional-trabalho.md`."*
+**Prompt Oficial de Inicialização de Sessão:**
+> "Atue como Senior Platform Engineer. Antes de sugerir implementações, carregue e submeta-se estritamente às regras documentadas no arquivo global em: `~/docs/dev-workspace/AGENTS.md`."
 
-No caso do VS Code (Copilot), resolvemos isso definindo a configuração: `github.copilot.chat.codeGeneration.instructions` global no seu `settings.json`. O modelo injeta essa instrução a cada mensagem sua sem você perceber. Acabei de ativar isso no seu Setup.
+No Visual Studio Code (Copilot/Cline), esta diretriz é injetada automaticamente via `github.copilot.chat.codeGeneration.instructions` ou `.cursorrules` no nível global de configuração de usuário (`~/.config/Code/User/settings.json`).
 
----
+## 2. Gestão de Servidores MCP (Model Context Protocol)
 
-## 2. Dieta de Servidores MCP (Model Context Protocol)
-Seu log acusou um JSON colossal de Servidores MCP simultâneos instalados.
-*O problema:* Cada MCP age como uma "ferramenta na mão da IA". Se você dá acesso a banco de dados, browser, CLI bash, Jira e fetch websockets ao mesmo tempo, a IA "alucina" tentando usar todas e frequentemente recusa ações simples achando que precisa chamar um servidor.
+O excesso de servidores MCP ativos simultaneamente degrada a precisão do agente e induz alucinação de ferramentas. 
 
-**Regra do Zero Trust MCP:**
-1. **Desative tudo que não usar hoje:** O `mcp.json` deve ter idealmente 1 a 3 servidores vitais para o projeto do dia.
-2. **Separe Especialidades:**
-   - Se for dia de mexer em **Infra/Terraform**, desative os MCPs de Playwright (Navegador) ou Busca Web e deixe a IA ciente apenas de Bash (Terminal) local.
-   - Se o dia for debugar **UI/FrontEnd**, desative os MCPs de AWS/DB e ligue a automação de navegadores.
+**Regras de Operação MCP:**
+1. **Princípio de Mínimo Privilégio:** Mantenha ativos no arquivo de configuração do MCP apenas os servidores cruciais para a operação ativa.
+2. **Segregação de Especialidade:**
+   - **Operações IaC/Backend:** Ative integração de Terminal (Bash), File System e Memória (Qdrant). Desative buscas web ou renderização de browser.
+   - **Operações E2E/Frontend:** Ative Playwright/Browser e N8N. Desative acesso de credenciais root CLI. 
 
----
+## 3. Conformidade Orientada por Linting (Shift-Left)
 
-## 3. Os 3 Padrões para Domesticar Diferentes LLMs
-Cada IA (Claude, Gemini, OpenAI) possui um "estilo" nativo (O Claude é verboso, a OpenAI pende mais para refazer funções invés de consertar, e o Gemini gosta de listar recursos). Para alinhar, sempre utilize o nosso `.pre-commit`:
+Agentes de IA (Claude, OpenAI, Gemini) possuem vieses formativos variados. A unificação de saída de código deve ser mediada por validação estática de máquina, e não por ajustes de sintaxe em linguagem natural.
 
-Seja qual for a IA que desenhou seu código, **não corrija à mão**.
-Rode `make lint` ou `pre-commit run`. A **sua máquina dita as regras** com o `tflint/checkov/shellcheck`. Pegue o erro que a máquina gerou vermelho e jogue no chat da IA:
-> *"O Linter oficial da plataforma recusou seu código com este erro: [ERRO]. Conserte obedecendo a regra, não crie workarounds."*
-Isso corta as "teimosias arquiteturais" de IAs diferentes num instante, pois elas devem submissão aos linters locais.
+**Procedimento Padrão para Resolução de Conflitos LLM:**
+1. Solicite a geração do código ao agente.
+2. Não realize correções manuais de viés. Acione o framework de validação arquitetural via terminal (`make lint` ou `pre-commit run`).
+3. Em caso de falha, repasse as mensagens de standard error (STDERR) literais ao modelo com a instrução:
+> "A validação estática local rejeitou a implementação com a saída abaixo. Corrija o código sem usar workarounds ou suprimir regras: [ERRO_LINTER]"
+
+Este método garante que componentes de CI (TFLint, Shellcheck, Gitleaks, Checkov) configurem o comportamento aceitável final da IA.
