@@ -493,45 +493,78 @@ Critérios objetivos para dizer que o projeto já pode ser usado como referênci
 
 ## Prioridade alta
 
-* 1.1 Definir estrutura oficial do repositório
-* 1.2 Revisar raiz do repositório
-* 1.3 Saneamento de naming
-* 2.1 Inventariar dependências do workspace
-* 2.2 Definir política de versionamento
-* 2.3 Declarar sistema operacional suportado
-* 2.4 Definir padrão de variáveis de ambiente
-* 2.5 Definir política de secrets
-* 3.1 Mapear fluxo real de setup
-* 3.2 Separar bootstrap, setup e pós-setup
-* 3.5 Definir critério de “máquina pronta”
-* 3.6 Fortalecer checks de sanidade
+* [x] 1.1 Definir estrutura oficial do repositório
+* [x] 1.2 Revisar raiz do repositório
+* [x] 1.3 Saneamento de naming
+* [x] 2.1 Inventariar dependências do workspace
+* [x] 2.2 Definir política de versionamento
+* [x] 2.3 Declarar sistema operacional suportado
+* [x] 2.4 Definir padrão de variáveis de ambiente
+* [x] 2.5 Definir política de secrets
+* [x] 3.1 Mapear fluxo real de setup
+* [x] 3.2 Separar bootstrap, setup e pós-setup
+* [x] 3.5 Definir critério de “máquina pronta”
+* [ ] 3.6 Fortalecer checks de sanidade
 
 ## Prioridade média
 
-* 3.3 Revisar o papel do Makefile
-* 3.4 Revisar artefatos que comprometem previsibilidade
-* 3.7 Revisar tratamento de erros no setup
-* 4.1 Reescrever README principal
-* 4.2 Criar documentação de Getting Started
-* 4.3 Criar guia de estrutura do repositório
-* 4.4 Criar troubleshooting mínimo
-* 4.5 Criar rotina de manutenção e revalidação
+* [ ] 3.3 Revisar o papel do Makefile
+* [ ] 3.4 Revisar artefatos que comprometem previsibilidade
+* [ ] 3.7 Revisar tratamento de erros no setup
+* [ ] 4.1 Reescrever README principal
+* [ ] 4.2 Criar documentação de Getting Started
+* [ ] 4.3 Criar guia de estrutura do repositório
+* [ ] 4.4 Criar troubleshooting mínimo
+* [ ] 4.5 Criar rotina de manutenção e revalidação
 
 ## Prioridade baixa
 
-* 5.1 Definir posicionamento oficial do projeto
-* 5.2 Declarar limitações e fronteiras
-* 5.3 Definir critérios mínimos de adoção por terceiros
+* [ ] 1.4 Separar oficial, pessoal e experimental
+* [ ] 5.1 Definir posicionamento oficial do projeto
+* [ ] 5.2 Declarar limitações e fronteiras
+* [ ] 5.3 Definir critérios mínimos de adoção por terceiros
 
-# Sprint inicial recomendada
+---
 
+# Plano de Sprints (Execução)
 
-1. 1.1 Definir estrutura oficial do repositório
-2. 1.3 Saneamento de naming
-3. 2.1 Inventariar dependências do workspace
-4. 2.3 Declarar sistema operacional suportado
-5. 3.1 Mapear fluxo real de setup
-6. 3.5 Definir critério de “máquina pronta”
+O backlog foi distribuído em Sprints focadas na entrega de valor e consolidação da fundação técnica, sem acumular tarefas soltas.
 
-Esses 6 dão base para todo o resto.
+## Sprint 1: Fundação e Inventário (✅ CONCLUÍDA)
+1. [x] 1.1 Definir estrutura oficial do repositório
+2. [x] 1.3 Saneamento de naming
+3. [x] 2.1 Inventariar dependências do workspace
+4. [x] 2.3 Declarar sistema operacional suportado
+5. [x] 3.1 Mapear fluxo real de setup
+6. [x] 3.5 Definir critério de “máquina pronta”
+
+## Sprint 2: Saneamento e Segurança de Base (✅ CONCLUÍDA)
+Foca na limpeza visual da raiz, segurança e controle das dependências e variáveis de ambiente.
+1. [x] 1.2 Revisar raiz do repositório
+2. [x] 2.2 Definir política de versionamento
+3. [x] 2.4 Definir padrão de variáveis de ambiente
+4. [x] 2.5 Definir política de secrets
+5. [x] 3.2 Separar bootstrap, setup e pós-setup
+
+## Sprint 3: Maturidade de Execução e Sanidade (Em Fila)
+Foca em refatorar o Makefile e atestar que tanto o setup quanto a máquina respondam assertivamente aos tickets 3.x.
+1. [ ] 3.3 Revisar o papel do Makefile como interface principal
+2. [ ] 3.4 Revisar artefatos que comprometem previsibilidade
+3. [ ] 3.6 Fortalecer checks de sanidade
+4. [ ] 3.7 Revisar tratamento de erros no setup
+
+## Sprint 4: Onboarding e Documentação Base (Em Fila)
+Voltado totalmente para a experiência de adoção e documentação primária.
+1. [ ] 1.4 Separar oficial, pessoal e experimental
+2. [ ] 4.1 Reescrever README principal como entrada do projeto
+3. [ ] 4.2 Criar documentação de Getting Started
+4. [ ] 4.3 Criar guia de estrutura do repositório
+
+## Sprint 5: Referência, Manutenção e Limites (Em Fila)
+Polimento final do produto assumido enquanto Referência de Mercado e sua rotina.
+1. [ ] 4.4 Criar troubleshooting mínimo
+2. [ ] 4.5 Criar rotina de manutenção e revalidação
+3. [ ] 5.1 Definir posicionamento oficial do projeto
+4. [ ] 5.2 Declarar limitações e fronteiras
+5. [ ] 5.3 Definir critérios mínimos de adoção por terceiros
 
