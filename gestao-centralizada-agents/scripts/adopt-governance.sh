@@ -17,5 +17,9 @@ if [ ! -f "$TARGET_DIR/Makefile" ]; then
     cp "$MANIFEST_DIR/Makefile" "$TARGET_DIR/Makefile"
 fi
 
+if [ ! -f "$TARGET_DIR/docker-compose.yml" ]; then
+    cp "$TEMPLATE_DIR/docker/docker-compose.yml" "$TARGET_DIR/docker-compose.yml"
+fi
+
 cd "$TARGET_DIR" || exit
 pre-commit install

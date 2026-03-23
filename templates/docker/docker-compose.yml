@@ -1,0 +1,15 @@
+services:
+  # Substitua 'app' pelo nome do seu serviço (ex: api, worker_n8n, front)
+  app:
+    image: alpine:latest
+    command: tail -f /dev/null
+    networks:
+      - dev-workspace-net
+    # Exemplo utilizando o banco unificado (infra-core)
+    # environment:
+    #   - DATABASE_URL=postgres://postgres:postgres@postgres:5432/meu_projeto_db
+
+networks:
+  dev-workspace-net:
+    external: true
+    name: dev-workspace-net

@@ -14,7 +14,7 @@ endif
 
 DEV_WORKSPACE ?= $(DEV_WORKSPACE_DEFAULT)
 
-.PHONY: help setup setup-agents lint update env-check morning audit test-skills day-start log day-close week-close
+.PHONY: help setup setup-agents lint update env-check morning audit test-skills day-start log day-close week-close infra-up infra-down
 
 # Cores para output
 CYAN := \033[36m
@@ -37,7 +37,20 @@ setup: ## Bootstrapping inicial da máquina (instala OS packages e aplica dotfil
 	@bash $(DEV_WORKSPACE)/ansible/scripts/setup-machine.sh
 
 # ==========================================
-# 🛡️ QUALIDADE & AUDITORIA
+# � INFRAESTRUTURA CORE (DOCKER Shared)
+# ==========================================
+infra-up: ## Inicia e orquestra todos os servicos da infraestrutura unificada no host
+	@echo "Subindo Infraestrutura Core (Traefik, Postgres, Redis, Chroma, MLFlow)..."
+	@docker network create dev-workspace-net || true
+	@cd $(DEV_WORKSPACE)/infra-core && docker compose up -d
+	@echo "✅ Infraestrutura base disponível na rede 'dev-workspace-net'."
+
+infra-down: ## Desliga os servicos da infraestrutura unificada
+	@echo "Desligando a infraestrutura core..."
+	@cd $(DEV_WORKSPACE)/infra-core && docker compose down
+
+# ==========================================
+# �🛡️ QUALIDADE & AUDITORIA
 # ==========================================
 lint: ## Executa linters e verificação estática pré-commit em todo repositório
 	@echo "Executando pre-commit hooks..."

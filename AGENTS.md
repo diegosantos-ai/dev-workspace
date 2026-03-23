@@ -36,6 +36,11 @@ Este repositório deixou de ser um conjunto de scripts soltos para se tornar um 
 - **NÃO Mande o usuário digitar comandos verbosos no terminal.** Todo fluxo operacional de alto nível deve ter um atalho no `Makefile`.
 - Se você criar um novo processo recorrente de setup, teste ou deploy, encapsule-o num novo target no arquivo `Makefile`.
 
+### [ E ] Containers Locais e Core (Docker)
+- **NÃO** exponha portas de banco de dados e caches (ex: `5432` - Postgres, `6379` - Redis) mapeando diretamente para o host em projetos individuais para evitar colisão de portas (`Address already in use`).
+- **USE** a infraestrutura unificada central em `infra-core/`. Todo novo banco ou base vetorial deve ser uma database lógica dentro dos containers do core.
+- **CONECTE** qualquer novo `docker-compose.yml` do seu projeto à rede core definindo a network como `dev-workspace-net` (externa) e se comunique com os serviços usando o hostname interno do docker (ex: `POSTGRES_HOST=postgres`, não `localhost`).
+
 ---
 
 ## [ CAPÍTULO 3 ] Fluxo de Trabalho Esperado do Agente
