@@ -13,6 +13,6 @@ A clareza sobre o que este repositório **NÃO DEVE FAZER** é tão crucial quan
 3. **Não acomoda Sistemas Operacionais Tier 3:** Não provemos suporte explícito nativo para automatizar pacotes do zero no MacOS ou em distros Arch/Alpine de forma transparente no nível central (Tier 1 segue contido ao ecosistema Debian-family Linux). O uso no Tier 2 e Tier 3 é viável apenas via "Tradução Manual" ou bypass do OS-check, assumindo custo operacional por parte do usuário.
 
 ## 3. Fronteiras de Segurança
-1. A ferramenta `gitleaks` atua em Hard Block. Se as heurísticas bloquearem, o commit para; não contorne as checagens com flags `.git/hooks` nulas. 
+1. A ferramenta `gitleaks` atua em Hard Block. Se as heurísticas bloquearem, o commit para; não contorne as checagens com flags `.git/hooks` nulas.
 2. Nenhuma API Key ou `.env` de production pode repousar fora de um gerenciador de pass/vault aprovado.
 3. Repositórios clonados paralelamente por via deste repositório não herdarão o "state" do Terraform principal. O ambiente IaC providenciado mantém isolamento state-lock absoluto por `env`.

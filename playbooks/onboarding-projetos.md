@@ -32,7 +32,7 @@ Apenas chamando o script direto por esse atalho universal, a automação fará r
 Sua pasta acabou de engolir a inteligência inteira da plataforma com um só comando. Certo, e agora?
 
 ### Identificou erro de lint ao tentar fazer commit?
-Isso seria muito normal em um projeto que já estava preenchido. Secreções soltas (chumbadas) e senhas vão acionar o alarme do gitleaks instantaneamente. 
+Isso seria muito normal em um projeto que já estava preenchido. Secreções soltas (chumbadas) e senhas vão acionar o alarme do gitleaks instantaneamente.
 
 1. Use o repositório modelo gerado `.env.example` para passar qual o nome da credencial que deveria estar externalizada.
 2. Troque as senhas vazadas do código por ponteiros de injeção de ambiente (`os.environ`, `import.meta.env`, etc).

@@ -13,4 +13,3 @@ Aqui está a jornada diária padrão guiada pela plataforma:
    *A hora do código.* O engenheiro usa `make day-start` para rastrear no Git tudo que construirá no dia. Ele não trabalha sozinho: a Gestão de Agentes via VS Code injeta contexto, impedindo erros como tokens hard-codados nos templates Terraform.
 4. **Governança Pós-Código (`make lint`):**
    *Antes de ir pra nuvem.* A camada `pre-commit` impede arquivos de subirem desformatados, caça segredos (*Gitleaks*) e impede shell scripts de rodarem vulneráveis (*Shellcheck* puro em Python evitando bloqueio de Docker no CI).
-

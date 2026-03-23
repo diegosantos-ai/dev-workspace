@@ -56,7 +56,7 @@ setup-agents: ## Instala gerenciador de bibliotecas (pipx) e provisiona subagent
 	@echo "Iniciando setup do motor de Agentes IA..."
 	@bash $(DEV_WORKSPACE)/gestao-centralizada-agents/scripts/setup-agents.sh
 
-test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de IA 
+test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de IA
 	@echo "Testando build do servidor MCP de Skills..."
 	@cd $(DEV_WORKSPACE)/gestao-centralizada-agents/skills-mcp && npm install && npm run build
 	@echo "✅ Servidor MCP validado e pronto para consumo!"

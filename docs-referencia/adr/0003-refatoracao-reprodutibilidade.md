@@ -1,12 +1,12 @@
 # ADR 0003: Refatoração para Reprodutibilidade Universal (100% Portable)
 
 ## 1. Contexto e Problema
-O repositório `dev-workspace` foi inicialmente construído com premissas de caminhos locais (hardcoded absolute paths, ex: `/home/diegosantos/docs/dev-workspace`) e dependências do ambiente do autor. Isso quebra o principal pilar do projeto: **permitir que qualquer engenheiro baixe e aplique o workspace em sua própria máquina de imediato, sem atrito.** 
+O repositório `dev-workspace` foi inicialmente construído com premissas de caminhos locais (hardcoded absolute paths, ex: `/home/diegosantos/docs/dev-workspace`) e dependências do ambiente do autor. Isso quebra o principal pilar do projeto: **permitir que qualquer engenheiro baixe e aplique o workspace em sua própria máquina de imediato, sem atrito.**
 
 O usuário relatou confusão e dificuldade no uso iterativo. O processo `make setup` falha em diretórios ou usuários não previstos.
 
 ## 2. Decisão Arquitetural (Estado Alvo)
-A partir desta branch (`chore/reprodutibilidade`), toda automação, shell script, Terraform ou configuração deverá ser reescrita para adotar **Caminhos Relativos (Relative Paths)** ou **Descoberta Dinâmica de Diretório** (`$(pwd)`, `dirname "$0"`). 
+A partir desta branch (`chore/reprodutibilidade`), toda automação, shell script, Terraform ou configuração deverá ser reescrita para adotar **Caminhos Relativos (Relative Paths)** ou **Descoberta Dinâmica de Diretório** (`$(pwd)`, `dirname "$0"`).
 
 A abordagem de refatoração será modular:
 1. Nenhuma dependência de localização de pasta.

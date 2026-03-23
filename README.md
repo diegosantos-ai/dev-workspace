@@ -5,7 +5,7 @@ Este repositório centraliza padrões arquiteturais de ambiente local, de infrae
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Quality-2F363D?style=for-the-badge) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 
 ## Objetivo
-Fornecer um ambiente reproduzível, modular e idempotente para engenharia de operações. A estrutura integra automação de workstation (OS configuration, dotfiles) e gerenciamento de templates IaC para orquestração. 
+Fornecer um ambiente reproduzível, modular e idempotente para engenharia de operações. A estrutura integra automação de workstation (OS configuration, dotfiles) e gerenciamento de templates IaC para orquestração.
 
 ## Componentes Funcionais
 O repositório está construído e segmentado nas seguintes frentes operacionais:
@@ -24,7 +24,7 @@ O `Makefile` atua como entrypoint primário para toda a operação.
 make help          # Lista os comandos estruturais do workspace (Setup, Qualidade e Operação)
 make setup         # Pipeline de provisionamento nativo (System bootstrap, Ansible e dotfiles)
 make lint          # Inicia esteira local de validação (Pre-commit)
-make test-sanity   # Aciona a auditoria sistêmica de binários, docker socket e permissões 
+make test-sanity   # Aciona a auditoria sistêmica de binários, docker socket e permissões
 ```
 
 ## Diretrizes e Validações Impostas

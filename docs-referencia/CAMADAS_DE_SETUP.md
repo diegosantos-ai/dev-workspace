@@ -10,10 +10,10 @@ O fluxo de inserção neste repositório será fatiado de forma arquitetada para
 * **Gatilho Único:** Acionar script em chamadas curtas da interface de make base.
 
 ## Fase 2: SETUP (Motor da Infraestrutura)
-**Propósito:** Provisionar estado e bibliotecas utilitárias via IaC Idempotente para o Host que agora detém a motorização capaz. 
+**Propósito:** Provisionar estado e bibliotecas utilitárias via IaC Idempotente para o Host que agora detém a motorização capaz.
 * **Autoridade:** Orquestração declarativa YAML (`Ansible-playbook`).
 * **Responsabilidade:** Varrer a base garantindo espelhamento em links simbólicos sem interrupção humana das ferramentas puras da raiz e ideologias contidas (`stow`). Pede e faz os updates de pacotes exigidos do OS ou asdf sem estragos.
-* **Duração:** Mediana. 
+* **Duração:** Mediana.
 
 ## Fase 3: PÓS-SETUP & ADOÇÃO MÍNIMA (Ação Direcionada)
 **Propósito:** Interações de governança humana inevitáveis requeridas na segurança das sessões. Assentar o arcabouço final dinâmico que o setup cego omitiu.
