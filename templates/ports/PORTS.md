@@ -9,6 +9,7 @@ Reservados para Infra-Core (NÃO mapear em projetos):
 - 6379     : Redis
 - 8000     : ChromaDB
 - 5000     : MLFlow
+- 5433     : Postgres nativo na máquina.
 
 Faixas recomendadas para aplicações (host -> container):
 - Backends (APIs): 8001-8599  (cada projeto pega a próxima porta livre)
