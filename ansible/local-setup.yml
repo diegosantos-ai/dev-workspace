@@ -143,19 +143,28 @@
       when: dbeaver_check.rc != 0
       failed_when: false
 
+    - name: Verificar se Docker Desktop já está instalado
+      stat:
+        path: /usr/bin/docker-desktop
+      register: docker_desktop_installed
+
     - name: Baixar Docker Desktop (.deb)
       get_url:
         url: "https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb"
         dest: "/tmp/docker-desktop.deb"
         timeout: 120
-      when: ansible_facts['os_family'] == "Debian"
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - not docker_desktop_installed.stat.exists
 
     - name: Instalar Docker Desktop
       apt:
         deb: "/tmp/docker-desktop.deb"
         state: present
         update_cache: yes
-      when: ansible_facts['os_family'] == "Debian"
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - not docker_desktop_installed.stat.exists
 
     - name: Baixar script de instalacao do instalador da AWS CLI
       unarchive:
@@ -223,3 +232,17 @@
         - ms-python.vscode-pylance
         - f1nzy.langsmith
         - ms-kubernetes-tools.vscode-kubernetes-tools
+
+    - name: Instalar pre-commit no repositorio clonado (BLK-05)
+      become_user: "{{ user }}"
+      shell: |
+        export PATH="$HOME/.local/bin:$PATH"
+        if [ -f "{{ playbook_dir }}/../.git/hooks/pre-commit" ]; then
+          echo "pre-commit hook ja instalado, ignorando."
+        else
+          cd "{{ playbook_dir }}/.." && pre-commit install
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false

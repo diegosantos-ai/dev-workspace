@@ -22,7 +22,7 @@ endif
 
 DEV_WORKSPACE ?= $(DEV_WORKSPACE_DEFAULT)
 
-.PHONY: help setup setup-agents lint update env-check morning audit test-skills day-start log day-close week-close infra-up infra-down
+.PHONY: help setup bootstrap asdf-install setup-agents lint update env-check morning audit test-skills day-start log day-close week-close infra-up infra-down adopt
 
 # Cores para output
 CYAN := \033[36m
@@ -32,46 +32,61 @@ YELLOW := \033[33m
 
 help: ## Mostra esta mensagem de ajuda
 	@echo "$(YELLOW)========================================================$(RESET)"
-	@echo "$(GREEN) Workspace DevOps Central — Comandos Disponíveis$(RESET)"
+	@echo "$(GREEN) Workspace DevOps Central -- Comandos Disponiveis$(RESET)"
 	@echo "$(YELLOW)========================================================$(RESET)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "$(CYAN)%-20s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
 
 # ==========================================
-# 🚀 SETUP & BOOTSTRAP
+# SETUP & BOOTSTRAP
 # ==========================================
-setup: ## Bootstrapping inicial da máquina (instala OS packages e aplica dotfiles via stow)
-	@echo "Iniciando setup da máquina..."
+setup: ## Provisiona OS packages, dotfiles e toolchain via Ansible
+	@echo "Iniciando setup da maquina..."
 	@bash $(DEV_WORKSPACE)/ansible/scripts/setup-machine.sh
 
+asdf-install: ## Instala as versoes de runtime fixadas no .tool-versions (Node.js e Python)
+	@echo "Instalando runtimes via ASDF (.tool-versions)..."
+	@bash -c 'source $$HOME/.asdf/asdf.sh && cd $(DEV_WORKSPACE) && asdf install'
+
+bootstrap: ## Sequencia completa de onboarding: setup + runtimes + pre-commit + agentes
+	@echo "=== [1/4] Provisionando OS, dotfiles e toolchain ==="
+	@bash $(DEV_WORKSPACE)/ansible/scripts/setup-machine.sh
+	@echo "=== [2/4] Instalando runtimes (.tool-versions) ==="
+	@bash -c 'source $$HOME/.asdf/asdf.sh && cd $(DEV_WORKSPACE) && asdf install' || true
+	@echo "=== [3/4] Ativando pre-commit hooks ==="
+	@bash -c 'export PATH="$$HOME/.local/bin:$$PATH" && cd $(DEV_WORKSPACE) && pre-commit install'
+	@echo "=== [4/4] Provisionando motor de agentes ==="
+	@$(MAKE) -C $(DEV_WORKSPACE) setup-agents
+	@echo "Bootstrap concluido. Rode 'make morning' para iniciar o dia."
+
 # ==========================================
-# � INFRAESTRUTURA CORE (DOCKER Shared)
+# INFRAESTRUTURA CORE (DOCKER Shared)
 # ==========================================
-infra-up: ## Inicia e orquestra todos os servicos da infraestrutura unificada no host
-	@echo "Subindo Infraestrutura Core (Traefik, Postgres, Redis, Chroma, MLFlow)..."
+infra-up: ## Inicia servicos da infraestrutura unificada (Traefik, Postgres, Redis, Chroma, MLFlow)
+	@echo "Subindo Infraestrutura Core..."
 	@docker network create dev-workspace-net || true
 	@cd $(DEV_WORKSPACE)/infra-core && docker compose up -d
-	@echo "✅ Infraestrutura base disponível na rede 'dev-workspace-net'."
+	@echo "Infraestrutura base disponivel na rede 'dev-workspace-net'."
 
 infra-down: ## Desliga os servicos da infraestrutura unificada
 	@echo "Desligando a infraestrutura core..."
 	@cd $(DEV_WORKSPACE)/infra-core && docker compose down
 
 # ==========================================
-# �🛡️ QUALIDADE & AUDITORIA
+# QUALIDADE & AUDITORIA
 # ==========================================
-lint: ## Executa linters e verificação estática pré-commit em todo repositório
+lint: ## Executa linters e verificacao estatica pre-commit em todo repositorio
 	@echo "Executando pre-commit hooks..."
 	PATH="$$HOME/.local/bin:$$PATH" pre-commit run --all-files
 
-env-check: ## Roda verificação rápida e isolada da sanidade das ferramentas nativas locais
+env-check: ## Roda verificacao rapida da sanidade das ferramentas nativas locais
 	@bash $(DEV_WORKSPACE)/sanidade-ambiente/scripts/daily-check.sh
 
-audit: ## Dispara auditoria profunda de sistema mapeando versões e serviços instalados
+audit: ## Auditoria profunda de sistema mapeando versoes e servicos instalados
 	@bash $(DEV_WORKSPACE)/sanidade-ambiente/scripts/env-audit.sh
 
 # ==========================================
-# 🤖 GESTÃO DE AGENTES & IA
+# GESTAO DE AGENTES & IA
 # ==========================================
 setup-agents: ## Instala gerenciador de bibliotecas (pipx) e provisiona subagentes
 	@echo "Iniciando setup do motor de Agentes IA..."
@@ -85,7 +100,7 @@ setup-agents: ## Instala gerenciador de bibliotecas (pipx) e provisiona subagent
 			exit 0; \
 		fi; \
 	done; \
-	echo "Arquivo setup-agents.sh não encontrado em: $$DEV_CANDIDATES"; exit 1
+	echo "Arquivo setup-agents.sh nao encontrado em: $$DEV_CANDIDATES"; exit 1
 
 test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de IA
 	@echo "Testando build do servidor MCP de Skills..."
@@ -99,10 +114,10 @@ test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de I
 			exit 0; \
 		fi; \
 	done; \
-	echo "Diretório skills-mcp não encontrado em: $$DEV_CANDIDATES"; exit 2
-	@echo "✅ Servidor MCP validado e pronto para consumo!"
+	echo "Diretorio skills-mcp nao encontrado em: $$DEV_CANDIDATES"; exit 2
+	@echo "Servidor MCP validado."
 
-adopt: ## Enquadra um repositório externo nas regras da plataforma (uso: make adopt TARGET=/caminho/do/projeto)
+adopt: ## Enquadra um repositorio externo nas regras da plataforma (uso: make adopt TARGET=/caminho/do/projeto)
 	@if [ -z "$(TARGET)" ]; then \
 		echo "Uso correto: make adopt TARGET=/caminho/do/projeto-legado"; \
 		exit 1; \
@@ -110,26 +125,26 @@ adopt: ## Enquadra um repositório externo nas regras da plataforma (uso: make a
 	@bash $(DEV_WORKSPACE)/gestao-centralizada-agents/scripts/adopt-governance.sh $(TARGET)
 
 # ==========================================
-# 📅 ROTINA DE DEVOPS (WORKLOG)
+# ROTINA DE DEVOPS (WORKLOG)
 # ==========================================
-morning: ## Inicia processo matinal completo (checklist e bootstrap de worklog)
+morning: ## Inicia processo matinal completo (sanidade + worklog do dia)
 	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/open-devops-routine.sh
 
 day-start: ## Inicia o worklog do dia e abre no VS Code
 	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-start.sh
 
-log: ## Adiciona registro no log. (Sem args = interativo)
+log: ## Adiciona registro no log do dia (sem args = interativo)
 	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-add.sh $(ARGS)
 
-day-close: ## Realiza consolidação, encerramento de relatórios e push diário
+day-close: ## Consolida, encerra e faz push do worklog diario
 	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-close.sh
 
-week-close: ## Compila o sumário executivo da semana DevOps
+week-close: ## Compila o sumario executivo da semana DevOps
 	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-weekly.sh
 
 # ==========================================
-# 🔄 MANUTENÇÃO CONTÍNUA
+# MANUTENCAO CONTINUA
 # ==========================================
-update: ## Sincroniza local com repositório remoto Git
+update: ## Sincroniza local com repositorio remoto Git
 	@echo "Atualizando ambiente local..."
 	@git pull origin main

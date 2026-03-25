@@ -1,5 +1,6 @@
 # Python
 .venv/
+venv/
 __pycache__/
 *.pyc
 
@@ -23,3 +24,8 @@ __pycache__/
 # arquivos e pastas de referencia interna
 env-development/
 docs-referencia/AGENTE_EXTERNO_PROMPT.md
+
+# Arquivos temporários e rascunhos
+temp_fluxo.md
+knowledge_base_gem.txt
+relatorio-morning*/

@@ -1,38 +1,65 @@
 # Platform Engineering Workspace
 
-Este repositório centraliza padrões arquiteturais de ambiente local, de infraestrutura em nuvem e documentações estruturantes para uso contínuo em operações de engenharia de plataforma.
+Repositório central de automação de estação de trabalho, templates de infraestrutura e rotina operacional diária.
 
-![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Quality-2F363D?style=for-the-badge) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Quality-2F363D?style=for-the-badge)
 
 ## Objetivo
-Fornecer um ambiente reproduzível, modular e idempotente para engenharia de operações. A estrutura integra automação de workstation (OS configuration, dotfiles) e gerenciamento de templates IaC para orquestração.
 
-## Componentes Funcionais
-O repositório está construído e segmentado nas seguintes frentes operacionais:
+Prover um ambiente local reproduzível, modular e idempotente para operações de engenharia. Integra provisionamento de workstation, gestão de dotfiles, infraestrutura containerizada compartilhada e rotina diária de trabalho.
 
-- `ansible/` & `dotfiles/`: Automação estado-declarativa de estação de trabalho, provisionamento de pacotes base, e gestão de dotfiles baseada na árvore do GNU Stow.
-- `templates/`: Manifestos e esqueletos de provisionamento base para Terraform com isolamento severo entre módulos lógicos dinâmicos e injeção de estado por ambiente (envs).
-- `gestao-centralizada-agents/`: Governança e System Prompting que definem limites de restrições operacionais para uso de IAs com Server MCP acoplado ao Qdrant e N8N.
-- `sanidade-ambiente/` & `rotina-devops/`: Políticas e scripts de validação, checklist operacionais, e coleta contínua para manutenção de integridade local.
-- `docs-referencia/`: Base de conhecimento contendo a Política de Versionamento, Política de Secrets e Architecture Decision Records (ADRs).
+## Componentes
 
-## Instanciação de Operação (Makefile)
+| Diretório | Função |
+|---|---|
+| `ansible/` + `dotfiles/` | Provisionamento declarativo de workstation via Ansible e GNU Stow |
+| `infra-core/` | Docker Compose com serviços compartilhados (Postgres, Redis, ChromaDB, MLFlow, Traefik) |
+| `rotina-devops/` | Scripts e templates de worklog diário e semanal |
+| `sanidade-ambiente/` | Scripts de checagem de ferramentas e auditoria de ambiente |
+| `gestao-centralizada-agents/` | Governança de agentes de IA com servidor MCP |
+| `templates/` | Esqueletos Terraform para AWS e OVH |
+| `docs-referencia/` | ADRs, políticas de secrets, versionamento e guias operacionais |
 
-O `Makefile` orquestra e encapsula a complexidade do repositório como entrypoint primário. Para fluidez, este ecossistema injeta nativamente o alias `morning` no shell do desenvolvedor para facilitar a chamada do scanner interativo principal.
+## Onboarding em Notebook Limpo
 
 ```bash
-make setup         # Provisionamento declarativo via Ansible (Instala a toolchain Base: ASDF, Docker V2, UV, Ollama, Lazygit)
-make morning       # Telemetria matinal (Auditoria paramétrica de tokens Cloud, detecção de caches zumbis em disco do Docker)
-make lint          # Invocação autônoma da esteira de Shift-Left Security (ShellCheck, TFLint, Yamllint, Gitleaks)
-make test-sanity   # Auditoria estrita da sub-camada (Verifica Daemons PID e conectividades críticas)
-make help          # Enumeração catalogada de alvos operacionais e bindings isolados
+# 1. Clonar o repositório
+git clone git@github.com:<usuario>/dev-workspace.git ~/labs/dev-workspace
+
+# 2. Executar bootstrap completo (requer sudo para Ansible)
+cd ~/labs/dev-workspace
+make bootstrap
 ```
 
-## Diretrizes de Integridade Computacional
+O target `bootstrap` executa em sequência:
+1. `make setup` — Ansible provisiona OS packages, ferramentas (Docker Desktop, Terraform, Ollama, uv, Lazygit, ASDF) e aplica dotfiles via GNU Stow
+2. `make asdf-install` — instala Node.js e Python nas versões fixadas em `.tool-versions`
+3. `pre-commit install` — ativa shift-left de segurança no repositório
+4. `make setup-agents` — provisiona CrewAI via pipx e gera `.agents-env` com template de credenciais
 
-1. **Shift-Left Autoritário:** Operações impõem regras de `pre-commit` globais. Violação (exposição de secrets ou sintaxe Shell com falha) travará e bloqueará a subida do push e a submissão ao versionamento, salvaguardando a imagem de nuvem.
-2. **Idempotência Compulsória:** É mandatório o desenvolvimento de rotinas Bash (`.sh`) e playbooks condicionais a testes de estado prévios (State Check), sendo vetado comandos reativos imperativos ou re-criações destrutivas de configurações alheias.
-3. **Governança de IA Nível Root:** Qualquer ferramenta baseada em modelos de linguagem (Claude, ChatGPT, extensões de IDE) que for instanciada neste diretório está obrigada a ler e assinalar incondicionalmente o **`GEMINI.md`** primeiramente. Isso restringe o prompt natural do modelo obrigando-o a seguir a política técnica de tom de engenheiro adotando as três Personas nativas de orquestração local (Orchy, DevidLops, Revy).
+## Operação Diária
+
+```bash
+make morning       # Sanidade do ambiente + abertura do worklog do dia
+make log           # Registra entrada no worklog (interativo)
+make day-close     # Consolida worklog e faz push
+make env-check     # Checagem rápida de ferramentas (avulso)
+make lint          # Roda pre-commit em todos os arquivos
+make infra-up      # Sobe serviços compartilhados (Postgres, Redis, etc.)
+make help          # Lista todos os targets disponíveis
+```
+
+## Pré-requisitos do Notebook Limpo
+
+- Ubuntu/Debian (dependência do playbook Ansible)
+- Acesso sudo para instalação inicial
+- Chave SSH configurada no GitHub (`~/.ssh/id_ed25519`)
+- Conexão com a internet para download de dependências
+
+## Governança de IA
+
+Qualquer agente de IA operando neste repositório deve ler `GEMINI.md` e `AGENTS.md` antes de executar qualquer ação. Esses arquivos definem comportamento esperado, personas operacionais e restrições de escopo.
 
 ---
-**Nota para Aplicações Autônomas:** Para atuar na escrita de código neste repositório, leia primeiro o `GEMINI.md` para instruções de contexto global do Kernel da plataforma e em sequência o `AGENTS.md` para peculiaridades deste pacote.
+
+Leia `docs-referencia/CRITERIOS_MAQUINA_PRONTA.md` para a lista de verificação completa pós-setup.
