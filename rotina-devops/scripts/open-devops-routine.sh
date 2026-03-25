@@ -10,22 +10,25 @@ CHECKLIST="$WORKSPACE_DIR/playbooks/checklist-manha.md"
 MANUAL="$WORKSPACE_DIR/rotina-devops.md"
 LINKS="$WORKSPACE_DIR/docs-referencia/links-uteis.md"
 MORNING_SCRIPT="$WORKSPACE_DIR/sanidade-ambiente/scripts/daily-check.sh"
+STORAGE_SCRIPT="$WORKSPACE_DIR/sanidade-ambiente/scripts/storage-check.sh"
 
-echo "🚀 Rodando auditoria passiva matinal..."
-bash "$MORNING_SCRIPT"
+REPORT_NAME="relatorio-morning$(date +%d%m%y)"
+REPORT_DIR="$HOME/$REPORT_NAME"
+mkdir -p "$REPORT_DIR"
+REPORT_FILE="$REPORT_DIR/morning-report.log"
 
-echo "🔔 Abrindo documentações na interface..."
-# Evita quebrar se o notify-send/xdg não existir num server headless
-if command -v notify-send >/dev/null; then
-    notify-send "Rotina DevOps" "Abra o checklist, leia o estado do ambiente e defina sua entrega."
-fi
+echo "🚀 Iniciando rotina matinal unificada..." | tee "$REPORT_FILE"
+echo "Gerando relatórios e alertas gerenciais na pasta: $REPORT_DIR"
 
-if command -v xdg-open >/dev/null; then
-    xdg-open "$CHECKLIST" >/dev/null 2>&1 &
-    sleep 1
-    xdg-open "$MANUAL" >/dev/null 2>&1 &
-else
-    echo "[!] Interface gráfica inativa. Os arquivos para leitura são:"
-    echo "- $CHECKLIST"
-    echo "- $MANUAL"
-fi
+echo -e "\n[ 1. SANIDADE DE GOVERNANÇA E TOOLCHAIN ]" | tee -a "$REPORT_FILE"
+bash "$MORNING_SCRIPT" 2>&1 | tee -a "$REPORT_FILE"
+
+echo -e "\n[ 2. TELEMETRIA DE DISCO E STORAGE ]" | tee -a "$REPORT_FILE"
+bash "$STORAGE_SCRIPT" 2>&1 | tee -a "$REPORT_FILE"
+
+echo -e "\n🔔 Verificação matinal compilada! Revise os alertas e siga a governança."
+echo "📍 Relatório técnico arquivado em: $REPORT_FILE"
+
+echo -e "\n--------------------------------------------------------"
+echo "Invocando o Worklog Diário (Planejamento)..."
+make -C "$WORKSPACE_DIR" day-start

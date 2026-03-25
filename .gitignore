@@ -22,3 +22,4 @@ __pycache__/
 
 # arquivos e pastas de referencia interna
 env-development/
+docs-referencia/AGENTE_EXTERNO_PROMPT.md
