@@ -35,4 +35,16 @@ cd "$WORKSPACE_DIR"
 
 ANSIBLE_HOST_KEY_CHECKING=False LC_ALL=C.UTF-8 ansible-playbook ansible/local-setup.yml --extra-vars "user=$REAL_USER"
 
+echo "Configuring global aliases for DevOps Workspace..."
+USER_HOME=$(eval echo "~$REAL_USER")
+for RC_FILE in "$USER_HOME/.bashrc" "$USER_HOME/.zshrc"; do
+    if [ -f "$RC_FILE" ]; then
+        if ! grep -q "alias morning=" "$RC_FILE"; then
+            echo "" >> "$RC_FILE"
+            echo "# DevOps Workspace Global Aliases" >> "$RC_FILE"
+            echo "alias morning='make -C $WORKSPACE_DIR morning'" >> "$RC_FILE"
+        fi
+    fi
+done
+
 echo "Setup completed successfully."
