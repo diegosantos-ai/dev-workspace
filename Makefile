@@ -199,6 +199,16 @@ test-skills: ## Compila o servidor MCP Node (requer Node.js via ASDF)
 	fi
 	@printf "$(GREEN)Servidor MCP compilado com sucesso.$(RESET)\n"
 
+start-orquestrador: ## Sobe o Cockpit de Agentes (observabilidade, bases vetoriais e n8n)
+	@COCKPIT_DIR="$(AGENTS_DIR)/infra/agents-cockpit"; \
+	if [ ! -d "$$COCKPIT_DIR" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Diretorio agents-cockpit nao encontrado em %s\n" "$$COCKPIT_DIR"; \
+	  exit 1; \
+	fi; \
+	docker network create dev-workspace-net 2>/dev/null || true; \
+	docker compose -f "$$COCKPIT_DIR/docker-compose.yml" up -d; \
+	printf "$(GREEN)Cockpit de Agentes em execucao.$(RESET)\n"
+
 adopt: ## Aplica governanca do workspace em repositorio externo (uso: make adopt TARGET=/caminho)
 	@if [ -z "$(TARGET)" ]; then \
 	  printf "$(RED)[ERRO]$(RESET) TARGET nao definido.\n"; \

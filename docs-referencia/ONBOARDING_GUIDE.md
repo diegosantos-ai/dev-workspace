@@ -43,7 +43,14 @@ Este documento define o estado inicial necessário e o fluxo de recuperação pa
 - **Causa:** Shell não recarregado após o setup ou conflito com dotfiles manuais.
 - **Correção:** Execute `source ~/.zshrc`. Se persistir, verifique se o arquivo é um link para o dotfile do repositório.
 
-## 4. Comandos de Recuperação
+## 4. Topologia de Fork e Customização
+
+Caso clone este repositório para uso em equipe ou personalização profunda:
+- **Isolamento:** Se deseja gerenciar seus próprios estados de Terraform (S3/GCS), efetue um fork e desvincule o upstream para evitar conflitos de backend.
+- **Dotfiles Próprios:** Você pode limpar `dotfiles/` e substituir pelos seus. O Ansible usará o `stow` para mapeá-los se seguirem a estrutura de pastas do sistema.
+- **Plugins Zsh:** O setup garante o básico. Adições extras devem ser feitas via `~/.zshrc` local para manter a baseline limpa.
+
+## 5. Comandos de Recuperação
 
 ```bash
 # Reinstalar runtimes (Node/Python)
