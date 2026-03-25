@@ -98,6 +98,17 @@ check_github_ssh() {
     fi
 }
 
+check_cloud_auth() {
+    # Testa autenticação AWS CLI (OVH compatível ou Cloud Providers)
+    if command -v aws >/dev/null 2>&1; then
+        if timeout 5 aws sts get-caller-identity >/dev/null 2>&1; then
+            COUNT_OK=$((COUNT_OK + 1))
+        else
+            WARNS+=("AWS CLI detectado, mas sessão local parece deslogada ou sem internet. (Opcional)")
+        fi
+    fi
+}
+
 check_precommit_setup() {
     if command -v pre-commit >/dev/null 2>&1; then
         if [ -f ".git/hooks/pre-commit" ]; then
@@ -128,12 +139,23 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 check_cmd "python3" "Python 3"
 check_cmd "pipx" "Gestor de Agentes (PIPX)" "WARN"
+check_cmd "terraform" "Terraform (IaC)"
+check_cmd "aws" "AWS CLI (OVH / Cloud)" "WARN"
+check_cmd "gh" "GitHub CLI" "WARN"
+check_cmd "code" "VSCode CLI" "WARN"
+check_cmd "termius-app" "Terminus (SSH Client)" "WARN"
+check_cmd "dbeaver-ce" "DBeaver CE" "WARN"
+check_cmd "insomnia" "Insomnia REST Client" "WARN"
+check_cmd "uv" "UV (Python Package Manager)" "WARN"
+check_cmd "ollama" "Ollama (Gerenciador LLM Local)" "WARN"
+check_cmd "lazygit" "Lazygit (Git UI)" "WARN"
 
 # Operação
 check_docker_daemon
 check_git_repo
 check_git_config
 check_github_ssh
+check_cloud_auth
 check_precommit_setup
 check_dir "rotina-devops" "Módulo de Worklogs" "WARN"
 check_dir "sanidade-ambiente" "Módulo de Saúde (atual)" "FAIL"

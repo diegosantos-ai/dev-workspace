@@ -110,6 +110,7 @@
         name: "{{ item }}"
       loop:
         - termius-app
+        - insomnia
       failed_when: false
 
     - name: Verificar se DBeaver já está instalado
@@ -166,6 +167,32 @@
         state: present
         update_cache: yes
 
+    - name: Configurar plugins do ASDF (NodeJS e Python)
+      become_user: "{{ user }}"
+      shell: "source /home/{{ user }}/.asdf/asdf.sh && asdf plugin add python || true && asdf plugin add nodejs || true"
+      args:
+        executable: /bin/bash
+
+    - name: Baixar script e instalar Ollama
+      shell: "curl -fsSL https://ollama.com/install.sh | sh"
+      args:
+        creates: /usr/local/bin/ollama
+
+    - name: Baixar script e instalar gerenciador uv
+      become_user: "{{ user }}"
+      shell: "curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/home/{{ user }}/.local/bin sh"
+      args:
+        creates: "/home/{{ user }}/.local/bin/uv"
+
+    - name: Download e setup do Lazygit
+      shell: |
+        LAZYGIT_VERSION=$(curl -s 'https://api.github.com/repos/jesseduffield/lazygit/releases/latest' | grep -Po '"tag_name": "v\K[^"]*')
+        curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+        tar xf /tmp/lazygit.tar.gz lazygit -C /tmp
+        install /tmp/lazygit /usr/local/bin
+      args:
+        creates: /usr/local/bin/lazygit
+
     - name: Instalar extensoes do VS Code
       become_user: "{{ user }}"
       shell: "command -v code > /dev/null && code --install-extension {{ item }} --force || true"
@@ -174,4 +201,6 @@
         - HashiCorp.terraform
         - ms-azuretools.vscode-docker
         - ms-python.python
+        - ms-python.vscode-pylance
+        - f1nzy.langsmith
         - ms-kubernetes-tools.vscode-kubernetes-tools
