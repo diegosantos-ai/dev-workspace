@@ -89,7 +89,9 @@ check_git_config() {
 }
 
 check_github_ssh() {
-    if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    local ssh_out
+    ssh_out=$(ssh -T git@github.com 2>&1 || true)
+    if echo "$ssh_out" | grep -q "successfully authenticated"; then
         COUNT_OK=$((COUNT_OK + 1))
     else
         WARNS+=("SSH para GitHub não autenticado (ou chave ausente). Commit/Push podem falhar por permissão.")

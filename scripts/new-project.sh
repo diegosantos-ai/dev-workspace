@@ -51,14 +51,21 @@ fi
 # Ensure docker-compose uses external dev-workspace-net
 DC_FILE="$PROJECT_DIR/docker-compose.yml"
 if [ -f "$DC_FILE" ]; then
-  if ! grep -q "dev-workspace-net" "$DC_FILE"; then
-    cat >> "$DC_FILE" <<'EOF'
+  if command -v yq >/dev/null 2>&1; then
+    # Structural parsing via yq (Go or Python version compatible fallback block)
+    yq -i '.networks["dev-workspace-net"].external = true | .networks["dev-workspace-net"].name = "dev-workspace-net"' "$DC_FILE" 2>/dev/null || \
+      yq -i -y '.networks."dev-workspace-net".external = true | .networks."dev-workspace-net".name = "dev-workspace-net"' "$DC_FILE" 2>/dev/null
+  else
+    # Fallback to textual parsing
+    if ! grep -q "dev-workspace-net" "$DC_FILE"; then
+      cat >> "$DC_FILE" <<'EOF'
 
 networks:
   dev-workspace-net:
     external: true
     name: dev-workspace-net
 EOF
+    fi
   fi
 fi
 

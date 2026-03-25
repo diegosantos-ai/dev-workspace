@@ -19,3 +19,6 @@ __pycache__/
 
 # Configs locais ignoradas
 .env
+
+# arquivos e pastas de referencia interna
+env-development/

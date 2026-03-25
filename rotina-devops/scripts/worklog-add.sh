@@ -76,7 +76,14 @@ fi
 HHMM=$(date +"%H:%M")
 NOVO_EVENTO="- **${HHMM}** | ${PROJETO} | ${TIPO} | ${ACAO} | ${RESULTADO} | impacto: ${IMPACTO}"
 
-# 4. Inserção Inteligente (Antes da seção '3. Fechamento')
+# 4. Prevenção de Duplicidade (Idempotência)
+EVENTO_BASE="${PROJETO} | ${TIPO} | ${ACAO} | ${RESULTADO} | impacto: ${IMPACTO}"
+if grep -qF "$EVENTO_BASE" "$DAILY_FILE"; then
+    echo "⚠️ Aviso: Esta entrada (ignorando horário) já existe no log. Ignorando duplicata."
+    exit 0
+fi
+
+# 5. Inserção Inteligente (Antes da seção '3. Fechamento')
 sed -i "s@^## 3. Fechamento@${NOVO_EVENTO}\n\n## 3. Fechamento@" "$DAILY_FILE"
 
 echo "---------------------------------------------------------"

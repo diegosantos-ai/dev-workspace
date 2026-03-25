@@ -7,7 +7,8 @@ echo "Starting Workspace DevOps bootstrap..."
 
 if [ "$EUID" -ne 0 ]; then
     echo "Administrative privileges required to install base components."
-    exec sudo -E bash "$0" "$@"
+    REAL_SCRIPT="$(realpath "${BASH_SOURCE[0]}")"
+    exec sudo -E bash "$REAL_SCRIPT" "$@"
     exit 0
 fi
 
