@@ -128,4 +128,4 @@ Foco exclusivo na transição de "horas trabalhadas" para "valor gerado". Possui
 
 ## 🚀 Próximos Passos (Evolução)
 Consultar ativamente o arquivo `MELHORIAS-FUTURAS.md`. Nenhuma feature é empurrada para este módulo se não passar por um filtro agressivo contra complexidade fútil ("maquiagem").
-A prioridade futura é a integração desses scripts à raiz via **Entrypoints globais em Makefile** (`make rotina-start`).
+A prioridade futura é a integração desses scripts à raiz via **Entrypoints globais em Makefile** (`make day-start`).
