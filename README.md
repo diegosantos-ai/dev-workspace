@@ -20,22 +20,32 @@ Prover um ambiente local reproduzível, modular e idempotente para operações d
 | `templates/` | Esqueletos Terraform para AWS e OVH |
 | `docs-referencia/` | ADRs, políticas de secrets, versionamento e guias operacionais |
 
-## Onboarding em Notebook Limpo
+## Onboarding (Fluxo de 7 Passos)
+
+Para instanciar o ambiente em um notebook limpo, execute exatamente a sequência abaixo:
 
 ```bash
 # 1. Clonar o repositório
 git clone git@github.com:<usuario>/dev-workspace.git ~/labs/dev-workspace
 
-# 2. Executar bootstrap completo (requer sudo para Ansible)
+# 2. Acessar o diretório
 cd ~/labs/dev-workspace
-make bootstrap
-```
 
-O target `bootstrap` executa em sequência:
-1. `make setup` — Ansible provisiona OS packages, ferramentas (Docker Desktop, Terraform, Ollama, uv, Lazygit, ASDF) e aplica dotfiles via GNU Stow
-2. `make asdf-install` — instala Node.js e Python nas versões fixadas em `.tool-versions`
-3. `pre-commit install` — ativa shift-left de segurança no repositório
-4. `make setup-agents` — provisiona CrewAI via pipx e gera `.agents-env` com template de credenciais
+# 3. Listar comandos disponíveis
+make help
+
+# 4. Provisionar a máquina (requer sudo para pacotes de sistema)
+make setup-workstation
+
+# 5. Validar a saúde do ambiente
+make doctor
+
+# 6. Rodar auditoria de qualidade inicial
+make lint
+
+# 7. Iniciar rotina matinal (sanidade + worklog)
+make morning
+```
 
 ## Operação Diária
 

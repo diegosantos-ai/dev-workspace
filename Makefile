@@ -22,11 +22,11 @@ else
   DEV_WORKSPACE_DEFAULT := $(GIT_ROOT)
 endif
 
-DEV_WORKSPACE ?= $(DEV_WORKSPACE_DEFAULT)
+# ==============================================================================
+# Variaveis internas e ambiente
+# ==============================================================================
+export PATH := $(HOME)/.local/bin:$(PATH)
 
-# ==============================================================================
-# Variaveis internas
-# ==============================================================================
 ANSIBLE_SCRIPT  := "$(DEV_WORKSPACE)/ansible/scripts/setup-machine.sh"
 SANIDADE_DIR    := "$(DEV_WORKSPACE)/sanidade-ambiente/scripts"
 ROTINA_DIR      := "$(DEV_WORKSPACE)/rotina-devops/scripts"
@@ -108,8 +108,11 @@ doctor: ## Diagnostico completo do ambiente (ferramentas, hooks, repos)
 	done
 	@printf "\n$(CYAN)-- Ferramentas opcionais --$(RESET)\n"
 	@for cmd in uv ollama lazygit pipx asdf node python3; do \
-	  if command -v $$cmd >/dev/null 2>&1; then \
-	    printf "  $(GREEN)[OK]$(RESET)   %-20s %s\n" "$$cmd" "$$($$cmd --version 2>&1 | head -1)"; \
+	  IF_FOUND=0; \
+	  if command -v $$cmd >/dev/null 2>&1; then IF_FOUND=1; \
+	  elif [ "$$cmd" = "asdf" ] && [ -f "$$HOME/.asdf/asdf.sh" ]; then IF_FOUND=1; fi; \
+	  if [ $$IF_FOUND -eq 1 ]; then \
+	    printf "  $(GREEN)[OK]$(RESET)   %-20s funcional\n" "$$cmd"; \
 	  else \
 	    printf "  $(YELLOW)[WARN]$(RESET) %-20s nao encontrado\n" "$$cmd"; \
 	  fi; \
@@ -144,7 +147,7 @@ lint: ## Executa pre-commit em todos os arquivos do repositorio
 	  printf "$(RED)[ERRO]$(RESET) pre-commit nao encontrado. Rode: make bootstrap\n"; \
 	  exit 1; \
 	fi
-	PATH="$$HOME/.local/bin:$$PATH" pre-commit run --all-files
+	@pre-commit run --all-files
 
 # ==============================================================================
 # INFRAESTRUTURA CORE (Docker compartilhado)

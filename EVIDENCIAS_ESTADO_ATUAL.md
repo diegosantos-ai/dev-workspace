@@ -17,7 +17,7 @@
 
 *   **Evidência encontrada:** Scripts estruturados em `/sanidade-ambiente/scripts/`: `daily-check.sh` e `env-audit.sh`.
 *   **Onde foi encontrada:** Diretório `/sanidade-ambiente/scripts/`.
-*   **O que isso permite afirmar:** 
+*   **O que isso permite afirmar:**
     *   **Valida presença de binários:** Os scripts verificam via `command -v` a presença de comandos em `PATH` (ex: docker, pre-commit, ssh).
     *   **Valida operação real:** Há validação do socket de daemon funcional via `docker info` ao invés de atestar apenas presença do binário e checagem de permissão do worker daemon.
     *   **Valida conectividade/integração:** Teste de autenticação remota através de `ssh -T git@github.com`.
