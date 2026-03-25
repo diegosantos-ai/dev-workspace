@@ -16,22 +16,23 @@ O repositório está construído e segmentado nas seguintes frentes operacionais
 - `sanidade-ambiente/` & `rotina-devops/`: Políticas e scripts de validação, checklist operacionais, e coleta contínua para manutenção de integridade local.
 - `docs-referencia/`: Base de conhecimento contendo a Política de Versionamento, Política de Secrets e Architecture Decision Records (ADRs).
 
-## Controle de Operações (Makefile)
+## Instanciação de Operação (Makefile)
 
-O `Makefile` atua como entrypoint primário para toda a operação.
+O `Makefile` orquestra e encapsula a complexidade do repositório como entrypoint primário. Para fluidez, este ecossistema injeta nativamente o alias `morning` no shell do desenvolvedor para facilitar a chamada do scanner interativo principal.
 
 ```bash
-make help          # Lista os comandos estruturais do workspace (Setup, Qualidade e Operação)
-make setup         # Pipeline de provisionamento nativo (System bootstrap, Ansible e dotfiles)
-make lint          # Inicia esteira local de validação (Pre-commit)
-make test-sanity   # Aciona a auditoria sistêmica de binários, docker socket e permissões
+make setup         # Provisionamento declarativo via Ansible (Instala a toolchain Base: ASDF, Docker V2, UV, Ollama, Lazygit)
+make morning       # Telemetria matinal (Auditoria paramétrica de tokens Cloud, detecção de caches zumbis em disco do Docker)
+make lint          # Invocação autônoma da esteira de Shift-Left Security (ShellCheck, TFLint, Yamllint, Gitleaks)
+make test-sanity   # Auditoria estrita da sub-camada (Verifica Daemons PID e conectividades críticas)
+make help          # Enumeração catalogada de alvos operacionais e bindings isolados
 ```
 
-## Diretrizes e Validações Impostas
+## Diretrizes de Integridade Computacional
 
-1. **Shift-Left Security:** O repositório emprega `pre-commit`, contendo detecção imposta de secrets e lintings automáticos para Shell, YAML e Terraform. Nenhuma chave não criptografada pode persistir no repositório local.
-2. **Idempotência Garantida:** Todo script em Bash (.sh) ou playbook local (.yml) exige verificação prévia de estado em vez de forçar reconstruções destrutivas.
-3. **Padrão de Qualidade:** Rejeição de arquivos binários e extrações não auditáveis como tar/zips nas automações de setup.
+1. **Shift-Left Autoritário:** Operações impõem regras de `pre-commit` globais. Violação (exposição de secrets ou sintaxe Shell com falha) travará e bloqueará a subida do push e a submissão ao versionamento, salvaguardando a imagem de nuvem.
+2. **Idempotência Compulsória:** É mandatório o desenvolvimento de rotinas Bash (`.sh`) e playbooks condicionais a testes de estado prévios (State Check), sendo vetado comandos reativos imperativos ou re-criações destrutivas de configurações alheias.
+3. **Governança de IA Nível Root:** Qualquer ferramenta baseada em modelos de linguagem (Claude, ChatGPT, extensões de IDE) que for instanciada neste diretório está obrigada a ler e assinalar incondicionalmente o **`GEMINI.md`** primeiramente. Isso restringe o prompt natural do modelo obrigando-o a seguir a política técnica de tom de engenheiro adotando as três Personas nativas de orquestração local (Orchy, DevidLops, Revy).
 
 ---
-Para operar este repositório de forma automatizada com LLMs ou extensões assistivas (Copilot), valide estritamente o `AGENTS.md` e suas definições de restrição de escopo.
+**Nota para Aplicações Autônomas:** Para atuar na escrita de código neste repositório, leia primeiro o `GEMINI.md` para instruções de contexto global do Kernel da plataforma e em sequência o `AGENTS.md` para peculiaridades deste pacote.

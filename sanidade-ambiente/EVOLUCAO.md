@@ -30,7 +30,7 @@ Se o auditor avisar sobre ferramentas desatualizadas, o Python deve engatilhar s
 - Isso permitirá adicionarmos ferramentas à lista de checagens rapidamente sem adicionar 10 linhas de shell code para cada uma.
 
 ### 2. Integração com Webhook ou Status Automático
-- Exportar o Output das falhas de saúde estrutural nativamente nos *reports* do agente central (N8N ou LLM), de forma que se tentarmos fazer deploy em um ambiente quebrado, o Kiro (Orquestrador) possa ler o estado da máquina matinal autonomamente baseado num Log JSON (`.reports/status.json`).
+- Exportar o Output das falhas de saúde estrutural nativamente nos *reports* do agente central (N8N ou LLM), de forma que se tentarmos fazer deploy em um ambiente quebrado, o Orchy (Orquestrador) possa ler o estado da máquina matinal autonomamente baseado num Log JSON (`.reports/status.json`).
 
 ---
 

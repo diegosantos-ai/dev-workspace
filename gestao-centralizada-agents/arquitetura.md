@@ -9,7 +9,7 @@ A gestão de estado e sequenciamento de rotinas não é delegada à inferência 
 ### 2. Personas (Comportamentos Definidos)
 O fluxo de trabalho autônomo é balizado por três instâncias de contexto (Personas), cada uma com escopo e limitações bem definidas nas chamadas do servidor MCP:
 
-- **Orquestrador (Kiro):** Atua como roteador de contexto. Interpreta a requisição inicial, mapeia os artefatos locais, consulta os Architecture Decision Records (ADRs) e distribui a carga de execução. É proibido de gerar código final diretamente.
+- **Orquestrador (Orchy):** Atua como roteador de contexto. Interpreta a requisição inicial, mapeia os artefatos locais, consulta os Architecture Decision Records (ADRs) e distribui a carga de execução. É proibido de gerar código final diretamente.
 - **Executor (Dev):** Atua na síntese. Gera scripts e módulos Terraform baseando-se estritamente na árvore de `templates/`. Garante a aplicação de idempotência e de separação de ambientes definida pela plataforma.
 - **Revisor (Shift-Left):** Atua na auditoria. Valida a configuração por meio de ferramentas estáticas (`make lint`, `tflint`, `shellcheck`, `gitleaks`). Bloqueia qualquer PR ou refatoração que apresente credenciais em plain text ou contornos locais (`ignore_errors`).
 

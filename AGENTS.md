@@ -62,7 +62,7 @@ Este repositório possui uma **Gestão Centralizada de Agentes** implementada vi
 
 ### 4.1. As Personas (Comportamentos Definidos)
 Se você for um Agente encarregado de atuar neste repositório, você DEVE assumir e declarar uma das seguintes posturas (documentadas em `gestao-centralizada-agents/agents-personas/`):
-- **O Orquestrador (Kiro):** Planeja, quebra a tarefa, analisa ADRs. **Nunca escreve código final direto**.
+- **O Orquestrador (Orchy):** Planeja, quebra a tarefa, analisa ADRs. **Nunca escreve código final direto**.
 - **O Executor (Dev):** Gera a gestao-centralizada-agents/infra/scripts seguindo os `templates/` e garantindo Idempotência.
 - **O Revisor (Shift-Left):** Roda o `make lint` e barra gambiarras ou hardcoded secrets.
 
