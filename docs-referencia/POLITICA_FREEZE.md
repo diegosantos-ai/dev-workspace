@@ -9,7 +9,7 @@ A partir da versão **v1.2**, o repositório entra em estado de **Congelamento O
 
 ## 2. Critérios de Aceite para "Pronto para Uso"
 Um release de baseline é considerado estável se, e somente se:
-1. **Onboarding (10 Passos):** Executado com sucesso em máquina limpa (via checklist no `playbook/`).
+1. **Onboarding (10 Passos):** Executado com sucesso em máquina limpa (via checklist no `playbooks/`).
 2. **Doctor Check:** Bloqueio 100% verde para itens **Essenciais**.
 3. **Lint Check:** 100% verde (Shellcheck, Gitleaks, Yamllint).
 4. **Idempotência:** O comando `make setup-workstation` pode ser rodado N vezes sem corromper o estado ou duplicar entradas em arquivos de config (`.zshrc`, `.env`).
@@ -28,7 +28,7 @@ Um release de baseline é considerado estável se, e somente se:
 Após a entrada em operação real no notebook novo:
 - **Zero Bypass:** Nenhuma alteração entra na `main` sem passar pelo `make lint` local.
 - **Idempotência Obrigatória:** Qualquer novo script ou tarefa Ansible deve prever reexecução segura.
-- **Documentação Localizada:** Playbooks em `playbook/`, Referências em `docs-referencia/`.
+- **Documentação Localizada:** Playbooks em `playbooks/`, Referências em `docs-referencia/`.
 
 ---
 **Baseline Atual:** `v1.2` (Março/2026)
