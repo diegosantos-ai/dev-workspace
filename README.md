@@ -47,4 +47,4 @@ make morning
 **Em caso de falha crítica:**
 1. Execute `make doctor` e salve o output.
 2. Verifique os logs em `~/.cache/devops-reports/`.
-3. Consulte `docs-referencia/ONBOARDING_GUIDE.md` para erros conhecidos.
+3. Consulte `docs-referencia/onboarding-guide.md` para erros conhecidos.

@@ -1,6 +1,6 @@
 services:
   # Template minimal de serviço para projetos que adotam a rede unificada.
-  # Consulte ../ports/PORTS.md para o padrão de portas recomendado.
+  # Consulte ../ports/ports.md para o padrão de portas recomendado.
   app:
     image: alpine:latest
     command: tail -f /dev/null

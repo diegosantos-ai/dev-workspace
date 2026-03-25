@@ -117,3 +117,20 @@ Se uma frase parecer institucional demais, promocional demais ou “happy IA” 
 
 ### REGRA ABSOLUTA DE TOM:
 Documentação deve soar como engenharia profissional. Não use tom publicitário, infantilizado, emocional ou “entusiasmado demais”. Badges são permitidas. Emojis são proibidos.
+
+---
+
+## [ CAPÍTULO 6 ] Naming Conventions (Padrão de Nomenclatura)
+
+A padronização previne inconsistências e problemas de portabilidade entre sistemas (Linux/Mac/Win). Ao atuar sobre arquivos, todo Agente DEVE OBRIGATORIAMENTE obedecer ao seguinte padrão:
+
+1. **Padrão Default (Lowercase kebab-case):** Documentos Markdown (`.md`), playbooks, runbooks, scripts Bash (`.sh`) e arquivos de configuração (`.yaml`, `.json`) devem ser preenchidos EXCLUSIVAMENTE em `kebab-case` minúsculo, sem acentos, sem espaços e sem sufixos genéricos de versão (`-v2`, `-novo`, `temp_`).
+   - *Exemplo Certo:* `onboarding-projetos.md` | `setup-env.sh`
+   - *Proibido:* `ONBOARDING_PROJETOS.md` | `SetupAmbiente.sh` | `script_old.sh`
+2. **Exceções Normativas (Root Preservations):** Arquivos mestre estabelecidos convencionalmente por ferramentas ou pelo design root da arquitetura DEVEM ser mantidos intactos (Ex: `Makefile`, `Dockerfile`, `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, `GEMINI.md`).
+3. **Padrão Específico de Linguagens:**
+   - Módulos / Códigos Python: `snake_case` (ex: `api_client.py`).
+   - Componentes Frontend TS/React: `PascalCase`.
+   - Utilitários gerais Node/TS: `kebab-case`.
+
+**_Regra Inviolável:_** Um agente nunca deve gerar arquivos em `UPPERCASE` na arquitetura (como `LIMITES.md`) salvo se for estritamente cobrado pela ferramenta (como `Dockerfile`).

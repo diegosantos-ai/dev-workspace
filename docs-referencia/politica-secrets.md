@@ -19,7 +19,7 @@ Se eles não vão ao git, devem repousar num gestor ou estado efêmero seguro da
 Recomendamos e suportamos as seguintes saídas:
 
 1. **Gestores de Cofres de CLI:** (Padrão ouro). Abstrair sua adoção utilizando comandos em passagens para o cofre GPG gerenciado via `pass` (por exemplo, exportando para o zsh aliando `export AWS_ACCESS=$(pass aws/personal_access)`).
-2. **Isolamento Modular Variável (`.env`):** Como definido no manifesto `PADRAO_ENV_VARS.md`, inserindo pontualmente sua instância local restrita em `gestao-centralizada-agents/.env`.
+2. **Isolamento Modular Variável (`.env`):** Como definido no manifesto `padrao-env-vars.md`, inserindo pontualmente sua instância local restrita em `gestao-centralizada-agents/.env`.
 3. **Plataformas de CI Distribuídas:** Github Actions operam baseados sob *Secrets Repository/Organization*. É proibido espelhar *outputs* verbosos de variáveis dinâmicas rodando em Action runners na string de echo `${{ secrets.AWS_KEY }}`.
 
 ## 4. Auditoria de Contaminação

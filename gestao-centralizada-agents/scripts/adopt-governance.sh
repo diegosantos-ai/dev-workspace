@@ -14,8 +14,8 @@ if [ ! -d "$TARGET_DIR/.git" ]; then
     exit 1
 fi
 
-cp "$TEMPLATE_DIR/docs/CONTEXTO.md" "$TARGET_DIR/CONTEXTO.md"
-cp "$TEMPLATE_DIR/docs/ARQUITETURA.md" "$TARGET_DIR/ARQUITETURA.md"
+cp "$TEMPLATE_DIR/docs/contexto.md" "$TARGET_DIR/contexto.md"
+cp "$TEMPLATE_DIR/docs/arquitetura.md" "$TARGET_DIR/arquitetura.md"
 cp "$MANIFEST_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md"
 cp "$MANIFEST_DIR/.pre-commit-config.yaml" "$TARGET_DIR/.pre-commit-config.yaml"
 
@@ -27,8 +27,8 @@ if [ ! -f "$TARGET_DIR/docker-compose.yml" ]; then
     cp "$TEMPLATE_DIR/docker/docker-compose.yml" "$TARGET_DIR/docker-compose.yml"
 fi
 
-if [ -d "$TEMPLATE_DIR/ports" ] && [ ! -f "$TARGET_DIR/PORTS.md" ]; then
-    cp "$TEMPLATE_DIR/ports/PORTS.md" "$TARGET_DIR/PORTS.md"
+if [ -d "$TEMPLATE_DIR/ports" ] && [ ! -f "$TARGET_DIR/ports.md" ]; then
+    cp "$TEMPLATE_DIR/ports/ports.md" "$TARGET_DIR/ports.md"
 fi
 
 # Run scaffolding to allocate app ports and ensure external network is configured
