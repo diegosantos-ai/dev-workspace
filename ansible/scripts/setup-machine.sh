@@ -35,23 +35,4 @@ cd "$WORKSPACE_DIR"
 
 ANSIBLE_HOST_KEY_CHECKING=False LC_ALL=C.UTF-8 ansible-playbook ansible/local-setup.yml --extra-vars "user=$REAL_USER"
 
-echo "Configurando aliases globais (fallback)..."
-USER_HOME=$(eval echo "~$REAL_USER")
-for RC_FILE in "$USER_HOME/.bashrc" "$USER_HOME/.zshrc"; do
-    # Nao injeta se o arquivo for um link simbolico (gerenciado por Stow)
-    if [ -L "$RC_FILE" ]; then
-        echo "Ignorando $RC_FILE (gerenciado por GNU Stow)."
-        continue
-    fi
-
-    if [ ! -f "$RC_FILE" ]; then
-        touch "$RC_FILE" || true
-    fi
-
-    if [ -f "$RC_FILE" ] && ! grep -q "alias morning=" "$RC_FILE"; then
-        echo -e "\n# DevOps Workspace Global Aliases" >> "$RC_FILE"
-        echo "alias morning='make -C $WORKSPACE_DIR morning'" >> "$RC_FILE"
-    fi
-done
-
 echo "Setup concluido."

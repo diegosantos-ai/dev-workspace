@@ -10,12 +10,12 @@ Sempre que formatar sua máquina ou assumir um novo equipamento, o projeto DevOp
 **Passo a passo inquebrável:**
 1. Clone este repositório `dev-workspace` no seu novo destino de projetos limitando atuar dentro dele:
    ```bash
-   git clone https://github.com/diegosantos-ai/dev-workspace.git ~/dev-workspace
-   cd ~/dev-workspace
+   git clone https://github.com/diegosantos-ai/dev-workspace.git ~/labs/dev-workspace
+   cd ~/labs/dev-workspace
    ```
 2. Inicialize o Bootstrap do sistema que rodará o Ansible nos bastidores e linkará seus dotfiles (VS Code, terminal, regras globais de IA):
    ```bash
-   make setup
+   make bootstrap
    ```
 3. Feche o terminal e abra o VS Code em sua nova home. As regras (God Prompts) do Github Copilot já estarão ativadas.
 4. Para validar que tudo está vivo, rode a verificação e inicie o dia:
@@ -47,7 +47,7 @@ cd ~/caminho/para/seu/projeto-em-andamento
 
 **2. Execute o Scaffolder de Governança do Dev-Workspace:**
 ```bash
-~/dev-workspace/gestao-centralizada-agents/scripts/adopt-governance.sh .
+~/labs/dev-workspace/gestao-centralizada-agents/scripts/adopt-governance.sh .
 ```
 *O que faz:* Roda o script da plataforma apontando para o diretório atual (`.`). Ele proativamente confere se há repositório Git, instala silenciosamente o núcleo do pre-commit via Python, injeta as regras de verificação `.pre-commit-config.yaml`, traz o Entrypoint (`Makefile`) e copia o manifesto `AGENTS.md`.
 

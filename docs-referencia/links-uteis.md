@@ -13,6 +13,12 @@ A lógica fica linda e útil assim:
 * `links-uteis.md` = te dá caminho rápido para agir
 * `rotina-devops.md` = manual completo
 
+Regra operacional curta:
+
+* em `~/labs/dev-workspace`, use o `make` do workspace
+* em cada projeto, use o `make` do projeto
+* não use `make <target>` puro na `HOME`
+
 ## Estrutura que eu recomendo para o `links-uteis.md`
 
 Ele precisa ser curto, consultável e operacional. Nada de virar enciclopédia triste.
@@ -23,15 +29,15 @@ Ele precisa ser curto, consultável e operacional. Nada de virar enciclopédia t
 ## 1. Pastas principais
 
 ### Documentação de rotina
-- `~/dev-workspace/`
-- Checklist: `~/dev-workspace/checklist-manha.md`
-- Manual: `~/dev-workspace/rotina-devops.md`
-- Links úteis: `~/dev-workspace/links-uteis.md`
+- `~/labs/dev-workspace/`
+- Checklist: `~/labs/dev-workspace/playbooks/checklist-manha.md`
+- Manual: `~/labs/dev-workspace/rotina-devops/README.md`
+- Links úteis: `~/labs/dev-workspace/docs-referencia/links-uteis.md`
 
 ### Scripts
-- `~/dev-workspace/scripts/`
-- Auditoria do ambiente: `~/dev-workspace/scripts/check_devops_env.sh`
-- Ritual da manhã: `~/dev-workspace/scripts/sanidade-ambiente/scripts/daily-check.sh`
+- `~/labs/dev-workspace/sanidade-ambiente/scripts/`
+- Auditoria do ambiente: `~/labs/dev-workspace/sanidade-ambiente/scripts/check-devops-env.sh`
+- Ritual da manhã: `~/labs/dev-workspace/sanidade-ambiente/scripts/daily-check.sh`
 
 ### Labs
 - `~/labs/`
@@ -46,25 +52,25 @@ Ele precisa ser curto, consultável e operacional. Nada de virar enciclopédia t
 
 ### Ritual da manhã
 ```bash
-~/dev-workspace/scripts/sanidade-ambiente/scripts/daily-check.sh
+~/labs/dev-workspace/sanidade-ambiente/scripts/daily-check.sh
 ````
 
 ### Auditoria completa do ambiente
 
 ```bash
-~/dev-workspace/scripts/check_devops_env.sh
+~/labs/dev-workspace/sanidade-ambiente/scripts/check-devops-env.sh
 ```
 
 ### Abrir checklist
 
 ```bash
-xdg-open ~/dev-workspace/checklist-manha.md
+xdg-open ~/labs/dev-workspace/playbooks/checklist-manha.md
 ```
 
 ### Abrir manual
 
 ```bash
-xdg-open ~/dev-workspace/rotina-devops.md
+xdg-open ~/labs/dev-workspace/rotina-devops/README.md
 ```
 
 ---

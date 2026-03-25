@@ -7,31 +7,25 @@
 # Ajuda: make help
 
 # ==============================================================================
-# Resolucao de DEV_WORKSPACE
-# Prioridade: variavel de ambiente > raiz Git > CURDIR se basename == dev-workspace
-# > fallback para $HOME/labs/dev-workspace
+# Resolucao da raiz do workspace
+# Fonte unica de verdade: o diretorio onde este Makefile reside.
 # ==============================================================================
-GIT_ROOT := $(shell git rev-parse --show-toplevel 2>/dev/null || true)
-ifeq ($(GIT_ROOT),)
-  ifeq ($(shell basename $(CURDIR)),dev-workspace)
-    DEV_WORKSPACE_DEFAULT := $(CURDIR)
-  else
-    DEV_WORKSPACE_DEFAULT := $(HOME)/labs/dev-workspace
-  endif
-else
-  DEV_WORKSPACE_DEFAULT := $(GIT_ROOT)
-endif
+MAKEFILE_PATH       := $(abspath $(lastword $(MAKEFILE_LIST)))
+DEV_WORKSPACE_ROOT  := $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))
+
+export DEV_WORKSPACE := $(DEV_WORKSPACE_ROOT)
+export DEV_WORKSPACE_ROOT
 
 # ==============================================================================
 # Variaveis internas e ambiente
 # ==============================================================================
 export PATH := $(HOME)/.local/bin:$(PATH)
 
-ANSIBLE_SCRIPT  := "$(DEV_WORKSPACE)/ansible/scripts/setup-machine.sh"
-SANIDADE_DIR    := "$(DEV_WORKSPACE)/sanidade-ambiente/scripts"
-ROTINA_DIR      := "$(DEV_WORKSPACE)/rotina-devops/scripts"
-AGENTS_DIR      := "$(DEV_WORKSPACE)/gestao-centralizada-agents"
-INFRA_DIR       := "$(DEV_WORKSPACE)/infra-core"
+ANSIBLE_SCRIPT  := $(DEV_WORKSPACE_ROOT)/ansible/scripts/setup-machine.sh
+SANIDADE_DIR    := $(DEV_WORKSPACE_ROOT)/sanidade-ambiente/scripts
+ROTINA_DIR      := $(DEV_WORKSPACE_ROOT)/rotina-devops/scripts
+AGENTS_DIR      := $(DEV_WORKSPACE_ROOT)/gestao-centralizada-agents
+INFRA_DIR       := $(DEV_WORKSPACE_ROOT)/infra-core
 
 CYAN   := \033[36m
 RESET  := \033[0m
@@ -44,6 +38,7 @@ BOLD   := \033[1m
 # Declaracao de targets sem arquivos
 # ==============================================================================
 .PHONY: help \
+        assert-git-context \
         setup-workstation setup asdf-install bootstrap \
         doctor env-check audit lint \
         infra-up infra-down \
@@ -58,6 +53,7 @@ help: ## Exibe targets disponiveis e suas descricoes
 	@printf "$(YELLOW)%-60s$(RESET)\n" "============================================================"
 	@printf "$(GREEN)  Workspace DevOps Central$(RESET)\n"
 	@printf "$(YELLOW)%-60s$(RESET)\n" "============================================================"
+	@printf "  $(CYAN)%-22s$(RESET) %s\n" "workspace-root" "$(DEV_WORKSPACE_ROOT)"
 	@awk 'BEGIN {FS = ":.*?## "} \
 	     /^[a-zA-Z_-]+:.*?## / { \
 	       printf "  $(CYAN)%-22s$(RESET) %s\n", $$1, $$2 \
@@ -68,28 +64,48 @@ help: ## Exibe targets disponiveis e suas descricoes
 # SETUP & BOOTSTRAP
 # ==============================================================================
 
-setup-workstation: ## [CANONICO] Provisiona OS, dotfiles e toolchain via Ansible
-	@bash $(ANSIBLE_SCRIPT)
+assert-git-context: ## Valida que a raiz do workspace pertence a um repositorio Git
+	@if ! git -C "$(DEV_WORKSPACE_ROOT)" rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+	  printf "$(RED)[ERRO]$(RESET) A raiz calculada pelo Makefile nao e um repositorio Git valido: %s\n" "$(DEV_WORKSPACE_ROOT)"; \
+	  printf "Execute os comandos a partir do clone real do workspace ou use o Makefile localizado nesse clone.\n"; \
+	  exit 1; \
+	fi
+
+setup-workstation: ## Provisiona OS, dotfiles e toolchain via Ansible
+	@if [ ! -f "$(ANSIBLE_SCRIPT)" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script de setup nao encontrado: %s\n" "$(ANSIBLE_SCRIPT)"; \
+	  exit 1; \
+	fi
+	@bash "$(ANSIBLE_SCRIPT)"
 
 setup: setup-workstation ## Alias de compatibilidade para setup-workstation
 
 asdf-install: ## Instala runtimes fixados em .tool-versions via ASDF
-	@if [ ! -f "$(DEV_WORKSPACE)/.tool-versions" ]; then \
-	  printf "$(RED)[ERRO]$(RESET) .tool-versions nao encontrado em %s\n" "$(DEV_WORKSPACE)"; \
+	@if [ ! -f "$(DEV_WORKSPACE_ROOT)/.tool-versions" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) .tool-versions nao encontrado em %s\n" "$(DEV_WORKSPACE_ROOT)"; \
 	  exit 1; \
 	fi
-	@bash -c 'source "$$HOME/.asdf/asdf.sh" && cd "$(DEV_WORKSPACE)" && asdf install'
+	@if [ ! -f "$$HOME/.asdf/asdf.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) ASDF nao encontrado em %s\n" "$$HOME/.asdf/asdf.sh"; \
+	  printf "Rode 'make setup-workstation' primeiro.\n"; \
+	  exit 1; \
+	fi
+	@bash -c 'source "$$HOME/.asdf/asdf.sh" && cd "$(DEV_WORKSPACE_ROOT)" && asdf install'
 
-bootstrap: ## Onboarding completo: setup-workstation + runtimes + pre-commit + agentes
+bootstrap: assert-git-context ## [CANONICO] Onboarding completo: setup-workstation + runtimes + pre-commit + agentes
 	@printf "$(BOLD)=== [1/4] Provisionando OS, dotfiles e toolchain ===$(RESET)\n"
-	@bash $(ANSIBLE_SCRIPT)
+	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" setup-workstation
 	@printf "$(BOLD)=== [2/4] Instalando runtimes (.tool-versions) ===$(RESET)\n"
-	@bash -c 'source "$$HOME/.asdf/asdf.sh" && cd "$(DEV_WORKSPACE)" && asdf install' || \
+	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" asdf-install || \
 	  printf "$(YELLOW)[AVISO]$(RESET) asdf install falhou — verifique .tool-versions e rode 'make asdf-install'\n"
 	@printf "$(BOLD)=== [3/4] Ativando pre-commit hooks ===$(RESET)\n"
-	@bash -c 'export PATH="$$HOME/.local/bin:$$PATH" && cd "$(DEV_WORKSPACE)" && pre-commit install'
+	@if ! command -v pre-commit >/dev/null 2>&1; then \
+	  printf "$(RED)[ERRO]$(RESET) pre-commit nao encontrado. Rode 'make setup-workstation' e tente novamente.\n"; \
+	  exit 1; \
+	fi
+	@bash -c 'export PATH="$$HOME/.local/bin:$$PATH" && cd "$(DEV_WORKSPACE_ROOT)" && pre-commit install'
 	@printf "$(BOLD)=== [4/4] Provisionando motor de agentes ===$(RESET)\n"
-	@$(MAKE) -C "$(DEV_WORKSPACE)" setup-agents
+	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" setup-agents
 	@printf "$(GREEN)Bootstrap concluido. Rode 'make morning' para iniciar o dia.$(RESET)\n"
 
 # ==============================================================================
@@ -98,6 +114,7 @@ bootstrap: ## Onboarding completo: setup-workstation + runtimes + pre-commit + a
 
 doctor: ## Diagnostico completo do ambiente (ferramentas, hooks, repos)
 	@printf "$(BOLD)Diagnostico do ambiente DevOps...$(RESET)\n"
+	@printf "Workspace root: %s\n" "$(DEV_WORKSPACE_ROOT)"
 	@printf "\n$(CYAN)-- Ferramentas essenciais --$(RESET)\n"
 	@for cmd in bash git make docker terraform aws gh pre-commit; do \
 	  if command -v $$cmd >/dev/null 2>&1; then \
@@ -118,18 +135,23 @@ doctor: ## Diagnostico completo do ambiente (ferramentas, hooks, repos)
 	  fi; \
 	done
 	@printf "\n$(CYAN)-- Repositorio e hooks --$(RESET)\n"
-	@git rev-parse --is-inside-work-tree >/dev/null 2>&1 && \
-	  printf "  $(GREEN)[OK]$(RESET)   repositorio Git detectado\n" || \
-	  printf "  $(RED)[FAIL]$(RESET) nao esta dentro de um repositorio Git\n"
+	@if git -C "$(DEV_WORKSPACE_ROOT)" rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+	  printf "  $(GREEN)[OK]$(RESET)   repositorio Git detectado em %s\n" "$(DEV_WORKSPACE_ROOT)"; \
+	else \
+	  printf "  $(RED)[FAIL]$(RESET) a raiz calculada nao pertence a um repositorio Git: %s\n" "$(DEV_WORKSPACE_ROOT)"; \
+	fi
 	@git config user.name >/dev/null 2>&1 && \
 	  printf "  $(GREEN)[OK]$(RESET)   git user.name configurado (%s)\n" "$$(git config user.name)" || \
 	  printf "  $(RED)[FAIL]$(RESET) git user.name nao configurado\n"
 	@git config user.email >/dev/null 2>&1 && \
 	  printf "  $(GREEN)[OK]$(RESET)   git user.email configurado (%s)\n" "$$(git config user.email)" || \
 	  printf "  $(RED)[FAIL]$(RESET) git user.email nao configurado\n"
-	@[ -f "$(DEV_WORKSPACE)/.git/hooks/pre-commit" ] && \
-	  printf "  $(GREEN)[OK]$(RESET)   pre-commit hook instalado\n" || \
-	  printf "  $(YELLOW)[WARN]$(RESET) pre-commit hook ausente — rode: pre-commit install\n"
+	@HOOK_PATH="$$(git -C "$(DEV_WORKSPACE_ROOT)" rev-parse --git-path hooks/pre-commit 2>/dev/null || true)"; \
+	if [ -n "$$HOOK_PATH" ] && [ -f "$$HOOK_PATH" ]; then \
+	  printf "  $(GREEN)[OK]$(RESET)   pre-commit hook instalado (%s)\n" "$$HOOK_PATH"; \
+	else \
+	  printf "  $(YELLOW)[WARN]$(RESET) pre-commit hook ausente — rode: make bootstrap\n"; \
+	fi
 	@printf "\n$(CYAN)-- SSH --$(RESET)\n"
 	@ssh -T git@github.com 2>&1 | grep -q "successfully authenticated" && \
 	  printf "  $(GREEN)[OK]$(RESET)   SSH GitHub autenticado\n" || \
@@ -137,17 +159,25 @@ doctor: ## Diagnostico completo do ambiente (ferramentas, hooks, repos)
 	@printf "\n"
 
 env-check: ## Verificacao rapida de sanidade das ferramentas locais
-	@bash $(SANIDADE_DIR)/daily-check.sh
+	@if [ ! -f "$(SANIDADE_DIR)/daily-check.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SANIDADE_DIR)/daily-check.sh"; \
+	  exit 1; \
+	fi
+	@bash "$(SANIDADE_DIR)/daily-check.sh"
 
 audit: ## Auditoria profunda de versoes e servicos instalados
-	@bash $(SANIDADE_DIR)/env-audit.sh
+	@if [ ! -f "$(SANIDADE_DIR)/env-audit.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SANIDADE_DIR)/env-audit.sh"; \
+	  exit 1; \
+	fi
+	@bash "$(SANIDADE_DIR)/env-audit.sh"
 
-lint: ## Executa pre-commit em todos os arquivos do repositorio
+lint: assert-git-context ## Executa pre-commit em todos os arquivos do repositorio
 	@if ! command -v pre-commit >/dev/null 2>&1; then \
 	  printf "$(RED)[ERRO]$(RESET) pre-commit nao encontrado. Rode: make bootstrap\n"; \
 	  exit 1; \
 	fi
-	@pre-commit run --all-files
+	@cd "$(DEV_WORKSPACE_ROOT)" && pre-commit run --all-files
 
 # ==============================================================================
 # INFRAESTRUTURA CORE (Docker compartilhado)
@@ -226,18 +256,38 @@ adopt: ## Aplica governanca do workspace em repositorio externo (uso: make adopt
 # ==============================================================================
 
 morning: ## Rotina matinal: sanidade do ambiente + abertura do worklog do dia
+	@if [ ! -f "$(ROTINA_DIR)/open-devops-routine.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(ROTINA_DIR)/open-devops-routine.sh"; \
+	  exit 1; \
+	fi
 	@bash "$(ROTINA_DIR)/open-devops-routine.sh"
 
 day-start: ## Cria worklog do dia e abre no VS Code
+	@if [ ! -f "$(ROTINA_DIR)/worklog-start.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(ROTINA_DIR)/worklog-start.sh"; \
+	  exit 1; \
+	fi
 	@bash "$(ROTINA_DIR)/worklog-start.sh"
 
 log: ## Adiciona entrada no worklog do dia (interativo se sem ARGS)
+	@if [ ! -f "$(ROTINA_DIR)/worklog-add.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(ROTINA_DIR)/worklog-add.sh"; \
+	  exit 1; \
+	fi
 	@bash "$(ROTINA_DIR)/worklog-add.sh" $(ARGS)
 
 day-close: ## Consolida e faz push do worklog diario
+	@if [ ! -f "$(ROTINA_DIR)/worklog-close.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(ROTINA_DIR)/worklog-close.sh"; \
+	  exit 1; \
+	fi
 	@bash "$(ROTINA_DIR)/worklog-close.sh"
 
 week-close: ## Gera sumario executivo semanal
+	@if [ ! -f "$(ROTINA_DIR)/worklog-weekly.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(ROTINA_DIR)/worklog-weekly.sh"; \
+	  exit 1; \
+	fi
 	@bash "$(ROTINA_DIR)/worklog-weekly.sh"
 
 # ==============================================================================

@@ -1,19 +1,27 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034
-
-
 set -euo pipefail
 
 WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-CHECKLIST="$WORKSPACE_DIR/playbooks/checklist-manha.md"
 MORNING_SCRIPT="$WORKSPACE_DIR/sanidade-ambiente/scripts/daily-check.sh"
 STORAGE_SCRIPT="$WORKSPACE_DIR/sanidade-ambiente/scripts/storage-check.sh"
+MAKE_BIN="${MAKE:-make}"
 
 REPORT_NAME="morning-report-$(date +%Y%m%d)"
 REPORT_DIR="$HOME/.cache/devops-reports/$REPORT_NAME"
 mkdir -p "$REPORT_DIR"
 REPORT_FILE="$REPORT_DIR/session.log"
+
+for required_file in "$MORNING_SCRIPT" "$STORAGE_SCRIPT"; do
+    if [ ! -f "$required_file" ]; then
+        echo "Erro: arquivo obrigatorio nao encontrado: $required_file" >&2
+        exit 1
+    fi
+done
+
+if ! command -v "$MAKE_BIN" >/dev/null 2>&1; then
+    echo "Erro: comando make nao encontrado no PATH." >&2
+    exit 1
+fi
 
 echo "Iniciando rotina matinal unificada..." | tee "$REPORT_FILE"
 echo "Relatorio gerado em: $REPORT_DIR"
@@ -29,4 +37,4 @@ echo "Log arquivado em: $REPORT_FILE"
 
 echo -e "\n--------------------------------------------------------"
 echo "Abrindo Worklog Diario..."
-make -C "$WORKSPACE_DIR" day-start
+"$MAKE_BIN" -C "$WORKSPACE_DIR" day-start

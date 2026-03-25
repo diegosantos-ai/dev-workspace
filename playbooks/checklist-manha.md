@@ -1,6 +1,11 @@
-# 🌅 Checklist da Manhã — Rotina DevOps
+# Checklist da Manhã — Rotina DevOps
 
-> Objetivo: começar o dia com clareza, controle e prioridade definida, aproveitando a automação do nosso Cockpit.
+> Objetivo: começar o dia com clareza, controle e prioridade definida.
+
+Regra rápida:
+- Se o comando é do workspace, execute em `~/labs/dev-workspace`.
+- Se o comando é do projeto, execute dentro do projeto.
+- `make` puro na `HOME` não faz parte do fluxo.
 
 ## ☀️ Execução Diária (Rotina Operacional)
 O ciclo completo de trabalho de um engenheiro dentro da plataforma operando local.
@@ -16,7 +21,7 @@ O ciclo completo de trabalho de um engenheiro dentro da plataforma operando loca
 
 
 ## 1. Auditoria e Telemetria (Automática)
-- [ ] Abrir o terminal de controle no diretório onde clonou o workspace (ex: `cd ~/dev-workspace`)
+- [ ] Abrir o terminal de controle no diretório do clone do workspace (ex: `cd ~/labs/dev-workspace`)
 - [ ] Executar a varredura do dia: `make morning`
 - [ ] Analisar o output: Existem alertas críticos de segurança? Serviços base offline? Dependências pendentes de atualização não-nativas?
 
@@ -27,5 +32,5 @@ O ciclo completo de trabalho de um engenheiro dentro da plataforma operando loca
 
 ## 3. Hands-on (Ação e Produção)
 - [ ] Mudar para o diretório de trabalho do projeto/cliente (`cd ~/projetos/nome-do-projeto`).
-- [ ] Executar validação local de estado *antes* de escrever código (`git fetch`, `make test` ou `terraform plan`).
+- [ ] Executar validação local de estado *antes* de escrever código usando o `Makefile` do próprio projeto (`git fetch`, `make test` ou `terraform plan`).
 - [ ] Executar a tarefa desenhada.

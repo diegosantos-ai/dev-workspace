@@ -34,6 +34,18 @@
       - uidmap
       - shellcheck
 
+    vscode_managed_files:
+      - settings.json
+      - mcp.json
+
+    hashicorp_supported_releases:
+      Ubuntu:
+        - jammy
+        - noble
+      Debian:
+        - bullseye
+        - bookworm
+
     user: "{{ lookup('env', 'USER') }}"
 
   tasks:
@@ -57,23 +69,78 @@
         state: directory
         mode: '0755'
 
+    - name: Coletar estado atual dos arquivos gerenciados do VS Code
+      become_user: "{{ user }}"
+      stat:
+        path: "/home/{{ user }}/.config/Code/User/{{ item }}"
+        follow: false
+      loop: "{{ vscode_managed_files }}"
+      register: vscode_user_files
+
     - name: Fazer backup seguro de configs antigas do VSCode para nao quebrar o Stow
       become_user: "{{ user }}"
-      shell: |
-        for f in settings.json mcp.json keybindings.json; do
-          if [ -f "/home/{{ user }}/.config/Code/User/$f" ] && [ ! -L "/home/{{ user }}/.config/Code/User/$f" ]; then
-            mv "/home/{{ user }}/.config/Code/User/$f" "/home/{{ user }}/.config/Code/User/${f}.bak"
-          fi
-        done
-      changed_when: false
+      command:
+        argv:
+          - mv
+          - "/home/{{ user }}/.config/Code/User/{{ item.item }}"
+          - "/home/{{ user }}/.config/Code/User/{{ item.item }}.bak"
+      loop: "{{ vscode_user_files.results }}"
+      when:
+        - item.stat.exists
+        - not (item.stat.islnk | default(false))
+      register: vscode_backups
+      changed_when: true
+
+    - name: Validar links simbolicos preexistentes do VS Code
+      assert:
+        that:
+          - item.stat.lnk_source == ((playbook_dir | dirname) ~ '/dotfiles/vscode/.config/Code/User/' ~ item.item)
+        fail_msg: "Conflito no VS Code: /home/{{ user }}/.config/Code/User/{{ item.item }} aponta para {{ item.stat.lnk_source }}, fora do destino esperado do workspace."
+      loop: "{{ vscode_user_files.results }}"
+      when:
+        - item.stat.exists
+        - item.stat.islnk | default(false)
+
+    - name: Remover links absolutos antigos do VS Code para o Stow recriar corretamente
+      become_user: "{{ user }}"
+      file:
+        path: "/home/{{ user }}/.config/Code/User/{{ item.item }}"
+        state: absent
+      loop: "{{ vscode_user_files.results }}"
+      when:
+        - item.stat.exists
+        - item.stat.islnk | default(false)
+        - item.stat.lnk_source == ((playbook_dir | dirname) ~ '/dotfiles/vscode/.config/Code/User/' ~ item.item)
+
+    - name: Falhar se ainda houver arquivos do VSCode fora do controle do Stow
+      become_user: "{{ user }}"
+      stat:
+        path: "/home/{{ user }}/.config/Code/User/{{ item }}"
+        follow: false
+      loop: "{{ vscode_managed_files }}"
+      register: vscode_post_backup_files
+
+    - name: Validar pre-condicao do GNU Stow para dotfiles do VSCode
+      assert:
+        that:
+          - not item.stat.exists or (item.stat.islnk | default(false))
+        fail_msg: "Conflito no VS Code: /home/{{ user }}/.config/Code/User/{{ item.item }} ainda existe fora do controle do Stow."
+      loop: "{{ vscode_post_backup_files.results }}"
 
     - name: Executar GNU Stow para dotfiles (vscode)
       become_user: "{{ user }}"
-      shell: "stow --adopt -v -d {{ playbook_dir }}/../dotfiles -t /home/{{ user }} vscode"
+      command:
+        argv:
+          - stow
+          - --restow
+          - -v
+          - -d
+          - "{{ playbook_dir }}/../dotfiles"
+          - -t
+          - "/home/{{ user }}"
+          - vscode
       register: stow_output
-      changed_when: "'LINK' in stow_output.stderr"
-      ignore_errors: yes
-
+      changed_when: "'LINK:' in stow_output.stderr or 'UNLINK:' in stow_output.stderr or 'RESTOW:' in stow_output.stderr"
 
     # Custom additions for DevOps Checklist
     - name: Garantir que Zsh seja o shell padrão
@@ -183,11 +250,26 @@
       args:
         creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
-    - name: Adicionar repositorio do Hashicorp (Terraform)
-      apt_repository:
-        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
-        state: present
-        filename: hashicorp
+    - name: Definir release suportada do repositorio Hashicorp
+      set_fact:
+        hashicorp_apt_release: >-
+          {{
+            ansible_distribution_release
+            if ansible_distribution_release in hashicorp_supported_releases.get(ansible_distribution, [])
+            else (hashicorp_supported_releases.get(ansible_distribution, ['']) | last)
+          }}
+
+    - name: Informar fallback de release para o repositorio Hashicorp
+      debug:
+        msg: "Release {{ ansible_distribution_release }} nao suportada pela Hashicorp. Usando {{ hashicorp_apt_release }} para instalar Terraform."
+      when: hashicorp_apt_release != ansible_distribution_release
+
+    - name: Configurar repositorio do Hashicorp (Terraform)
+      copy:
+        dest: /etc/apt/sources.list.d/hashicorp.list
+        mode: '0644'
+        content: |
+          deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ hashicorp_apt_release }} main
 
     - name: Instalar Terraform
       apt:

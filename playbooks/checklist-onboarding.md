@@ -16,9 +16,9 @@ Este documento define o roteiro de execução e os critérios de aceite para a B
 | **01** | `git clone git@github.com:<usuario>/dev-workspace.git ~/labs/dev-workspace` | Clone via SSH sem erro de autenticação. |
 | **02** | `cd ~/labs/dev-workspace` | Entrada no diretório sem problemas. |
 | **03** | `make help` | Lista de 18+ targets formatada e legível. |
-| **04** | `make setup-workstation` | Ansible executa até o fim sem falhas fatais (vermelho). |
+| **04** | `make bootstrap` | Executa setup da workstation, runtimes, hooks e motor de agentes sem depender do CWD atual. |
 | **05** | `make doctor` | Todos os itens "Essenciais" em `[OK]`. Opcionais podem estar `[WARN]`. |
-| **06** | `make lint` | Execução completa com saída `Passed` (verde). |
+| **06** | `make lint` | Executa `pre-commit` a partir da raiz real do clone. Fora de contexto Git, falha com mensagem explícita. |
 | **07** | `make morning` | Carrega o check de sanidade e dispara o `day-start`. |
 | **08** | `make day-start` | Cria `rotina-devops/worklog/daily/<HOJE>.md` com base no template. |
 | **09** | `make log ARGS="teste real"` | Inserção da entrada no arquivo MD sem quebra de formatação. |
@@ -28,7 +28,7 @@ Este documento define o roteiro de execução e os critérios de aceite para a B
 
 - **Tempo de setup:** O Ansible demora mais de 10min em algum ponto? (Geralmente Docker Desktop).
 - **Prompt interativo:** Algum comando pediu senha inesperada fora do início do `sudo`?
-- **Ambiente Shell:** Após o setup, o alias `morning` funcionou em um novo terminal sem `source ~/.zshrc` manual?
+- **Contexto de execução:** O fluxo continua íntegro mesmo que o terminal tenha sido aberto fora do clone e o operador entre manualmente em `~/labs/dev-workspace` antes do `make`?
 - **Paths:** Algum script reclamou de arquivo não encontrado em `~/.cache/devops-reports/`?
 
 ## 4. Matriz de Aceite (Sucesso vs Falha)
@@ -36,7 +36,7 @@ Este documento define o roteiro de execução e os critérios de aceite para a B
 ### 🔴 Bloqueadores Reais (Falha Crítica)
 - Ansible morre antes de instalar `uv`, `asdf` ou `docker`.
 - `make doctor` reporta `[FAIL]` em ferramentas do bloco **Essenciais**.
-- `make morning` falha por arquivo MD inexistente ou erro de permissão em `~/.cache`.
+- `make morning` falha por arquivo de script inexistente, root incorreta ou erro de permissão em `~/.cache`.
 - `git push` falha por erro de configuração de credencial (`.gitconfig` quebrado).
 
 ### 🟡 Imperfeições Aceitáveis (Dívida Técnica)

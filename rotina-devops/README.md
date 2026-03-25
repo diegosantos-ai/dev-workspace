@@ -75,9 +75,10 @@ rotina-devops/
 
 ---
 
-## 🛠️ Exemplos de Uso na CLI (Global)
+## Exemplos de Uso na CLI
 
-Todos os comandos devem ser executados a partir de qualquer diretório pelo atalho global do \`Makefile\` na raiz do projeto.
+Todos os comandos abaixo devem ser executados pelo `Makefile` canônico do clone real do `dev-workspace`.
+O fluxo esperado é entrar no repositório e usar `make <target>` a partir da raiz do clone.
 
 ```bash
 # 1. Chegou para o trabalho:
@@ -128,4 +129,4 @@ Foco exclusivo na transição de "horas trabalhadas" para "valor gerado". Possui
 
 ## 🚀 Próximos Passos (Evolução)
 Consultar ativamente o arquivo `MELHORIAS-FUTURAS.md`. Nenhuma feature é empurrada para este módulo se não passar por um filtro agressivo contra complexidade fútil ("maquiagem").
-A prioridade futura é a integração desses scripts à raiz via **Entrypoints globais em Makefile** (`make day-start`).
+A prioridade futura é manter esses scripts acessíveis pelo `Makefile` da raiz do workspace, sem depender de aliases de shell ou paths absolutos.
