@@ -3,7 +3,7 @@
 Pela premissa do workspace, o ambiente baseia-se na injeção de parâmetros modulares a partir da máquina, isolando o cofre e configurações dinâmicas dos repositórios injetados no controle de versão.
 
 ## 1. Topologia de Arquivos .ENV
-Não existirá "vários `.env` isolados" bagunçando o repositório nos módulos raiz que operam agentes generalistas. 
+Não existirá "vários `.env` isolados" bagunçando o repositório nos módulos raiz que operam agentes generalistas.
 
 Implementaremos o modelo *Single Source Of Truth* no diretório de raiz `gestao-centralizada-agents/` onde o projeto buscará ou exportará suas chaves para injetar dependências nas rotinas que precisarem (ex: N8N, Vetores, LLM Keys).
 
@@ -24,7 +24,7 @@ Ele contemplará este esqueleto canônico:
 
 ```env
 # ==========================================
-# ENV TEMPLATE — Workspace DevOps Central 
+# ENV TEMPLATE — Workspace DevOps Central
 # ==========================================
 # Não adicione nenhum valor real neste arquivo.
 # Clone ou copie este modelo como `.env` e aplique localmente.

@@ -6,15 +6,23 @@
 # outro repositório cliente e continue ativando as automações centrais.
 # ==============================================================================
 # Verifica se estamos rodando de dentro do próprio diretório clonado para adotar raiz atual
+# Preferência: usar a raiz do repositório Git quando disponível, caso contrário
+# mantém o comportamento anterior (se estiver dentro de 'dev-workspace' usa $(CURDIR),
+# senão usa $(HOME)/dev-workspace).
+GIT_ROOT := $(shell git rev-parse --show-toplevel 2>/dev/null || true)
+ifeq ($(GIT_ROOT),)
 ifeq ($(shell basename $(CURDIR)),dev-workspace)
-    DEV_WORKSPACE_DEFAULT := $(CURDIR)
+	DEV_WORKSPACE_DEFAULT := $(CURDIR)
 else
-    DEV_WORKSPACE_DEFAULT := $(HOME)/dev-workspace
+	DEV_WORKSPACE_DEFAULT := $(HOME)/dev-workspace
+endif
+else
+	DEV_WORKSPACE_DEFAULT := $(GIT_ROOT)
 endif
 
 DEV_WORKSPACE ?= $(DEV_WORKSPACE_DEFAULT)
 
-.PHONY: help setup setup-agents lint update env-check morning audit test-skills day-start log day-close week-close
+.PHONY: help setup setup-agents lint update env-check morning audit test-skills day-start log day-close week-close infra-up infra-down
 
 # Cores para output
 CYAN := \033[36m
@@ -37,7 +45,20 @@ setup: ## Bootstrapping inicial da máquina (instala OS packages e aplica dotfil
 	@bash $(DEV_WORKSPACE)/ansible/scripts/setup-machine.sh
 
 # ==========================================
-# 🛡️ QUALIDADE & AUDITORIA
+# � INFRAESTRUTURA CORE (DOCKER Shared)
+# ==========================================
+infra-up: ## Inicia e orquestra todos os servicos da infraestrutura unificada no host
+	@echo "Subindo Infraestrutura Core (Traefik, Postgres, Redis, Chroma, MLFlow)..."
+	@docker network create dev-workspace-net || true
+	@cd $(DEV_WORKSPACE)/infra-core && docker compose up -d
+	@echo "✅ Infraestrutura base disponível na rede 'dev-workspace-net'."
+
+infra-down: ## Desliga os servicos da infraestrutura unificada
+	@echo "Desligando a infraestrutura core..."
+	@cd $(DEV_WORKSPACE)/infra-core && docker compose down
+
+# ==========================================
+# �🛡️ QUALIDADE & AUDITORIA
 # ==========================================
 lint: ## Executa linters e verificação estática pré-commit em todo repositório
 	@echo "Executando pre-commit hooks..."
@@ -54,11 +75,31 @@ audit: ## Dispara auditoria profunda de sistema mapeando versões e serviços in
 # ==========================================
 setup-agents: ## Instala gerenciador de bibliotecas (pipx) e provisiona subagentes
 	@echo "Iniciando setup do motor de Agentes IA..."
-	@bash $(DEV_WORKSPACE)/gestao-centralizada-agents/scripts/setup-agents.sh
+	@DEV_CANDIDATES="$(DEV_WORKSPACE) $(DEV_WORKSPACE_DEFAULT) $(HOME)/dev-workspace $(HOME)/labs/dev-workspace"; \
+	FOUND=$$(find $(HOME) -maxdepth 3 -type d -name gestao-centralizada-agents 2>/dev/null | head -n1); \
+	if [ -n "$$FOUND" ]; then DEV_CANDIDATES="$$DEV_CANDIDATES $$(dirname $$FOUND)"; fi; \
+	for d in $$DEV_CANDIDATES; do \
+		if [ -f "$$d/gestao-centralizada-agents/scripts/setup-agents.sh" ]; then \
+			echo "Usando $$d/gestao-centralizada-agents/scripts/setup-agents.sh"; \
+			bash "$$d/gestao-centralizada-agents/scripts/setup-agents.sh"; \
+			exit 0; \
+		fi; \
+	done; \
+	echo "Arquivo setup-agents.sh não encontrado em: $$DEV_CANDIDATES"; exit 1
 
-test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de IA 
+test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de IA
 	@echo "Testando build do servidor MCP de Skills..."
-	@cd $(DEV_WORKSPACE)/gestao-centralizada-agents/skills-mcp && npm install && npm run build
+	@DEV_CANDIDATES="$(DEV_WORKSPACE) $(DEV_WORKSPACE_DEFAULT) $(HOME)/dev-workspace $(HOME)/labs/dev-workspace"; \
+	FOUND=$$(find $(HOME) -maxdepth 3 -type d -name gestao-centralizada-agents 2>/dev/null | head -n1); \
+	if [ -n "$$FOUND" ]; then DEV_CANDIDATES="$$DEV_CANDIDATES $$(dirname $$FOUND)"; fi; \
+	for d in $$DEV_CANDIDATES; do \
+		if [ -d "$$d/gestao-centralizada-agents/skills-mcp" ]; then \
+			echo "Usando $$d/gestao-centralizada-agents/skills-mcp"; \
+			cd "$$d/gestao-centralizada-agents/skills-mcp" && npm install && npm run build; \
+			exit 0; \
+		fi; \
+	done; \
+	echo "Diretório skills-mcp não encontrado em: $$DEV_CANDIDATES"; exit 2
 	@echo "✅ Servidor MCP validado e pronto para consumo!"
 
 adopt: ## Enquadra um repositório externo nas regras da plataforma (uso: make adopt TARGET=/caminho/do/projeto)

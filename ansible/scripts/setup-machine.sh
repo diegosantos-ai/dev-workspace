@@ -7,7 +7,8 @@ echo "Starting Workspace DevOps bootstrap..."
 
 if [ "$EUID" -ne 0 ]; then
     echo "Administrative privileges required to install base components."
-    exec sudo -E bash "$0" "$@"
+    REAL_SCRIPT="$(realpath "${BASH_SOURCE[0]}")"
+    exec sudo -E bash "$REAL_SCRIPT" "$@"
     exit 0
 fi
 
@@ -33,5 +34,18 @@ WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$WORKSPACE_DIR"
 
 ANSIBLE_HOST_KEY_CHECKING=False LC_ALL=C.UTF-8 ansible-playbook ansible/local-setup.yml --extra-vars "user=$REAL_USER"
+
+echo "Configuring global aliases for DevOps Workspace..."
+USER_HOME=$(eval echo "~$REAL_USER")
+for RC_FILE in "$USER_HOME/.bashrc" "$USER_HOME/.zshrc"; do
+    if [ ! -f "$RC_FILE" ]; then
+        touch "$RC_FILE" || true
+    fi
+    if [ -f "$RC_FILE" ] && ! grep -q "alias morning=" "$RC_FILE"; then
+        echo "" >> "$RC_FILE"
+        echo "# DevOps Workspace Global Aliases" >> "$RC_FILE"
+        echo "alias morning='make -C $WORKSPACE_DIR morning'" >> "$RC_FILE"
+    fi
+done
 
 echo "Setup completed successfully."

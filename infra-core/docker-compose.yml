@@ -1,0 +1,109 @@
+# ==============================================================================
+# INFRA-CORE: Componentes unificados da máquina de desenvolvimento
+# Nenhum outro projeto deverá instanciar bancos na porta nativa do host!
+# ==============================================================================
+
+networks:
+  core-net:
+    name: dev-workspace-net
+    external: true
+
+volumes:
+  pg_data:
+  chroma_data:
+  mlflow_artifacts:
+
+services:
+  # ----------------------------------------------------
+  # 1. GATEWAY DE BORDA
+  # ----------------------------------------------------
+  traefik:
+    image: traefik:v2.10
+    container_name: core-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=dev-workspace-net"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080" # Dashboard Traefik
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - core-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------
+  # 2. BANCO DE DADOS PRINCIPAL (Multi-tenant)
+  # ----------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: core-postgres
+    environment:
+      POSTGRES_USER: devroot
+      POSTGRES_PASSWORD: devpassword
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./config/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432" # Unica porta mapeada no host para facilitar acesso de IDEs (DBeaver/DataGrip)
+    networks:
+      - core-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------
+  # 3. CACHE E COORDENAÇÃO
+  # ----------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: core-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - core-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------
+  # 4. VECTOR STORE DEFAULT
+  # ----------------------------------------------------
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: core-chromadb
+    volumes:
+      - chroma_data:/chroma/chroma
+    ports:
+      - "8000:8000"
+    networks:
+      - core-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------
+  # 5. OBSERVABILIDADE & LLM OPS
+  # ----------------------------------------------------
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.2
+    container_name: core-mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://devroot:devpassword@postgres:5432/mlflow
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+    depends_on:
+      - postgres
+    command: >
+      sh -c "pip install psycopg2-binary &&
+      mlflow server
+      --host 0.0.0.0
+      --backend-store-uri postgresql://devroot:devpassword@postgres:5432/mlflow
+      --default-artifact-root /mlflow/artifacts"
+    networks:
+      - core-net
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mlflow.rule=Host(`mlflow.localhost`)"
+      - "traefik.http.services.mlflow.loadbalancer.server.port=5000"

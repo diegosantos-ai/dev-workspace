@@ -1,9 +1,9 @@
 # ADR 0004: Padronização e Limitação de Artefatos Opacos (Ticket 3.4)
 
 ## 1. Contexto
-Durante a auditoria de processos primários do workspace de engenharia na arquitetura do setup, identificou-se que o repositório possuía e se baseava em artefatos de "caixa-preta" (artefatos opacos) ao rodar o comando principal de provisionamento da máquina (ex: `backup-setup.tar.gz`). 
+Durante a auditoria de processos primários do workspace de engenharia na arquitetura do setup, identificou-se que o repositório possuía e se baseava em artefatos de "caixa-preta" (artefatos opacos) ao rodar o comando principal de provisionamento da máquina (ex: `backup-setup.tar.gz`).
 
-Esses artefatos estavam sendo descompactados indiscriminadamente na `/home/` via *Ansible*, burlando as diretivas de transparecia de "Infraestrutura como Código" ou até mesmo os espelhamentos controlados de dotfiles nativos através do uso formal com GNU Stow. 
+Esses artefatos estavam sendo descompactados indiscriminadamente na `/home/` via *Ansible*, burlando as diretivas de transparecia de "Infraestrutura como Código" ou até mesmo os espelhamentos controlados de dotfiles nativos através do uso formal com GNU Stow.
 
 ## 2. Decisão Técnica
 Para garantir estrita reprodutibilidade, segurança e adoção por terceiros de forma confiável (sem injetar estado de terceiros de forma desconhecida), determina-se formalmente as seguintes premissas:

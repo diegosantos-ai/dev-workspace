@@ -16,7 +16,7 @@ O bootstrap principal de automatização depende da variável `ansible_facts['os
 ## 2. Nível 2: Limitações Conhecidas & Plataformas Restritas ("Tier 2")
 ### Mac OSX / Homebrew (Darwin)
 - **Estado atual:** **Não Suportado Automatiamente**.
-- A automação em `Make setup` irá **falhar**. O repasse de apt no Makefile e o playbook não têm abstrações polimórficas (ainda) para acionar `brew`. 
+- A automação em `Make setup` irá **falhar**. O repasse de apt no Makefile e o playbook não têm abstrações polimórficas (ainda) para acionar `brew`.
 - **Workaround manual:** Clonar repo, gerenciar os dotfiles localmente com stow e consumir a seção limpa dos módulos `/templates` ignorando toda a raiz do Ansible.
 
 ### Windows (WSL 2)

@@ -1,0 +1,685 @@
+
+==================================================
+ARQUIVO: Makefile
+==================================================
+# Makefile para DevOps Workspace Central
+
+# ==============================================================================
+# Variável Global de Plataforma (Platform Engineering)
+# Permite que este Makefile seja copiado via 'adopt-governance' para qualquer
+# outro repositório cliente e continue ativando as automações centrais.
+# ==============================================================================
+# Verifica se estamos rodando de dentro do próprio diretório clonado para adotar raiz atual
+ifeq ($(shell basename $(CURDIR)),dev-workspace)
+    DEV_WORKSPACE_DEFAULT := $(CURDIR)
+else
+    DEV_WORKSPACE_DEFAULT := $(HOME)/dev-workspace
+endif
+
+DEV_WORKSPACE ?= $(DEV_WORKSPACE_DEFAULT)
+
+.PHONY: help setup setup-agents lint update env-check morning audit test-skills day-start log day-close week-close
+
+# Cores para output
+CYAN := \033[36m
+RESET := \033[0m
+GREEN := \033[32m
+YELLOW := \033[33m
+
+help: ## Mostra esta mensagem de ajuda
+	@echo "$(YELLOW)========================================================$(RESET)"
+	@echo "$(GREEN) Workspace DevOps Central — Comandos Disponíveis$(RESET)"
+	@echo "$(YELLOW)========================================================$(RESET)"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "$(CYAN)%-20s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+
+# ==========================================
+# 🚀 SETUP & BOOTSTRAP
+# ==========================================
+setup: ## Bootstrapping inicial da máquina (instala OS packages e aplica dotfiles via stow)
+	@echo "Iniciando setup da máquina..."
+	@bash $(DEV_WORKSPACE)/ansible/scripts/setup-machine.sh
+
+# ==========================================
+# 🛡️ QUALIDADE & AUDITORIA
+# ==========================================
+lint: ## Executa linters e verificação estática pré-commit em todo repositório
+	@echo "Executando pre-commit hooks..."
+	PATH="$$HOME/.local/bin:$$PATH" pre-commit run --all-files
+
+env-check: ## Roda verificação rápida e isolada da sanidade das ferramentas nativas locais
+	@bash $(DEV_WORKSPACE)/sanidade-ambiente/scripts/daily-check.sh
+
+audit: ## Dispara auditoria profunda de sistema mapeando versões e serviços instalados
+	@bash $(DEV_WORKSPACE)/sanidade-ambiente/scripts/env-audit.sh
+
+# ==========================================
+# 🤖 GESTÃO DE AGENTES & IA
+# ==========================================
+setup-agents: ## Instala gerenciador de bibliotecas (pipx) e provisiona subagentes
+	@echo "Iniciando setup do motor de Agentes IA..."
+	@bash $(DEV_WORKSPACE)/gestao-centralizada-agents/scripts/setup-agents.sh
+
+test-skills: ## Confirma se o Servidor Node MCP compila e integra as Skills de IA
+	@echo "Testando build do servidor MCP de Skills..."
+	@cd $(DEV_WORKSPACE)/gestao-centralizada-agents/skills-mcp && npm install && npm run build
+	@echo "✅ Servidor MCP validado e pronto para consumo!"
+
+# ==========================================
+# 📅 ROTINA DE DEVOPS (WORKLOG)
+# ==========================================
+morning: ## Inicia processo matinal completo (checklist e bootstrap de worklog)
+	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/open-devops-routine.sh
+
+day-start: ## Inicia o worklog do dia e abre no VS Code
+	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-start.sh
+
+log: ## Adiciona registro no log. (Sem args = interativo)
+	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-add.sh $(ARGS)
+
+day-close: ## Realiza consolidação, encerramento de relatórios e push diário
+	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-close.sh
+
+week-close: ## Compila o sumário executivo da semana DevOps
+	@bash $(DEV_WORKSPACE)/rotina-devops/scripts/worklog-weekly.sh
+
+# ==========================================
+# 🔄 MANUTENÇÃO CONTÍNUA
+# ==========================================
+update: ## Sincroniza local com repositório remoto Git
+	@echo "Atualizando ambiente local..."
+	@git pull origin main
+
+
+
+==================================================
+ARQUIVO: AGENTS.md
+==================================================
+# Manifesto & Governança para Agentes de IA (`AGENTS.md`)
+
+Este documento serve como a **Referência Arquitetural Oficial e Conjunto de Regras (System Prompting)** para toda IA (Copilot, Claude, GPT, etc) que operar dentro deste Workspace (`dev-workspace`).
+
+**ATENÇÃO AGENTE:** Antes de planejar, sugerir comandos de terminal ou alterar arquivos, **você DEVE ler e submeter-se às regras abaixo**. Falhar em seguir estas diretrizes resultará em quebra da esteira de CI/CD (Shift-Left Security) e corrupção da arquitetura Premium estabelecida.
+
+---
+
+## [ CAPÍTULO 1 ] O Padrão Premium (Platform Engineering)
+Este repositório deixou de ser um conjunto de scripts soltos para se tornar um Produto de Plataforma. Absolutamente TUDO deve ser:
+1. **Idempotente:** Se rodar 1 vez ou 1000 vezes, o resultado é seguro e o mesmo.
+2. **Modular:** Separação entre lógica (modules) e estado (envs).
+3. **Seguro (Shift-Left):** Zero credenciais hardcoded. Linting local rígido.
+
+---
+
+## [ CAPÍTULO 2 ] Regras de Ouro por Domínio
+
+### [ A ] Automação de Máquina (OS Setup & Dotfiles)
+- **NÃO** adicione comandos imperativos complexos em `scripts/setup-machine.sh`. Este arquivo serve exclusivamentente como bootstrap para instalar o Ansible.
+- **USE** o Ansible (`ansible/local-setup.yml`) para qualquer nova instalação de software, gerenciamento de serviços ou permissões.
+- **USE** GNU Stow para dotfiles. Se precisar adicionar uma nova configuração de terminal (ex: `nvim`), os arquivos devem ir para `/dotfiles/nvim/` respeitando a árvore de espelhamento do OS, para que o Stow crie os symlinks corretamente.
+
+### [ B ] Infraestrutura as Code (Terraform)
+- **NÃO** crie arquivos soltos (`.tf`) na raiz do repositório ou em `templates/`.
+- **Infra Viva (`gestao-centralizada-agents/infra/`):** Instancie e gerencie provisionamentos reais EXCLUSIVAMENTE dentro de subpastas em `gestao-centralizada-agents/infra/` (ex: `gestao-centralizada-agents/infra/meu-lab/`), baseando-se nos modelos de `templates/`.
+- **Módulos Virtuais (`modules/`):** Recursos (`compute`, `network`, etc) DEVEM estar destituídos de ambiente. NUNCA coloque backend variables, instâncias de `provider` diretas ou valores hardcoded aqui.
+- **Ambientes (`envs/<env>/`):** É aqui que as variáveis são passadas (`terraform.tfvars`) e onde o state reside. Sempre aponte os módulos usando path relativo (`../../modules/<nome>`).
+
+### [ C ] Segurança e Linting (CI/CD)
+- O projeto usa `pre-commit` com `gitleaks`, `tflint`, `tfsec` e `shellcheck`.
+- **NÃO** insira chaves, tokens, senhas ou secrets em nenhum script ou TF. Use passagem de variáveis de ambiente do sistema (`TF_VAR_`, Github Secrets) ou injeção via gerenciador de senhas.
+- Garanta que qualquer script shell que você escrever passe limpo sob as regras do `shellcheck`.
+
+### [ D ] Operações e Ponto de Entrada (Entrypoint)
+- **NÃO Mande o usuário digitar comandos verbosos no terminal.** Todo fluxo operacional de alto nível deve ter um atalho no `Makefile`.
+- Se você criar um novo processo recorrente de setup, teste ou deploy, encapsule-o num novo target no arquivo `Makefile`.
+
+---
+
+## [ CAPÍTULO 3 ] Fluxo de Trabalho Esperado do Agente
+
+Quando o usuário Diego demandar a você a implementação de uma nova ferramenta (feature) sob este diretório, proceda da seguinte forma:
+
+1. **Contexto Contínuo:** Verifique os `docs-referencia/adr/` (Architecture Decision Records) se estiver em dúvida do arranjo atual.
+2. **Proposta Arquitetural (ADR):** Caso traga uma refatoração massiva, gere primeiro um ADR em `docs-referencia/adr/` e valide com o usuário.
+3. **Separação de Preocupações:** Identifique se a mudança é IaC (Terraform), Automação Local (Ansible) ou CI/CD e aplique direto no diretório final isolado.
+4. **Resumo Efetivo:** Ao terminar cada sub-task, traga um resumo de _Estado Arquitetural Anterior vs Estado Alvo_, lista de _Arquivos Modificados_ e o _Status/Validação_.
+
+**_Agente, se você entendeu esse arquivo, a partir deste momento execute todas as tarefas priorizando este contrato de integridade._**
+
+---
+
+## [ CAPÍTULO 4 ] Matriz de Agentes & Model Context Protocol (MCP)
+
+Este repositório possui uma **Gestão Centralizada de Agentes** implementada via MCP. Qualquer uso de IA autônoma deve respeitar as Personas definidas e utilizar estritamente o servidor central de ferramentas.
+
+### 4.1. As Personas (Comportamentos Definidos)
+Se você for um Agente encarregado de atuar neste repositório, você DEVE assumir e declarar uma das seguintes posturas (documentadas em `gestao-centralizada-agents/agents-personas/`):
+- **O Orquestrador (Kiro):** Planeja, quebra a tarefa, analisa ADRs. **Nunca escreve código final direto**.
+- **O Executor (Dev):** Gera a gestao-centralizada-agents/infra/scripts seguindo os `templates/` e garantindo Idempotência.
+- **O Revisor (Shift-Left):** Roda o `make lint` e barra gambiarras ou hardcoded secrets.
+
+### 4.2. Escopo das Skills (MCP)
+Toda interação com APIs externas, memória (Qdrant) ou servidores N8N para este repositório **NÃO DEVE** ser feita via scripts soltos de curl. Use o Servidor MCP localizado em `gestao-centralizada-agents/skills-mcp/`.
+- Para testar ou ver se o servidor de Skills funciona, utilize `make test-skills`.
+## [ CAPÍTULO 5 ] Padrão de Comunicação Técnica e Documentação
+
+Toda documentação gerada, revisada ou reescrita por agentes neste repositório DEVE seguir padrão de comunicação profissional, técnico e objetivo.
+
+### 5.1. Tom obrigatório
+- Escreva com tom profissional, sóbrio e confiável.
+- Priorize clareza, precisão e utilidade prática.
+- Prefira linguagem técnica simples e direta.
+- O texto deve parecer escrito por um profissional experiente de engenharia, não por material promocional.
+
+### 5.2. É proibido
+- Jargões de IA, como "potencializar", "turboalimentar", "alavancar com inteligência", "revolucionar", "orquestração inteligente" e similares.
+- Linguagem de marketing, autopromoção ou discurso vendedor.
+- Excesso de adjetivos, superlativos e frases de efeito.
+- Metáforas desnecessárias, tom épico, tom evangelizador ou escrita emocional.
+- Explicações infantis, didatismo artificial ou texto que pareça “simplificado para criança”.
+- Emojis em qualquer documentação técnica, README, ADR, guia, comentário de commit ou descrição de PR.
+
+### 5.3. É permitido
+- Badges no README, desde que tenham função visual objetiva e não substituam informação real.
+- Texto introdutório curto, desde que mantenha sobriedade e contexto técnico.
+- Organização visual clara com títulos, listas e seções bem definidas.
+
+### 5.4. Regras de escrita
+- Descreva o que o projeto faz, como está organizado, como usar e como validar.
+- Evite adjetivar o projeto; explique sua função.
+- Não atribua grandeza, maturidade ou sofisticação ao repositório sem evidência objetiva.
+- Troque promessas por fatos verificáveis.
+- Prefira frases curtas, declarativas e técnicas.
+- Sempre que possível, use estrutura orientada a operação: objetivo, contexto, componentes, uso, validação e limites.
+
+### 5.5. Critérios de revisão textual
+Antes de concluir qualquer documentação, o agente deve revisar se o texto:
+1. parece material técnico real e não publicidade;
+2. evita termos inflados ou linguagem artificial;
+3. está claro para leitura profissional;
+4. mantém credibilidade;
+5. explica sem exagerar.
+
+### 5.6. Regra prática de reescrita
+Se uma frase parecer institucional demais, promocional demais ou “happy IA” demais, o agente deve reescrevê-la em linguagem neutra, técnica e verificável.
+
+### 5.7. Exemplo de reescrita
+**Original:** "Esta ferramenta revolucionária de IA turboalimentada vai potencializar sua produtividade com um clique!"
+**Reescrito:** "Esta ferramenta automatiza tarefas repetitivas para aumentar a eficiência operacional."
+
+### REGRA ABSOLUTA DE TOM:
+Documentação deve soar como engenharia profissional. Não use tom publicitário, infantilizado, emocional ou “entusiasmado demais”. Badges são permitidas. Emojis são proibidos.
+
+
+==================================================
+ARQUIVO: docs-referencia/ESTRUTURA_OFICIAL.md
+==================================================
+# Estrutura Oficial do Repositório (Ticket 1.1)
+
+Este documento define a árvore oficial do workspace, as responsabilidades de cada domínio principal e também classifica partes do projeto que não fazem parte do padrão final arquitetural.
+
+## 1. Estrutura Oficial (Core)
+
+Estes diretórios e arquivos compõem a base funcional adotável do projeto:
+
+* **`ansible/`**
+  * **Função:** Automação da máquina e setup local. Responsável pela instalação de pacotes e provisionamento base (ex: `local-setup.yml`).
+* **`docs-referencia/`**
+  * **Função:** Concentrar a documentação arquitetural, padrões de design e histórico de Decisões Técnicas (ADRs).
+* **`dotfiles/`**
+  * **Função:** Versionamento das configurações do sistema (shell, vscode, etc) integradas através de `stow`.
+* **`gestao-centralizada-agents/`**
+  * **Função:** Governança local de agentes de IA. Inclui o registro das personas, restrições e as Skills (via protocolo MCP).
+* **`sanidade-ambiente/`**
+  * **Função:** Rotinas que garantem a validação, auditoria de dependências essenciais instaladas e testes isolados sobre o estado da máquina.
+* **`templates/`**
+  * **Função:** Infraestrutura como Código. Concentra os templates nativos do Terraform (módulos agnósticos e divisões de ambiente).
+* **`rotina-devops/`**
+  * **Função:** Scripts e templates que regulamentam a linha diária de trabalho operacional, com ênfase na automação de worklogs.
+
+**Principais Arquivos Raiz:**
+* **`Makefile`**: Interface e ponto de entrada orquestrador oficial de comandos.
+* **`AGENTS.md`**: Manifesto principal exigindo conformidade de IAs locais.
+* **`.pre-commit-config.yaml`**: Trava ativada de verificação e pipeline estático (Shift-Left).
+* **`README.md`**: Abertura formal do repositório.
+
+## 2. Componentes Mistos ou Pessoais
+
+Estes diretórios agregam valor mas representam adaptações momentâneas ou estilo de operação pessoal:
+
+* **`playbooks/`** (Misto)
+  * Checklist manuais baseados em texto. São guias de uso de workflow particular e, dependendo do conteúdo, servem à rotina ou à infraestrutura.
+
+## 3. Ambíguos, Legados ou fora da estrutura oficial
+
+Estes compenentes estão poluindo, despadronizados ou contêm acoplamentos inadequados e devem ou sofrer refatorações, relocações, exclusões ou permanecer marcados como não-oficial:
+
+* **`teste-python/` (Ambíguo / Órfão)**
+  * Hospeda script Bash `check_devops_env.sh` que faz a mesma atribuição que a pasta `sanidade-ambiente/`. *Deve ser consolidado ou descartado futuramente.*
+* **`rotina-devops.md` (Duplicado)**
+  * Arquivo contendo premissas teóricas na pasta raiz, cujo propósito colide frontalmente com `rotina-devops/README.md`.
+* **`backup-setup.tar.gz` (Anti-padrão / Pessoal)**
+  * Dependência comprimida empurrada sobre o diretório `home` durante o playbook Ansible sem visibilidade de versionamento. *Estado oculto não suportado por padrão de referência.*
+* **`diagnostico-projeto/` (Temporário / Transicional)**
+  * Diretório gerado unicamente para comportar a migração em prol da reprodutibilidade. Não é componente entregável persistente para terceiro.
+
+---
+**Nota:** Componentes situados fora do estrato "Oficial (Core)" não deverão ser considerados "Referência de Mercado", devendo ser sanados para adoção externa.
+
+
+==================================================
+ARQUIVO: docs-referencia/LIMITES_E_FRONTEIRAS.md
+==================================================
+# Manifest: Limites, Fronteiras e Posicionamento
+
+A clareza sobre o que este repositório **NÃO DEVE FAZER** é tão crucial quanto seu escopo de atuação. Este documento afasta expectativas infundadas e limita a entropia gerada por abstrações em IAs.
+
+## 1. O que este projeto é (Posicionamento Oficial)
+1. É um **Platform Engineering Workspace**: Um invólucro para padronizar o ferramental de máquina (Dotfiles, Ansible), gestão segura de segredos (Shift-left via pre-commit) e a via técnica oficial de comunicação e restrição de Agentes Autônomos (MCPs e System Prompting).
+2. É um agregador e orquestrador via CLI (Makefile) que previne a síndrome da "planilha de comandos textuais perdidos".
+3. É um provador local de "Idempotência". Todas as execuções de IaC e shell devem convergir no mesmo estado seguro não importa quantas vezes executadas.
+
+## 2. O que este projeto NÃO É (Limitações Intencionais)
+1. **Não é um Cluster Operacional Remoto:** Este repositório não hospeda carga de trabalho de aplicação de usuários em si. A arquitetura instanciará as ferramentas locais e gerenciará repositórios paralelos ou instanciará *IaC/Terraform* para datacenters remotos, mas não age como um *Runtime App Server* para sistemas alheios.
+2. **Não tem Autonomia Destrutiva Silenciada:** Playbooks ou pipelines que contêm falhas cruciais não devem possuir supressão sistêmica (via `ignore_errors` sem justificativa).
+3. **Não acomoda Sistemas Operacionais Tier 3:** Não provemos suporte explícito nativo para automatizar pacotes do zero no MacOS ou em distros Arch/Alpine de forma transparente no nível central (Tier 1 segue contido ao ecosistema Debian-family Linux). O uso no Tier 2 e Tier 3 é viável apenas via "Tradução Manual" ou bypass do OS-check, assumindo custo operacional por parte do usuário.
+
+## 3. Fronteiras de Segurança
+1. A ferramenta `gitleaks` atua em Hard Block. Se as heurísticas bloquearem, o commit para; não contorne as checagens com flags `.git/hooks` nulas.
+2. Nenhuma API Key ou `.env` de production pode repousar fora de um gerenciador de pass/vault aprovado.
+3. Repositórios clonados paralelamente por via deste repositório não herdarão o "state" do Terraform principal. O ambiente IaC providenciado mantém isolamento state-lock absoluto por `env`.
+
+
+
+==================================================
+ARQUIVO: docs-referencia/POLITICA_SECRETS.md
+==================================================
+# Política de Secrets e Segurança (Ticket 2.5)
+
+Para atuar na vanguarda do modelo `Shift-Left Engine`, as regras desta arquitetura definem as amarras inegociáveis para o manuseio de credenciais, certificados e *tokens* pessoais do desenvolvedor.
+
+## 1. Zero Tolerância ao Versionamento "Em-claro" (Hardcoded)
+Sob NENHUMA hipótese serão aceitos valores transacionais armazenados diretamente nas passagens de estado do git:
+
+* Sem inserção na construção do `provider.tf`.
+* Sem embutir nas *tasks* declaradas no playbook `ansible/local-setup.yml`.
+* Sem estipular *tokens* estáticos injetados na documentação interativa ou relatórios de bash (`rotinas-devops`).
+* Sem repasses via `curl -H "Authorization: Bearer <token>"` soltos nos *scripts*.
+
+## 2. A Barreira Ativa do Commit
+A garantia técnica desta proibição assenta-se sobre o utilitário **Gitleaks** em conjunto com a automação `.pre-commit`.
+Todos os mantenedores terão, pós-setup, sua esteira avaliada no comando `git commit`. Se o linter pegar assinaturas ou strings literais suspeitas (`AWS_.*`, chaves `RSA`, conexões URI de `Postgres` contendo _password_:), o commit falhará de forma irreversível até o expurgo do código ou justificação correta via injeção parametrizada.
+
+## 3. Onde os Secrets Vivem (Camada Física)
+Se eles não vão ao git, devem repousar num gestor ou estado efêmero seguro da máquina subjacente à qual foi dado o Setup.
+Recomendamos e suportamos as seguintes saídas:
+
+1. **Gestores de Cofres de CLI:** (Padrão ouro). Abstrair sua adoção utilizando comandos em passagens para o cofre GPG gerenciado via `pass` (por exemplo, exportando para o zsh aliando `export AWS_ACCESS=$(pass aws/personal_access)`).
+2. **Isolamento Modular Variável (`.env`):** Como definido no manifesto `PADRAO_ENV_VARS.md`, inserindo pontualmente sua instância local restrita em `gestao-centralizada-agents/.env`.
+3. **Plataformas de CI Distribuídas:** Github Actions operam baseados sob *Secrets Repository/Organization*. É proibido espelhar *outputs* verbosos de variáveis dinâmicas rodando em Action runners na string de echo `${{ secrets.AWS_KEY }}`.
+
+## 4. Auditoria de Contaminação
+No evento raro e severo de bypass intencional, um token acrítico subido no log persistente ou branch demandará a operação purista (BFG Repo-Cleaner / `git filter-repo`) associada obrigatoriamente à rotação das chaves providas no cloud-provider em até MÁXIMO de 1 hora comercial.
+
+
+==================================================
+ARQUIVO: docs-referencia/PADRAO_ENV_VARS.md
+==================================================
+# Padrão de Variáveis de Ambiente e `.env` (Ticket 2.4)
+
+Pela premissa do workspace, o ambiente baseia-se na injeção de parâmetros modulares a partir da máquina, isolando o cofre e configurações dinâmicas dos repositórios injetados no controle de versão.
+
+## 1. Topologia de Arquivos .ENV
+Não existirá "vários `.env` isolados" bagunçando o repositório nos módulos raiz que operam agentes generalistas.
+
+Implementaremos o modelo *Single Source Of Truth* no diretório de raiz `gestao-centralizada-agents/` onde o projeto buscará ou exportará suas chaves para injetar dependências nas rotinas que precisarem (ex: N8N, Vetores, LLM Keys).
+
+* O arquivo base é e será **único**: `gestao-centralizada-agents/.env`
+* Ele será **estritamente excluído do controle de versão** usando um `.gitignore` nativo desta subpasta e coberto pelo Gitleaks.
+
+## 2. Padrões de Declaração de Variáveis
+Ao criar variáveis, os seguintes padrões de notação (naming convention) deverão ser observados sem improvisos:
+
+* **Cloud Providers:** Prefixadas sempre com seu provedor: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION_DEFAULT`.
+* **Terraform Externo:** Módulos sensíveis consumidos via pipeline remota devem respeitar o prefixo obrigatório exigido, como `TF_VAR_db_password`.
+* **Ferramentas e Auth de I.A:** Serviços atrelados a credenciais via API exigem escopo: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `N8N_ENCRYPTION_KEY`.
+
+## 3. O `.env.example` Oficial
+A raiz gerencial contará sempre de maneira explícita, auditável e mantida, o arquivo modelo sob a base `gestao-centralizada-agents/.env.example`.
+
+Ele contemplará este esqueleto canônico:
+
+```env
+# ==========================================
+# ENV TEMPLATE — Workspace DevOps Central
+# ==========================================
+# Não adicione nenhum valor real neste arquivo.
+# Clone ou copie este modelo como `.env` e aplique localmente.
+
+# ---- INFRA PROVIDERS ----
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+
+# ---- TERRAFORM STATE / TOKENS ----
+TF_VAR_owner_label=
+TF_TOKEN_app_terraform_io=
+
+# ---- GESTÃO DE AGENTES / N8N ----
+N8N_ENCRYPTION_KEY=
+N8N_USER_MANAGEMENT_JWT_SECRET=
+OPENAI_API_KEY=
+QDRANT_API_KEY=
+```
+
+## 4. Ordem de Precedência (Como as vars são lidas e carregadas)
+1. Perfil de usuário nativo de terminal (`~/.zshrc` ou export global).
+2. Arquivos exportados diretamente no processo (submódulos bash `export $(cat .env | xargs)`).
+3. Configurações remotas baseadas do CI (Via `GitHub Secrets`).
+
+Qualquer improvisação ou injeção em linhas de shell script fora desse padrão violará o contrato de reprodutibilidade deste repositório e ativará impedimentos de Linting ativo.
+
+
+==================================================
+ARQUIVO: playbooks/playbook-padrao-operacional-trabalho.md
+==================================================
+# 📖 PPO: Padrão Operacional de Trabalho e Arquitetura
+
+Este **Golden Path** define exatamente como nascem, operam e são migrados e recuperados todos os projetos sob o padrão Premium DevOps.
+
+---
+
+## 🚀 0. Primeiro Uso (Setup em Novos Ambientes)
+Sempre que formatar sua máquina ou assumir um novo equipamento, o projeto DevOps rege seu setup inicial através de automação idempotente.
+
+**Passo a passo inquebrável:**
+1. Clone este repositório `dev-workspace` no seu novo destino de projetos limitando atuar dentro dele:
+   ```bash
+   git clone https://github.com/diegosantos-ai/dev-workspace.git ~/dev-workspace
+   cd ~/dev-workspace
+   ```
+2. Inicialize o Bootstrap do sistema que rodará o Ansible nos bastidores e linkará seus dotfiles (VS Code, terminal, regras globais de IA):
+   ```bash
+   make setup
+   ```
+3. Feche o terminal e abra o VS Code em sua nova home. As regras (God Prompts) do Github Copilot já estarão ativadas.
+4. Para validar que tudo está vivo, rode a verificação e inicie o dia:
+   ```bash
+   make morning
+   ```
+
+---
+
+## 🏗️ 1. O Padrão Universal (Nascimento de Projetos)
+Todo novo repositório isolado de cliente/serviço que nascer a partir de hoje deve OBRIGATORIAMENTE possuir a seguinte fundação:
+1. **Entrypoint Único (`Makefile`):** Ninguém adivinha comandos imperativos extênsos. A automação local de todo projeto reside num `make test`, `make build`, etc.
+2. **Shift-Left Security (`.pre-commit-config.yaml`):** Protegendo de ponta a ponta commits contra senhas vazadas (Gitleaks) e IaC frágil (TFLint).
+3. **Identidade Declarativa:** `README.md` limpo possuindo badges da qualidade CI e diagrama Mermaid explicando o design.
+4. **CI/CD Mínimo:** Processos automatizados no `.github/workflows/` (ou análogo) que amarrem o repasse de verificação de qualidade à branch principal.
+
+---
+
+## 🛟 2. Adequação de Projetos Legados (Spaghetti Recovery)
+Ao assumir um projeto caótico ou em andamento (criado fora do novo padrão de Plataforma), siga este guia passo a passo infalível para injetar a Governança local.
+
+### 🛠️ Guia Prático de Adoção
+
+**1. Acesse a raiz direcional do projeto a ser adequado:**
+```bash
+cd ~/caminho/para/seu/projeto-em-andamento
+```
+*O que faz:* Navega até o repositório que precisa receber as travas e o manifesto de segurança.
+
+**2. Execute o Scaffolder de Governança do Dev-Workspace:**
+```bash
+~/dev-workspace/gestao-centralizada-agents/scripts/adopt-governance.sh .
+```
+*O que faz:* Roda o script da plataforma apontando para o diretório atual (`.`). Ele proativamente confere se há repositório Git, instala silenciosamente o núcleo do pre-commit via Python, injeta as regras de verificação `.pre-commit-config.yaml`, traz o Entrypoint (`Makefile`) e copia o manifesto `AGENTS.md`.
+
+**3. Valide o "Shift-Left Security" (Linting Inicial):**
+```bash
+make lint
+```
+*O que faz:* Executa as baterias de verificação em todos os arquivos históricos do projeto. Corrige massivamente espaços vazios indesejados, padroniza as quebras de linha (`EOF`) e avalia chaves/credenciais expostas no código de forma retroativa.
+
+**4. Comite o novo escudo da Plataforma:**
+```bash
+git add .
+git commit -m "chore: adocao dos padroes dev-workspace de governanca"
+```
+*O que faz:* Salva todo o maquinário de prevenção e formatação e estabelece um ponto de corte (baseline) de qualidade pro futuro.
+
+### 🌟 O que muda e o que melhora no projeto adequando-o?
+
+- **Prevenção de Desastres na Origem:** Com a injeção do pre-commit local, a partir de agora chaves AWS, tokens de API ou falhas de IaC (via TFLint/Shellcheck) impedirão você (ou a sua automação) de realizar um `git commit` ruim.
+- **Auto-Cura de Formatações Bobas:** Erros entre Windows (CRLF) e Unix (LF), ou espaços em branco sobrando em dezenas de arquivos, quebrando diffs visuais em repositórios, são agora higienizados automaticamente ao comitar.
+- **Entrypoint Único (`Makefile`):** Fim dos longos scripts manuais documentados só "na cabeça do desenvolvedor". Se vai validar, é `make lint`. Se quer preparar algo, há um target central e universal, ajudando Agentes a saberem de modo previsível onde orquestrar ações.
+- **Respeito dos Agentes (God Prompting):** O artefato injetado (`AGENTS.md`) serve como uma diretriz severa para que nenhuma IA operando dentro daquele projeto "invente a roda", escrevendo YAMLs e Terraform que ignorem nossos padrões de Zero-Trust e Idempotência.
+
+---
+
+## 🐳 3. Governança Docker (Anticolisão de Portas)
+A regra fundamental ao gerenciar múltiplos projetos locais é **NUNCA fazer variação dura (hardcode) de portas expostas em arquivos `docker-compose.yml`**.
+
+**O Padrão Golden Path (CORRETO):**
+Use injeção via `.env` com Fallbacks que facilitam tanto execução por IAs quanto setups manuais em outros PCs.
+
+```yaml
+services:
+  db:
+    image: postgres
+    ports:
+      - "${PROJECT_DB_PORT:-5432}:5432" # Injeção externa via .env
+```
+> **Matriz de Portas por Projeto:**
+> Ao construir os arquivos via Copilot/IAs, force-os a utilizar de IDs base pra portas. Ex: Projeto de n8n empresa X = faixa `10xxx` (App=10080, DB=10543), enquanto Projeto Hub empresa Y = `11xxx` (App=11080). Garantia de zero "Address already in use".
+
+---
+
+## ☁️ 4. Refatoração e Manutenção do Terraform (Safe Migration)
+Você NUNCA deve alterar o local (pathing) ou reestruturar arquivos de IaC pesados (ex: mudar um `main.tf` base para dentro de uma pasta `modules/compute`) sem explicitar isso para o Provedor. Se não ele "destruirá" a sua máquina AWS pra criar ela denovo no "novo endereço".
+
+Ao passar arquiteturas pra **"Clean Workspaces"** (`envs/` > `modules/`), cumpra a "Migração Cirúrgica":
+1. Mova esteticamente os blocos ao local de destino.
+2. Crie e assine o bloco `moved {}` referenciando que a infra só trocou de pasta de configuração (do raiz para o módulo).
+   ```terraform
+   moved {
+     from = aws_instance.web
+     to   = module.compute.aws_instance.web
+   }
+   ```
+3. O comando final e avaliador deve ser `terraform plan`. Seu log de retorno **deve ser obrigatoriamente** "No changes. Infrastructure base up-to-date". Se pedir para Destruir (Destroy: 1), a refatoração falhou e a estrutura deve ser revista antes do *apply*.
+
+---
+**Revisão Final:**
+Você não clona nem codifica softwares diretamente dentro dessa Pasta Raiz DevOps. Isto aqui é o seu **Painel de Controle e Formulário (Cockpit)** de onde você rege e avalia todos os outros ambientes.
+
+
+
+==================================================
+ARQUIVO: playbooks/onboarding-projetos.md
+==================================================
+# Guia de Operação e Início de Projetos (Platform Engineering)
+
+## Objetivo
+Você preparou sua máquina (rodou o `make setup` no `dev-workspace`). Como inicializar um novo projeto do zero agora ou adequar um projeto que já estava criado para usar todas as barreiras de segurança e automação local da sua máquina?
+
+Puxar as regras da sua plataforma para qualquer pasta nova ou antiga não deve exigir copiar/colar blocos longos de arquivo no VS Code. Existe um fluxo _100% automatizado_.
+
+## O Fluxo Único Baseado em Script
+
+Ao invés de sofrer copiando Makefiles e documentações de IA, a plataforma possui o fluxo "Adopt". Ele converte sua pasta num repositório governado.
+
+### 1. Execute a Adoção
+
+Abra o terminal **dentro do seu projeto alvo** (ex: `~/labs/meu-novo-projeto/`) e rode:
+
+```bash
+cd ~/labs/meu-novo-projeto
+bash ~/docs/dev-workspace/gestao-centralizada-agents/scripts/adopt-governance.sh
+```
+
+Apenas chamando o script direto por esse atalho universal, a automação fará rigorosamente o seguinte:
+
+- Vai checar se você está usando um ambiente `.git` (obrigatório).
+- **Copia o Pipeline**: Copiará automaticamente o `.pre-commit-config.yaml` escondido.
+- **Injeta a Governança de Agentes**: Ele mesmo cria (ou injeta o rodapé de comportamento restritivo) no `AGENTS.md`.
+- **Cria o Target de Automação**: Gera um `Makefile` limpo padrão para te livrar da digitação constante.
+- **Estruturação de Base de Refatoração**: Vai automaticamente dar um _mkdir_ em `docs/`, fazer setup e limpeza de segredos gerando o seu `.env.example`, gerando ainda o `.gitignore` para bloquear commit de artefato denso e secrets reais.
+- **Bloqueio de Fogo (Shift-left)**: Realiza a carga final local executando a fixação de `pre-commit install`.
+
+## Passo a Passo Pós-Adoção (Rotina de Limpeza)
+
+Sua pasta acabou de engolir a inteligência inteira da plataforma com um só comando. Certo, e agora?
+
+### Identificou erro de lint ao tentar fazer commit?
+Isso seria muito normal em um projeto que já estava preenchido. Secreções soltas (chumbadas) e senhas vão acionar o alarme do gitleaks instantaneamente.
+
+1. Use o repositório modelo gerado `.env.example` para passar qual o nome da credencial que deveria estar externalizada.
+2. Troque as senhas vazadas do código por ponteiros de injeção de ambiente (`os.environ`, `import.meta.env`, etc).
+3. Caso a arquitetura mude, suba as proibições específicas sob o topo visual do arquivo `AGENTS.md` (no próprio alvo).
+
+### Entrypoint Declarado (O seu README)
+Evite redigir um "manual" novo na descrição da sua branch. O modelo espera que você entre e escreva as interfaces únicas pelo arquivo *Make* e simplesmente refira em seu `README.md` a execução limpa de:
+
+```bash
+make setup
+make dev
+```
+
+
+
+==================================================
+ARQUIVO: rotina-devops/README.md
+==================================================
+# Módulo: Rotina DevOps (Worklog Pessoal)
+
+Um microssistema focado em CLI para gerenciamento de tempo, registro diário de atividades e consolidação de entregas. Desenhado visando eliminar a fricção cognitiva no dia a dia do Engenheiro de Software / DevOps.
+
+---
+
+## 🎯 O que é e qual problema resolve?
+
+**O que é:** Um rastreador de atividades (worklog) puramente baseado em arquivos Markdown (texto plano) manipulados via scripts Bash inteligentes.
+
+**O problema:** Durante o dia, um engenheiro muda de contexto dezenas de vezes (troubleshooting, reuniões, infraestrutura, estudos). Preencher ferramentas visuais complexas (Jira, Notion, planilhas) gera atrito e quebra o estado de *flow*. Resultado: na sexta-feira, é difícil lembrar dos micro-impactos e das pequenas entregas.
+
+A `rotina-devops` resolve isso através do terminal. O engenheiro abre o dia, insere logs ao longo das tarefas e fecha o expediente utilizando comandos rápidos que não exigem a abertura obrigatória de sistemas pesados.
+
+---
+
+## 🔄 Fluxo de Uso Diário (Worklog Flow)
+
+```mermaid
+graph TD
+    %% Nós
+    START[☀️ worklog-start]
+    MD_DAILY[(📄 YYYY-MM-DD.md)]
+    ADD[⚡ worklog-add]
+    CLOSE[🌙 worklog-close]
+    WORK{💻 Rotina e Entregas}
+    WEEKLY[📅 worklog-weekly]
+    MD_WEEKLY[(📄 YYYY-WNN.md)]
+
+    %% Conexões Manhã/Dia
+    START -->|Cria e planeja| MD_DAILY
+    MD_DAILY --> WORK
+    WORK -->|Task Feita| ADD
+    ADD -->|Adiciona linha| MD_DAILY
+
+    %% Conexões Fim de dia/Semana
+    WORK -->|Fim do Expediente| CLOSE
+    CLOSE -->|Preenche resumo| MD_DAILY
+
+    %% Consolidação
+    MD_DAILY -.->|Referência Histórica| WEEKLY
+    WEEKLY -->|Gera Consolidação| MD_WEEKLY
+
+    classDef script fill:#1e1e1e,stroke:#3b3b3b,stroke-width:2px,color:#fff,rx:5px;
+    classDef file fill:#2b4b6f,stroke:#4a86e8,stroke-width:2px,color:#fff,rx:5px;
+    class START,ADD,CLOSE,WEEKLY script;
+    class MD_DAILY,MD_WEEKLY file;
+```
+
+**Legenda do Fluxo (Como funciona em 30 segundos):**
+1. **Manhã:** Você digita o comando de *Start* no terminal. Responde 3 perguntinhas rápidas (foco do dia). Um arquivo de texto é criado isolando o dia.
+2. **Ao longo do Expediente:** Terminou de fazer o deploy ou saiu de uma reunião? Roda o comando de *Add*. A anotação vai direto pro arquivo sem você precisar sair da tela do terminal.
+3. **Fim do Dia:** Vai fechar a tampa do notebook? Roda o *Close*. Responde rápido o que deu certo, os problemas e desliga o cérebro em paz.
+4. **Sexta-feira:** Roda o *Weekly*. Ele compila seu esforço da semana num arquivo único limpo para reporte real de resultados.
+
+---
+
+## 📂 Estrutura de Diretórios e Scripts
+
+```text
+rotina-devops/
+├── README.md                      # Esta documentação da arquitetura
+├── MELHORIAS-FUTURAS.md           # Backlog gerenciado de roadmap
+├── scripts/
+│   ├── worklog-start.sh           # Abre o dia e define o "Plano"
+│   ├── worklog-add.sh             # Adiciona eventos com timestamp e impacto
+│   ├── worklog-close.sh           # Interativo: sumário diário e bloqueios
+│   └── worklog-weekly.sh          # Gera relatório semanal ISO-Week e lista logs
+└── worklog/
+    ├── daily/                     # Repositório de arquivos YYYY-MM-DD.md
+    ├── projects.yaml              # Dicionário de projetos e tags base
+    ├── templates/                 # Matrizes Markdown imutáveis (Modelos)
+    └── weekly/                    # Repositório de arquivos de ciclo (ex: 2026-W12.md)
+```
+
+---
+
+## 🛠️ Exemplos de Uso na CLI (Global)
+
+Todos os comandos devem ser executados a partir de qualquer diretório pelo atalho global do \`Makefile\` na raiz do projeto.
+
+```bash
+# 1. Chegou para o trabalho:
+make day-start
+# Prompt interativo perguntará seu objetivo do dia e abrirá no seu editor.
+
+# 2. Registrando um evento no calor do momento:
+make log
+# Entrará no modo wizard iterativo (Projeto? Tipo? Ação?...)
+
+# 2.1 Registrando evento num comando só (Para usuários avançados - modo ninja):
+make log ARGS="lab-docker execucao 'Criação do docker-compose' 'Containers de pé' alto"
+
+# 3. Fechando as atividades daquele dia:
+make day-close
+# Prompt interativo perguntará o saldo e se houve bloqueios.
+
+# 4. Sexta-feira às 17h (Saindo pro fds):
+make week-close
+# Prepara seu relatório da semana, exibe o retrospecto no terminal e abre o arquivo.
+```
+
+---
+
+## 📄 Formatos Adotados
+
+### O Arquivo Diário (`daily-template.md`)
+Possui exatamente 3 delimitações fixas focadas em modelo mental limpo:
+1. **Plano do Dia:** A intencionalidade gerada de manhã.
+2. **Eventos (Log):** A listagem cronológica do que realmente aconteceu (inserido via append do `worklog-add`).
+3. **Fechamento:** O de-briefing focado em saldo e aprendizado.
+
+### O Arquivo Semanal (`weekly-template.md`)
+Foco exclusivo na transição de "horas trabalhadas" para "valor gerado". Possui blocos para métricas macros:
+- Evoluções reais (entregas)
+- Estudos aplicados
+- Bloqueios recorrentes
+- Próximos passos diretivos
+
+---
+
+## 🧠 Decisões de Design de Engenharia
+- **Idempotência Estrita:** Todos os scripts usam tratativas (`if/else` e regex via `sed`) para garantir que possam ser rodados múltiplas vezes sem sobrescrever logs passados, não importando a ordem em que foram chamados.
+- **Armazenamento em Plain-text:** Não usa bancos SQlite locais ou dependências. Marcadores do markdown tornam a busca nativa por `grep` um banco de dados natural perfeito.
+- **Portabilidade:** Scripts dependem apenas de ferramentas core-utils do Bash, sendo compatíveis com praticamente qualquer sistema POSIX sem instalações adicionais.
+
+---
+
+## 🚀 Próximos Passos (Evolução)
+Consultar ativamente o arquivo `MELHORIAS-FUTURAS.md`. Nenhuma feature é empurrada para este módulo se não passar por um filtro agressivo contra complexidade fútil ("maquiagem").
+A prioridade futura é a integração desses scripts à raiz via **Entrypoints globais em Makefile** (`make rotina-start`).

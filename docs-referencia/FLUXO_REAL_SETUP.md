@@ -7,7 +7,7 @@ O indivíduo precisa, no mínimo absoluto, deter em sua máquina os recursos de 
 1. Clonagem manual do código e transição explícita pelo terminal (`cd dev-workspace`).
 2. Requisição do construtor: o usuário digita na raiz o atalho `make setup`.
 3. O `make` desvia a instrução inicial chamando interativamente o arquivo `ansible/scripts/setup-machine.sh`.
-4. Este *script bash* assume o papel protetor exigindo credenciais: confere se é usuário não-root e demanda elevação explícita via `sudo` para iniciar. 
+4. Este *script bash* assume o papel protetor exigindo credenciais: confere se é usuário não-root e demanda elevação explícita via `sudo` para iniciar.
 5. Constatada a distribuição (*if Debian*), ele varre o banco local atualizando os índices do pacote apt (`apt-get update`) e força a existência da linguagem Ansible (usando subproduto PPA e common-properties).
 
 ## 2. Etapa de Setup (Motor Principal)
@@ -21,11 +21,11 @@ Tendo as dependências providas dinamicamente pelo shell inicial, o motor de enf
 
 ## 3. Pós-Setup (Etapas Silenciosas e Manuais)
 A etapa pós-setup consiste estritamente em dependências órfãs ou tarefas de responsabilidade passiva assumidas pelo condutor da automação atual.
-12. A máquina não levanta processos cruciais imediatamente (ex: a liberação de usuários em grupos complexos de docker, apesar de baixar o daemon de sua carga). 
+12. A máquina não levanta processos cruciais imediatamente (ex: a liberação de usuários em grupos complexos de docker, apesar de baixar o daemon de sua carga).
 13. Extensões locais e variáveis de Nuvem não são solicitadas por nenhum prompt terminal, confiando puramente que o usuário entende que deverá fazer preenchimento manual dos fluxos locais ou seguir a reexecução na documentação baseada.
 14. A ativação dos *hooks Git* (`pre-commit install`) não figura em repasse pelo setup, ficando subentendido que o usuário roda isoladamente pelo make na hora que realizar suas atuações nos blocos IaC.
 
 ## 4. Auditoria (Validação Dissociada)
 Este momento atua **desacoplado** do motor nativo de infraestrutura de bootstrap Ansible não confirmando ativamente em modo "Continuous Assessment".
-15. Quando inseguro ou demandado pela gestão da "checklist matinal", a máquina chama explícito o alvo `make env-check` (ou seu semelhante mais verboso via pasta, o report em `sanidade-ambiente`). 
+15. Quando inseguro ou demandado pela gestão da "checklist matinal", a máquina chama explícito o alvo `make env-check` (ou seu semelhante mais verboso via pasta, o report em `sanidade-ambiente`).
 16. Este comando invoca bashers que escrutinam a árvore nativamente reportando à interface de tela (e em logs isolados de rotina `reports/`), pontuando presenças OK ou FAIL na CLI de programas essenciais. O setup foi bem-sucedido quando cruzado independentemente com este verificador.

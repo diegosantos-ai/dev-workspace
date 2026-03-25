@@ -13,13 +13,13 @@ No Visual Studio Code (Copilot/Cline), esta diretriz é injetada automaticamente
 
 ## 2. Gestão de Servidores MCP (Model Context Protocol)
 
-O excesso de servidores MCP ativos simultaneamente degrada a precisão do agente e induz alucinação de ferramentas. 
+O excesso de servidores MCP ativos simultaneamente degrada a precisão do agente e induz alucinação de ferramentas.
 
 **Regras de Operação MCP:**
 1. **Princípio de Mínimo Privilégio:** Mantenha ativos no arquivo de configuração do MCP apenas os servidores cruciais para a operação ativa.
 2. **Segregação de Especialidade:**
    - **Operações IaC/Backend:** Ative integração de Terminal (Bash), File System e Memória (Qdrant). Desative buscas web ou renderização de browser.
-   - **Operações E2E/Frontend:** Ative Playwright/Browser e N8N. Desative acesso de credenciais root CLI. 
+   - **Operações E2E/Frontend:** Ative Playwright/Browser e N8N. Desative acesso de credenciais root CLI.
 
 ## 3. Conformidade Orientada por Linting (Shift-Left)
 

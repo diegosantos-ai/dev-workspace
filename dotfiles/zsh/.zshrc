@@ -22,3 +22,11 @@ alias l='ls -CF'
 
 # Prompt simples
 PROMPT='%F{green}%n@%m%f:%F{blue}%~%f$ '
+
+# Inicializa o agente SSH, caso ele ainda não esteja rodando
+if [ -z "$SSH_AUTH_SOCK" ] ; then
+  eval "$(ssh-agent -s)" > /dev/null
+fi
+
+# Adiciona a chave SSH automaticamente (se não tiver sido adicionada ainda)
+ssh-add ~/.ssh/id_ed25519 2>/dev/null

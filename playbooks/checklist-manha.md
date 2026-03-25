@@ -2,6 +2,19 @@
 
 > Objetivo: começar o dia com clareza, controle e prioridade definida, aproveitando a automação do nosso Cockpit.
 
+## ☀️ Execução Diária (Rotina Operacional)
+O ciclo completo de trabalho de um engenheiro dentro da plataforma operando local.
+
+1. **`make morning`** (`rotina-devops/scripts/open-devops-routine.sh`)
+   - **Comportamento:** A primeira ação do dia. Automaticamente roda o `env-check` (saúde do docker, git, ssh) e aciona o `day-start` em sequência para forçar o planejamento operacional antes do primeiro commit.
+2. **`make env-check`** (`sanidade-ambiente/scripts/daily-check.sh`)
+   - **Comportamento:** Pode ser acionado avulso a qualquer momento caso ocorram problemas de rede ou permissão.
+3. **`make log`** (`rotina-devops/scripts/worklog-add.sh`)
+   - **Comportamento:** Ao concluir qualquer ticket, feature ou estudo. Alimenta interativamente o log Markdown diário para compor o output do profissional de forma idempotente.
+4. **`make lint`**
+   - **Comportamento:** Garante a arquitetura limpa e ausência de hardcoded secrets (pre-commit puro). Deve ser invocado instantes antes de empacotar o código.
+
+
 ## 1. Auditoria e Telemetria (Automática)
 - [ ] Abrir o terminal de controle no diretório onde clonou o workspace (ex: `cd ~/dev-workspace`)
 - [ ] Executar a varredura do dia: `make morning`

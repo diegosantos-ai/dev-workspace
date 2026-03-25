@@ -4,7 +4,7 @@
 Este repositório adota um modelo operacional estrito (Golden Path) para IAs. As responsabilidades são segregadas em três camadas arquiteturais para mitigar execuções destrutivas e alucinações.
 
 ### 1. Engine de Orquestração (Workflows)
-A gestão de estado e sequenciamento de rotinas não é delegada à inferência do LLM. O orquestrador visual (n8n) e o CLI (Makefile) retêm o controle do ciclo de vida das requisições. 
+A gestão de estado e sequenciamento de rotinas não é delegada à inferência do LLM. O orquestrador visual (n8n) e o CLI (Makefile) retêm o controle do ciclo de vida das requisições.
 
 ### 2. Personas (Comportamentos Definidos)
 O fluxo de trabalho autônomo é balizado por três instâncias de contexto (Personas), cada uma com escopo e limitações bem definidas nas chamadas do servidor MCP:
