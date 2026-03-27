@@ -31,5 +31,15 @@ echo -e "\n📂 Maiores ofensores de disco cacheado na sua Home (Top 5 Pastas):"
 # Ignoramos erros do `du` pois cache/configs têm permissões variadas
 du -sh ~/.cache ~/.npm ~/.composer ~/.asdf ~/.docker ~/.cargo ~/.local/share 2>/dev/null | sort -hr | head -n 5 || true
 
+echo -e "\n🗑️  Imagens Docker não utilizadas (dangling):"
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    docker images -f "dangling=true" --format "REPOSITORY:TAG\tIMAGE ID\tSIZE" | tee /dev/stderr
+    if [ "$(docker images -f 'dangling=true' -q | wc -l)" -eq 0 ]; then
+        echo "Nenhuma imagem dangling encontrada."
+    fi
+else
+    echo "(docker não disponível ou erro ao listar imagens)"
+fi
+
 echo -e "${CYAN}---------------------------------------------${NC}"
 exit 0
