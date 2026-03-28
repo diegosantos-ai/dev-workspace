@@ -44,7 +44,7 @@ make lint
 make morning
 ```
 
-`make bootstrap` é o entrypoint canônico de onboarding. `make setup-workstation` permanece para reprovisionar apenas a workstation. `make setup` existe apenas como alias de compatibilidade para `make setup-workstation`.
+`make bootstrap` é o fluxo padrão de onboarding. `make setup-workstation` permanece para reprovisionar apenas a workstation. `make setup` existe apenas como alias de compatibilidade para `make setup-workstation`.
 
 Depois que a máquina estiver preparada, o próximo passo não é continuar rodando tudo no `dev-workspace`. O fluxo correto é:
 
@@ -66,7 +66,7 @@ make test
 ## Comandos Principais
 | Comando | Descrição |
 |---|---|
-| `make bootstrap` | Onboarding canônico: workstation, runtimes, pre-commit e agentes |
+| `make bootstrap` | Onboarding: workstation, runtimes, pre-commit e agentes |
 | `make setup-workstation` | Provisiona apenas workstation, dotfiles e toolchain |
 | `make doctor` | Diagnóstico completo do ambiente e dependências |
 | `make lint` | Executa validação de estilo e segurança (Shift-Left) |

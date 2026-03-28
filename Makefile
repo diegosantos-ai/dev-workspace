@@ -92,7 +92,7 @@ asdf-install: ## Instala runtimes fixados em .tool-versions via ASDF
 	fi
 	@bash -c 'source "$$HOME/.asdf/asdf.sh" && cd "$(DEV_WORKSPACE_ROOT)" && asdf install'
 
-bootstrap: assert-git-context ## [CANONICO] Onboarding completo: setup-workstation + runtimes + pre-commit + agentes
+bootstrap: assert-git-context ## [ONBOARDING] Onboarding completo: setup-workstation + runtimes + pre-commit + agentes
 	@printf "$(BOLD)=== [1/4] Provisionando OS, dotfiles e toolchain ===$(RESET)\n"
 	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" setup-workstation
 	@printf "$(BOLD)=== [2/4] Instalando runtimes (.tool-versions) ===$(RESET)\n"
