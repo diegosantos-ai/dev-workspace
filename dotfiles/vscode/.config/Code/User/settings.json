@@ -2,7 +2,6 @@
     "git.autofetch": true,
     "git.confirmSync": false,
     "explorer.confirmDelete": false,
-    "chat.viewSessions.orientation": "stacked",
     "chat.tools.terminal.autoApprove": {
         "./scripts/export_session_context.sh": true,
         "/^bash \\./scripts/export_session_context\\.sh$/": {
@@ -23,5 +22,6 @@
         "vscode-kubernetes.minikube-path-linux": "/home/diego/.local/state/vs-kubernetes/tools/minikube/linux-amd64/minikube",
         "vscode-kubernetes.kubectl-path-linux": "/home/diego/.local/state/vs-kubernetes/tools/kubectl/kubectl"
     },
-    "geminicodeassist.project": "gen-lang-client-0286256478"
+    "geminicodeassist.project": "gen-lang-client-0286256478",
+    "chat.viewSessions.orientation": "stacked"
 }

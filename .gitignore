@@ -29,3 +29,4 @@ docs-referencia/AGENTE_EXTERNO_PROMPT.md
 temp_fluxo.md
 knowledge_base_gem.txt
 relatorio-morning*/
+*.log
