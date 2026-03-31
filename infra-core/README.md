@@ -1,28 +1,53 @@
-# Módulo: Infra-Core (Serviços Compartilhados)
+# infra-core
 
-Centralização de serviços de infraestrutura local executados via Docker. Estes serviços são compartilhados entre diferentes projetos do workspace para evitar colisão de portas e desperdício de recursos.
+## Propósito
 
-## 📂 Serviços Inclusos
+Orquestração unificada dos serviços de infraestrutura central da workstation. Define e opera os containers compartilhados entre todos os projetos do workspace, eliminando conflito de portas e duplicação de banco de dados.
 
-- **Banco de Dados:** Postgres (Porta 5432 interna)
-- **Cache/Mensageria:** Redis (Porta 6379 interna)
-- **Vetores (IA):** ChromaDB / Qdrant
-- **Observabilidade:** MLFlow / Langfuse
-- **Proxy/Ingress:** Traefik (Opcional)
+## Quando Usar
 
-## 🌐 Rede Unificada
+- Para inicializar os serviços de banco de dados, cache e observabilidade do workspace.
+- Quando um projeto local precisar de Postgres, Redis, ChromaDB ou MLFlow.
+- Para verificar ou reinicializar a rede `dev-workspace-net`.
 
-Todos os containers deste módulo e de projetos externos devem se conectar à rede externa:
-**`dev-workspace-net`**
+## Serviços Gerenciados
 
-## 🚀 Como Operar
+| Container | Imagem | Porta | Função |
+|---|---|---|---|
+| `core-traefik` | `traefik:v2.10` | 80, 8080 | Gateway de borda e roteamento |
+| `core-postgres` | `postgres:15-alpine` | 5432 | Banco relacional multi-tenant |
+| `core-redis` | `redis:7-alpine` | 6379 | Cache e coordenação |
+| `core-chromadb` | `chromadb/chroma` | 8000 | Vector store para embeddings |
+| `core-mlflow` | `ghcr.io/mlflow/mlflow:v2.10.2` | 5000 | Rastreamento de experimentos LLM/ML |
 
-Acionado via root `Makefile`:
-```bash
-make infra-up    # Sobe todos os serviços core em background
-make infra-down  # Encerra e remove containers core
+## Dependências
+
+- Docker Desktop instalado e daemon ativo.
+- Rede `dev-workspace-net` criada antes de subir os containers.
+
+## Relação com o Core
+
+Módulo de infraestrutura compartilhada. Projetos individuais não devem instanciar bancos próprios com portas mapeadas no host. Em vez disso, devem se conectar ao `infra-core/` declarando a rede externa:
+
+```yaml
+networks:
+  core-net:
+    name: dev-workspace-net
+    external: true
 ```
 
-## ⚠️ Atenção
-- **Não exponha portas** de banco diretamente para o host se estiver em projetos individuais; use o hostname interno (ex: `POSTGRES_HOST=postgres`).
-- Verifique o `.env.example` na raiz para as credenciais padrão.
+E acessar os serviços via hostname interno: `postgres`, `redis`, `chromadb`.
+
+## Entrypoint Local
+
+```bash
+# A partir da raiz do workspace:
+make infra-up      # Cria rede e sobe todos os containers core
+make infra-down    # Para os containers (dados preservados em volumes)
+
+# Operação direta (dentro deste diretório):
+docker compose up -d
+docker compose down
+```
+
+Configurações de banco inicial: `config/init-db.sql`.

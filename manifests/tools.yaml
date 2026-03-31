@@ -1,0 +1,153 @@
+# Manifesto de Ferramentas — DevOps Workspace
+# Contrato explícito das dependências gerenciadas pela plataforma.
+# Fonte de verdade: ansible/local-setup.yml + .tool-versions
+# Método de instalação: Ansible (make bootstrap) ou gestor de pacotes indicado.
+system_packages:
+  manager: apt
+  description: Pacotes base instalados via apt em Debian/Ubuntu
+  packages:
+    - name: curl
+      purpose: Download de binários e scripts de instalação
+    - name: git
+      purpose: Controle de versão
+    - name: stow
+      purpose: Gerenciamento de dotfiles via symlinks (GNU Stow)
+    - name: tmux
+      purpose: Multiplexador de terminal
+    - name: zsh
+      purpose: Shell padrão do ambiente
+    - name: unzip
+      purpose: Extração de arquivos zip
+    - name: jq
+      purpose: Processamento de JSON no shell
+    - name: wget
+      purpose: Download de arquivos via HTTP
+    - name: htop
+      purpose: Monitor de processos interativo
+    - name: vim
+      purpose: Editor de texto no terminal
+    - name: ripgrep
+      purpose: Busca de padrões em arquivos (rg)
+    - name: fzf
+      purpose: Busca fuzzy interativa no terminal
+    - name: bat
+      purpose: Substituto do cat com syntax highlighting
+    - name: traceroute
+      purpose: Diagnóstico de rotas de rede
+    - name: python3-pip
+      purpose: Gerenciador de pacotes Python do sistema
+    - name: pipx
+      purpose: Instalação isolada de ferramentas Python em PATH global
+    - name: gh
+      purpose: CLI oficial do GitHub
+    - name: pass
+      purpose: Gerenciador de senhas baseado em GPG
+    - name: shellcheck
+      purpose: Linter estático para scripts Bash/Shell
+    - name: qemu-kvm
+      purpose: Virtualização via KVM
+    - name: uidmap
+      purpose: Suporte a namespaces de usuário (rootless containers)
+    - name: apt-transport-https
+      purpose: Suporte a repositórios apt via HTTPS
+    - name: ca-certificates
+      purpose: Certificados de autoridades confiáveis
+    - name: gnupg
+      purpose: Criptografia e verificação de chaves GPG
+    - name: lsb-release
+      purpose: Identificação da distribuição Linux
+runtimes:
+  manager: asdf
+  config: .tool-versions
+  description: Versões de linguagem gerenciadas via ASDF
+  runtimes:
+    - name: python
+      version: "3.11.9"
+      purpose: Runtime Python principal do ambiente
+    - name: nodejs
+      version: "20.18.0"
+      purpose: Runtime Node.js para ferramentas e scripts
+snap_packages:
+  manager: snap
+  description: Ferramentas instaladas via Snap
+  classic_mode:
+    - name: code
+      purpose: VS Code — editor principal
+    - name: kubectl
+      purpose: CLI do Kubernetes
+  normal_mode:
+    - name: termius-app
+      purpose: Cliente SSH com suporte a múltiplos hosts
+    - name: insomnia
+      purpose: Cliente de APIs REST/GraphQL
+    - name: dbeaver-ce
+      purpose: Cliente de banco de dados universal
+vscode_extensions:
+  manager: code --install-extension
+  description: Extensões instaladas automaticamente no VS Code via Ansible
+  extensions:
+    - id: GitHub.copilot
+      purpose: Assistência de código com IA
+    - id: HashiCorp.terraform
+      purpose: Suporte a HCL e Terraform
+    - id: ms-azuretools.vscode-docker
+      purpose: Integração com Docker e Docker Compose
+    - id: ms-python.python
+      purpose: Suporte à linguagem Python
+    - id: ms-python.vscode-pylance
+      purpose: Language server para Python
+    - id: f1nzy.langsmith
+      purpose: Integração com LangSmith para tracing de LLMs
+    - id: ms-kubernetes-tools.vscode-kubernetes-tools
+      purpose: Explorador e gerenciamento de clusters Kubernetes
+binary_tools:
+  manager: script/binary
+  description: Ferramentas instaladas via scripts de instalação ou binários diretos
+  tools:
+    - name: asdf
+      version: "v0.14.0"
+      install: git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+      purpose: Gerenciador de versões de runtimes (Node, Python, etc.)
+    - name: docker-desktop
+      install: apt (deb baixado de desktop.docker.com)
+      purpose: Docker Desktop com daemon e interface gráfica
+    - name: aws
+      install: awscli-exe-linux-x86_64.zip (installer oficial)
+      purpose: CLI da AWS para operações em cloud
+    - name: terraform
+      install: apt via repositório oficial HashiCorp
+      purpose: Provisionamento de infraestrutura como código
+    - name: ollama
+      install: curl -fsSL https://ollama.com/install.sh | sh
+      purpose: Execução local de modelos de linguagem
+    - name: uv
+      install: curl -LsSf https://astral.sh/uv/install.sh | sh
+      purpose: Gerenciador de pacotes e ambientes Python (substituto do pip/venv)
+    - name: lazygit
+      install: binário via GitHub Releases (jesseduffield/lazygit)
+      purpose: Interface TUI para Git
+shell_environment:
+  shell: zsh
+  framework: oh-my-zsh
+  plugins:
+    - name: zsh-autosuggestions
+      source: https://github.com/zsh-users/zsh-autosuggestions
+      purpose: Sugestões de comandos baseadas no histórico
+    - name: zsh-syntax-highlighting
+      source: https://github.com/zsh-users/zsh-syntax-highlighting
+      purpose: Colorização de sintaxe em tempo real no prompt
+  dotfiles_manager: stow
+  dotfiles_path: dotfiles/
+security_tools:
+  manager: pre-commit
+  config: .pre-commit-config.yaml
+  description: Validações aplicadas automaticamente antes de todo commit
+  hooks:
+    - name: gitleaks
+      purpose: Detecção de secrets e credenciais no código
+    - name: tflint
+      purpose: Linter para módulos Terraform
+    - name: tfsec
+      purpose: Análise de segurança estática em IaC Terraform
+    - name: shellcheck
+      purpose: Validação de scripts Bash/Shell
