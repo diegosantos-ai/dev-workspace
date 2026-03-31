@@ -1,30 +1,33 @@
-# 📖 Gestão Centralizada de Agentes
+# gestao-centralizada-agents
 
-Bem-vindo ao Cockpit de IAs e fluxos de trabalho gerados! Esta documentação mostra como você (ou qualquer novo mantenedor) inicia e valida toda a fundação de Agentes deste repositório isolando responsabilidades.
+## Propósito
 
-## 🚀 Como Executar o Workspace (Bootstrap)
+Módulo de infraestrutura e governança para agentes de IA operando no workspace. Centraliza as Personas (comportamentos definidos), o servidor de ferramentas via MCP (Model Context Protocol) e a infraestrutura gerada por agentes.
 
-Tudo ocorre pelo entrypoint do repositório base. Não digite comandos imperativos longos de pacotes no terminal.
+## Quando Usar
 
-**1. Instale o Runtimes Globais**
-Para ter o gerenciador de pacotes isolados de Python (`pipx`) e outras dependências sem poluir sua máquina:
+- Para configurar, estender ou testar o servidor MCP de Skills.
+- Para consultar ou atualizar as Personas dos agentes (`agents-personas/`).
+- Para provisionar infraestrutura gerada por agentes (`infra/`).
+- Para depurar o comportamento de um agente ou verificar ferramentas disponíveis.
+
+## Dependências
+
+- `infra-core/` deve estar ativo (`make infra-up`) — os agentes dependem de Postgres e ChromaDB.
+- Python com `pipx` instalado (provisionado via `make bootstrap`).
+- Rede `dev-workspace-net` criada.
+
+## Relação com o Core
+
+Módulo especializado. Não interfere no bootstrap da workstation. Consome serviços do `infra-core/` via rede interna Docker. O `Makefile` raiz expõe targets de entrada: `make setup-agents`, `make test-skills`, `make start-orquestrador`.
+
+## Entrypoint Local
+
 ```bash
-cd dev-workspace/
-make setup-agents
+# A partir da raiz do workspace:
+make setup-agents       # Instala dependências do servidor MCP
+make test-skills        # Valida se as Skills estão operacionais
+make start-orquestrador # Sobe observabilidade e motor de agentes
 ```
-*(Isso varrerá localmente usando seu setup de automação e instalará seu motor principal de Agentes. E atualizará seu `~/.agents-env` com suas chaves locais omitidas no git)*.
 
-**2. Suba o Cockpit (Observabilidade + Vetores + N8n)**
-```bash
-make start-orquestrador
-```
-*(Isso iniciará pela porta injetada de testes a base vetorial e o dashboard para debug de Agentes e fluxos transacionais).*
-
-## 🧪 Como Validar as Skills
-
-**3. Instancie e valide as ferramentas (Skills MCP)**
-Todo novo conjunto de ferramentas adicionadas na pasta `/gestao-centralizada-agents/skills-mcp/` precisa respeitar o protocolo:
-```bash
-make test-skills
-```
-Se tudo rodou e o lint da plataforma (`make lint`) passou sem chaves expostas, sua "Tríade de Agentes" estará conectada e funcional para planejar e atuar pela sua engenharia.
+Para desenvolvimento interno ao módulo, consultar `arquitetura.md` e `planejamento-gestao.md`.
