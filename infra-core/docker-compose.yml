@@ -46,7 +46,7 @@ services:
       POSTGRES_PASSWORD: devpassword
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./config/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./config:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432" # Unica porta mapeada no host para facilitar acesso de IDEs (DBeaver/DataGrip)
     networks:
