@@ -1,8 +1,14 @@
 #!/bin/bash
 
+set -euo pipefail
+
 TARGET_DIR="${1:-$(pwd)}"
 TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../templates" && pwd)"
 MANIFEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+log_error() {
+    printf "[ ERRO ] %s\n" "$1" >&2
+}
 
 echo "================================================="
 echo "[ INIT ] Iniciando Adoção de Governança (Dev-Workspace)"
@@ -10,7 +16,19 @@ echo "[ TARGET ] Alvo: $TARGET_DIR"
 echo "================================================="
 
 # 0. Checagem Base
-if [ ! -d "$TARGET_DIR/.git" ]; then
+if [ ! -d "$TARGET_DIR" ]; then
+    log_error "Diretorio alvo nao existe: $TARGET_DIR"
+    exit 1
+fi
+
+if ! git -C "$TARGET_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    log_error "TARGET nao e um repositorio Git valido: $TARGET_DIR"
+    log_error "Inicialize com 'git init' ou informe a raiz de um repositorio existente."
+    exit 1
+fi
+
+if ! command -v pre-commit >/dev/null 2>&1; then
+    log_error "pre-commit nao encontrado no PATH. Rode 'make bootstrap' no dev-workspace."
     exit 1
 fi
 
@@ -39,5 +57,7 @@ elif [ -f "$MANIFEST_DIR/scripts/new-project.sh" ]; then
     bash "$MANIFEST_DIR/scripts/new-project.sh" "$TARGET_DIR" || echo "Warning: port allocation script failed"
 fi
 
-cd "$TARGET_DIR" || exit
+cd "$TARGET_DIR"
 pre-commit install
+
+printf "[ OK ] Governanca aplicada com sucesso em %s\n" "$TARGET_DIR"
