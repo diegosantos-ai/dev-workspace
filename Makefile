@@ -124,7 +124,7 @@ doctor: ## Diagnostico completo do ambiente (ferramentas, hooks, repos)
 	  fi; \
 	done
 	@printf "\n$(CYAN)-- Ferramentas opcionais --$(RESET)\n"
-	@for cmd in uv ollama lazygit pipx asdf node python3; do \
+	@for cmd in uv ollama lazygit pipx asdf node python3 cursor idea eclipse; do \
 	  IF_FOUND=0; \
 	  if command -v $$cmd >/dev/null 2>&1; then IF_FOUND=1; \
 	  elif [ "$$cmd" = "asdf" ] && [ -f "$$HOME/.asdf/asdf.sh" ]; then IF_FOUND=1; fi; \

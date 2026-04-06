@@ -111,6 +111,18 @@ binary_tools:
     - name: docker-desktop
       install: apt (deb baixado de desktop.docker.com)
       purpose: Docker Desktop com daemon e interface gráfica
+    - name: cursor
+      version: "3.0.12"
+      install: apt via .deb oficial pinado do Cursor
+      purpose: IDE baseada em VS Code com recursos de agentes
+    - name: intellij-idea
+      version: "2026.1"
+      install: tar.gz oficial da JetBrains em /opt/dev-workspace/ides
+      purpose: IDE para desenvolvimento Java, Kotlin e JVM
+    - name: eclipse-ide-enterprise-java-and-web-developers
+      version: "2026-03-r"
+      install: tar.gz oficial do Eclipse Packages em /opt/dev-workspace/ides
+      purpose: IDE completa para Java, Jakarta EE e desenvolvimento web
     - name: aws
       install: awscli-exe-linux-x86_64.zip (installer oficial)
       purpose: CLI da AWS para operações em cloud

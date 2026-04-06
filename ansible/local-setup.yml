@@ -46,6 +46,25 @@
         - bullseye
         - bookworm
 
+    ide_cache_dir: /var/cache/dev-workspace/ides
+    ide_install_root: /opt/dev-workspace/ides
+
+    cursor_version: "3.0.12"
+    cursor_deb_name: "cursor_{{ cursor_version }}_amd64.deb"
+    cursor_deb_url: "https://downloads.cursor.com/production/a80ff7dfcaa45d7750f6e30be457261379c29b06/linux/x64/deb/amd64/deb/cursor_3.0.12_amd64.deb"
+
+    intellij_version: "2026.1"
+    intellij_archive_name: "ideaIU-{{ intellij_version }}.tar.gz"
+    intellij_archive_url: "https://download.jetbrains.com/idea/ideaIU-2026.1.tar.gz"
+    intellij_install_dir: "{{ ide_install_root }}/intellij-idea-{{ intellij_version }}"
+    intellij_current_link: "{{ ide_install_root }}/intellij-idea-current"
+
+    eclipse_version: "2026-03-r"
+    eclipse_archive_name: "eclipse-jee-2026-03-R-linux-gtk-x86_64.tar.gz"
+    eclipse_archive_url: "https://download.eclipse.org/technology/epp/downloads/release/2026-03/R/eclipse-jee-2026-03-R-linux-gtk-x86_64.tar.gz"
+    eclipse_install_dir: "{{ ide_install_root }}/eclipse-jee-{{ eclipse_version }}"
+    eclipse_current_link: "{{ ide_install_root }}/eclipse-jee-current"
+
     user: "{{ lookup('env', 'USER') }}"
 
   tasks:
@@ -91,17 +110,7 @@
       register: vscode_backups
       changed_when: true
 
-    - name: Validar links simbolicos preexistentes do VS Code
-      assert:
-        that:
-          - item.stat.lnk_source == ((playbook_dir | dirname) ~ '/dotfiles/vscode/.config/Code/User/' ~ item.item)
-        fail_msg: "Conflito no VS Code: /home/{{ user }}/.config/Code/User/{{ item.item }} aponta para {{ item.stat.lnk_source }}, fora do destino esperado do workspace."
-      loop: "{{ vscode_user_files.results }}"
-      when:
-        - item.stat.exists
-        - item.stat.islnk | default(false)
-
-    - name: Remover links absolutos antigos do VS Code para o Stow recriar corretamente
+    - name: Remover links do VS Code apontando para qualquer clone do dev-workspace
       become_user: "{{ user }}"
       file:
         path: "/home/{{ user }}/.config/Code/User/{{ item.item }}"
@@ -110,9 +119,9 @@
       when:
         - item.stat.exists
         - item.stat.islnk | default(false)
-        - item.stat.lnk_source == ((playbook_dir | dirname) ~ '/dotfiles/vscode/.config/Code/User/' ~ item.item)
+        - item.stat.lnk_source is match('^.*/dev-workspace/dotfiles/vscode/\\.config/Code/User/' ~ (item.item | replace('.', '\\.')) ~ '$')
 
-    - name: Falhar se ainda houver arquivos do VSCode fora do controle do Stow
+    - name: Recoletar estado dos arquivos do VS Code apos limpeza de legados
       become_user: "{{ user }}"
       stat:
         path: "/home/{{ user }}/.config/Code/User/{{ item }}"
@@ -123,8 +132,8 @@
     - name: Validar pre-condicao do GNU Stow para dotfiles do VSCode
       assert:
         that:
-          - not item.stat.exists or (item.stat.islnk | default(false))
-        fail_msg: "Conflito no VS Code: /home/{{ user }}/.config/Code/User/{{ item.item }} ainda existe fora do controle do Stow."
+          - not item.stat.exists
+        fail_msg: "Conflito no VS Code: /home/{{ user }}/.config/Code/User/{{ item.item }} ainda existe fora do controle do Stow apos a limpeza automatica."
       loop: "{{ vscode_post_backup_files.results }}"
 
     - name: Executar GNU Stow para dotfiles (vscode)
@@ -232,6 +241,195 @@
       when:
         - ansible_facts['os_family'] == "Debian"
         - not docker_desktop_installed.stat.exists
+
+    - name: Garantir diretorios de cache e instalacao das IDEs gerenciadas
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ ide_cache_dir }}"
+        - "{{ ide_install_root }}"
+
+    - name: Baixar Cursor IDE (.deb)
+      get_url:
+        url: "{{ cursor_deb_url }}"
+        dest: "{{ ide_cache_dir }}/{{ cursor_deb_name }}"
+        mode: '0644'
+        timeout: 120
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Instalar Cursor IDE
+      apt:
+        deb: "{{ ide_cache_dir }}/{{ cursor_deb_name }}"
+        state: present
+        update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Localizar repositorios apt adicionados pela Cursor
+      find:
+        paths: /etc/apt/sources.list.d
+        patterns: "*cursor*.list"
+        file_type: file
+      register: cursor_apt_lists
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Remover repositorios apt adicionados pela Cursor para manter upgrades pinados
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ cursor_apt_lists.files }}"
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - cursor_apt_lists.matched | int > 0
+
+    - name: Localizar keyrings da Cursor adicionados pelo pacote
+      find:
+        paths: /usr/share/keyrings
+        patterns: "*cursor*"
+        file_type: file
+      register: cursor_keyrings
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Remover keyrings da Cursor para evitar drift de repositorio externo
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ cursor_keyrings.files }}"
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - cursor_keyrings.matched | int > 0
+
+    - name: Baixar IntelliJ IDEA Ultimate
+      get_url:
+        url: "{{ intellij_archive_url }}"
+        dest: "{{ ide_cache_dir }}/{{ intellij_archive_name }}"
+        mode: '0644'
+        timeout: 120
+
+    - name: Garantir diretorio de instalacao da IntelliJ IDEA
+      file:
+        path: "{{ intellij_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Extrair IntelliJ IDEA Ultimate
+      unarchive:
+        src: "{{ ide_cache_dir }}/{{ intellij_archive_name }}"
+        dest: "{{ intellij_install_dir }}"
+        remote_src: yes
+        extra_opts:
+          - --strip-components=1
+        creates: "{{ intellij_install_dir }}/bin/idea.sh"
+
+    - name: Publicar symlink estavel da IntelliJ IDEA
+      file:
+        src: "{{ intellij_install_dir }}"
+        dest: "{{ intellij_current_link }}"
+        state: link
+        force: yes
+
+    - name: Expor launcher da IntelliJ IDEA no PATH
+      file:
+        src: "{{ intellij_current_link }}/bin/idea.sh"
+        dest: /usr/local/bin/idea
+        state: link
+        force: yes
+
+    - name: Criar desktop entry da IntelliJ IDEA
+      copy:
+        dest: /usr/share/applications/intellij-idea.desktop
+        mode: '0644'
+        content: |
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=IntelliJ IDEA Ultimate
+          Comment=IDE para desenvolvimento Java, Kotlin e JVM
+          Exec={{ intellij_current_link }}/bin/idea.sh %f
+          Icon={{ intellij_current_link }}/bin/idea.svg
+          Terminal=false
+          Categories=Development;IDE;
+          StartupNotify=true
+          StartupWMClass=jetbrains-idea
+
+    - name: Baixar Eclipse IDE for Enterprise Java and Web Developers
+      get_url:
+        url: "{{ eclipse_archive_url }}"
+        dest: "{{ ide_cache_dir }}/{{ eclipse_archive_name }}"
+        mode: '0644'
+        timeout: 120
+
+    - name: Garantir diretorio de instalacao do Eclipse
+      file:
+        path: "{{ eclipse_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Extrair Eclipse IDE for Enterprise Java and Web Developers
+      unarchive:
+        src: "{{ ide_cache_dir }}/{{ eclipse_archive_name }}"
+        dest: "{{ eclipse_install_dir }}"
+        remote_src: yes
+        extra_opts:
+          - --strip-components=1
+        creates: "{{ eclipse_install_dir }}/eclipse"
+
+    - name: Publicar symlink estavel do Eclipse
+      file:
+        src: "{{ eclipse_install_dir }}"
+        dest: "{{ eclipse_current_link }}"
+        state: link
+        force: yes
+
+    - name: Expor launcher do Eclipse no PATH
+      file:
+        src: "{{ eclipse_current_link }}/eclipse"
+        dest: /usr/local/bin/eclipse
+        state: link
+        force: yes
+
+    - name: Criar desktop entry do Eclipse Enterprise Java
+      copy:
+        dest: /usr/share/applications/eclipse-enterprise-java.desktop
+        mode: '0644'
+        content: |
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=Eclipse IDE for Enterprise Java and Web Developers
+          Comment=IDE completa para Java, Jakarta EE e desenvolvimento web
+          Exec={{ eclipse_current_link }}/eclipse %f
+          Icon={{ eclipse_current_link }}/icon.xpm
+          Terminal=false
+          Categories=Development;IDE;
+          StartupNotify=true
+          StartupWMClass=Eclipse
+
+    - name: Verificar se diretorio Downloads existe para limpeza de legados
+      become_user: "{{ user }}"
+      stat:
+        path: "/home/{{ user }}/Downloads"
+      register: downloads_dir
+
+    - name: Localizar extracoes legadas do Spring Tools
+      become_user: "{{ user }}"
+      find:
+        paths: "/home/{{ user }}/Downloads"
+        patterns: "spring-tools-for-eclipse-*"
+        file_type: directory
+      register: legacy_spring_tools_dirs
+      when: downloads_dir.stat.exists
+
+    - name: Remover extracoes legadas do Spring Tools para evitar ambiguidade
+      become_user: "{{ user }}"
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ legacy_spring_tools_dirs.files }}"
+      when:
+        - downloads_dir.stat.exists
+        - legacy_spring_tools_dirs.matched | int > 0
 
     - name: Baixar script de instalacao do instalador da AWS CLI
       unarchive:
