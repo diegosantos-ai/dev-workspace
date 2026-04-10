@@ -122,6 +122,14 @@
 			"gallery": "https://api.mcp.github.com",
 			"version": "0.31.0"
 		},
+		"dev-workspace/devops-mcp-server": {
+			"type": "stdio",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; if [ -f \"$HOME/.agents-env\" ]; then set -a; . \"$HOME/.agents-env\"; set +a; fi; ROOT=\"${DEV_WORKSPACE_ROOT:-}\"; if [ -z \"$ROOT\" ] && [ -n \"${MCP_SKILLS_PATH:-}\" ] && [ -d \"$MCP_SKILLS_PATH\" ]; then ROOT=\"$(cd \"$MCP_SKILLS_PATH/../..\" && pwd)\"; fi; if [ -z \"$ROOT\" ] && [ -x \"$HOME/labs/dev-workspace/gestao-centralizada-agents/scripts/start-skills-mcp.sh\" ]; then ROOT=\"$HOME/labs/dev-workspace\"; fi; if [ -z \"$ROOT\" ] && [ -x \"$HOME/workspace/platform/dev-workspace/gestao-centralizada-agents/scripts/start-skills-mcp.sh\" ]; then ROOT=\"$HOME/workspace/platform/dev-workspace\"; fi; if [ -z \"$ROOT\" ]; then ROOT=\"$(find \"$HOME\" -maxdepth 5 -path '*/dev-workspace/gestao-centralizada-agents/scripts/start-skills-mcp.sh' -print -quit | sed 's#/gestao-centralizada-agents/scripts/start-skills-mcp.sh##')\"; fi; if [ -z \"$ROOT\" ]; then echo 'Nao foi possivel localizar o clone do dev-workspace.' >&2; exit 1; fi; export DEV_WORKSPACE_ROOT=\"$ROOT\"; exec \"$ROOT/gestao-centralizada-agents/scripts/start-skills-mcp.sh\""
+			]
+		},
 		"chroma-core/chroma-mcp": {
 			"type": "stdio",
 			"command": "uvx",

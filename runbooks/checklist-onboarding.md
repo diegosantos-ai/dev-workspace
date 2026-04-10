@@ -16,7 +16,7 @@ Este documento define o roteiro de execução e os critérios de aceite para a B
 | **01** | `git clone git@github.com:<usuario>/dev-workspace.git ~/labs/dev-workspace` | Clone via SSH sem erro de autenticação. |
 | **02** | `cd ~/labs/dev-workspace` | Entrada no diretório sem problemas. |
 | **03** | `make help` | Lista de 18+ targets formatada e legível. |
-| **04** | `make bootstrap` | Executa setup da workstation, runtimes, hooks e motor de agentes sem depender do CWD atual. |
+| **04** | `make bootstrap` | Executa setup da workstation, runtimes, CLIs de agentes, hooks e motor de agentes sem depender do CWD atual. |
 | **05** | `make doctor` | Todos os itens "Essenciais" em `[OK]`. Opcionais podem estar `[WARN]`. |
 | **06** | `make lint` | Executa `pre-commit` a partir da raiz real do clone. Fora de contexto Git, falha com mensagem explícita. |
 | **07** | `make morning` | Carrega o check de sanidade e dispara o `day-start`. |

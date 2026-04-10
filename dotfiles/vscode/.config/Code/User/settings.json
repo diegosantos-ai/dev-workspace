@@ -23,5 +23,10 @@
         "vscode-kubernetes.kubectl-path-linux": "/home/diego/.local/state/vs-kubernetes/tools/kubectl/kubectl"
     },
     "geminicodeassist.project": "gen-lang-client-0286256478",
-    "chat.viewSessions.orientation": "stacked"
+    "chat.viewSessions.orientation": "stacked",
+    "terminal.integrated.commandsToSkipShell": [
+        "kilo-code.new.agentManagerOpen",
+        "kilo-code.new.agentManager.showTerminal"
+    ],
+    "explorer.confirmPasteNative": false
 }

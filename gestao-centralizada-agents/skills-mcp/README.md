@@ -17,3 +17,17 @@ npm install
 npm run build
 npm start
 \`\`\`
+
+## Operação no Workspace
+
+No `dev-workspace`, o entrypoint operacional do servidor local é:
+
+\`\`\`bash
+make start-skills-mcp
+\`\`\`
+
+Esse fluxo usa `gestao-centralizada-agents/scripts/start-skills-mcp.sh` para:
+- carregar `~/.agents-env` quando existir;
+- garantir `node` e `npm` do ambiente ASDF;
+- compilar `build/index.js` se estiver ausente ou desatualizado;
+- iniciar o servidor MCP por `stdio`.

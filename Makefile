@@ -39,12 +39,12 @@ BOLD   := \033[1m
 # ==============================================================================
 .PHONY: help \
         assert-git-context \
-        setup-workstation setup asdf-install bootstrap \
+        setup-workstation setup asdf-install setup-agent-clis bootstrap \
         doctor env-check audit lint \
         infra-up infra-down \
-        setup-agents test-skills adopt \
+        setup-agents test-skills start-skills-mcp adopt \
         morning day-start log day-close week-close \
-        update
+        update update-tools update-repo
 
 # ==============================================================================
 # HELP
@@ -92,19 +92,37 @@ asdf-install: ## Instala runtimes fixados em .tool-versions via ASDF
 	fi
 	@bash -c 'source "$$HOME/.asdf/asdf.sh" && cd "$(DEV_WORKSPACE_ROOT)" && asdf install'
 
-bootstrap: assert-git-context ## [ONBOARDING] Onboarding completo: setup-workstation + runtimes + pre-commit + agentes
-	@printf "$(BOLD)=== [1/4] Provisionando OS, dotfiles e toolchain ===$(RESET)\n"
+setup-agent-clis: assert-git-context ## Garante instalacao inicial das CLIs e extensoes de agentes do workspace
+	@if ! command -v ansible-playbook >/dev/null 2>&1; then \
+	  printf "$(RED)[ERRO]$(RESET) ansible-playbook nao encontrado. Rode 'make setup-workstation' primeiro.\n"; \
+	  exit 1; \
+	fi
+	@if [ ! -f "$$HOME/.asdf/asdf.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) ASDF nao encontrado em %s\n" "$$HOME/.asdf/asdf.sh"; \
+	  printf "Rode 'make setup-workstation' e 'make asdf-install' primeiro.\n"; \
+	  exit 1; \
+	fi
+	@bash -c 'source "$$HOME/.asdf/asdf.sh" && cd "$(DEV_WORKSPACE_ROOT)" && command -v npm >/dev/null 2>&1' || { \
+	  printf "$(RED)[ERRO]$(RESET) npm nao encontrado no ambiente ASDF. Rode 'make asdf-install' primeiro.\n"; \
+	  exit 1; \
+	}
+	@ANSIBLE_HOST_KEY_CHECKING=False LC_ALL=C.UTF-8 ansible-playbook "$(DEV_WORKSPACE_ROOT)/ansible/local-setup.yml" --tags agent-clis --extra-vars "user=$$USER"
+
+bootstrap: assert-git-context ## [ONBOARDING] Onboarding completo: setup-workstation + runtimes + CLIs de agentes + pre-commit + agentes
+	@printf "$(BOLD)=== [1/5] Provisionando OS, dotfiles e toolchain ===$(RESET)\n"
 	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" setup-workstation
-	@printf "$(BOLD)=== [2/4] Instalando runtimes (.tool-versions) ===$(RESET)\n"
+	@printf "$(BOLD)=== [2/5] Instalando runtimes (.tool-versions) ===$(RESET)\n"
 	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" asdf-install || \
 	  printf "$(YELLOW)[AVISO]$(RESET) asdf install falhou — verifique .tool-versions e rode 'make asdf-install'\n"
-	@printf "$(BOLD)=== [3/4] Ativando pre-commit hooks ===$(RESET)\n"
+	@printf "$(BOLD)=== [3/5] Garantindo CLIs de agentes do workspace ===$(RESET)\n"
+	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" setup-agent-clis
+	@printf "$(BOLD)=== [4/5] Ativando pre-commit hooks ===$(RESET)\n"
 	@if ! command -v pre-commit >/dev/null 2>&1; then \
 	  printf "$(RED)[ERRO]$(RESET) pre-commit nao encontrado. Rode 'make setup-workstation' e tente novamente.\n"; \
 	  exit 1; \
 	fi
 	@bash -c 'export PATH="$$HOME/.local/bin:$$PATH" && cd "$(DEV_WORKSPACE_ROOT)" && pre-commit install'
-	@printf "$(BOLD)=== [4/4] Provisionando motor de agentes ===$(RESET)\n"
+	@printf "$(BOLD)=== [5/5] Provisionando motor de agentes ===$(RESET)\n"
 	@$(MAKE) -C "$(DEV_WORKSPACE_ROOT)" setup-agents
 	@printf "$(GREEN)Bootstrap concluido. Rode 'make morning' para iniciar o dia.$(RESET)\n"
 
@@ -229,6 +247,14 @@ test-skills: ## Compila o servidor MCP Node (requer Node.js via ASDF)
 	fi
 	@printf "$(GREEN)Servidor MCP compilado com sucesso.$(RESET)\n"
 
+start-skills-mcp: ## Inicia o servidor MCP local do workspace via STDIO
+	@SCRIPT="$(AGENTS_DIR)/scripts/start-skills-mcp.sh"; \
+	if [ ! -f "$$SCRIPT" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$$SCRIPT"; \
+	  exit 1; \
+	fi; \
+	bash "$$SCRIPT"
+
 start-orquestrador: ## Sobe o Cockpit de Agentes (observabilidade, bases vetoriais e n8n)
 	@COCKPIT_DIR="$(AGENTS_DIR)/infra/agents-cockpit"; \
 	if [ ! -d "$$COCKPIT_DIR" ]; then \
@@ -294,5 +320,14 @@ week-close: ## Gera sumario executivo semanal
 # MANUTENCAO CONTINUA
 # ==============================================================================
 
-update: ## Sincroniza com repositorio remoto (git pull origin main)
+update: update-tools ## Verifica CLIs do workspace e pede confirmacao para atualizar
+
+update-tools: ## Gera relatorio de atualizacao das CLIs do workspace e aplica com confirmacao y/n
+	@if [ ! -f "$(SANIDADE_DIR)/update-tools.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SANIDADE_DIR)/update-tools.sh"; \
+	  exit 1; \
+	fi
+	@bash "$(SANIDADE_DIR)/update-tools.sh"
+
+update-repo: ## Sincroniza o clone local com o repositorio remoto (git pull origin main)
 	@git pull origin main

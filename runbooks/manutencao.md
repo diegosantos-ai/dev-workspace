@@ -12,9 +12,10 @@ make env-check
 ## 2. Janela de Manutenção Rápida (Ação Semanal)
 Executada via orquestrador para atualizar toolchains:
 ```bash
-make update-tools
+make update
 ```
-* **Objetivo Restrito:** Atualização dos submódulos do plugin Asdf e de agentes instalados no `pipx`. Não aplica mudanças de OS-level. Permite ao engenheiro adquirir novos pacotes subjacentes atrelados à governança do workspace.
+* **Objetivo Restrito:** Verificar as CLIs e extensões de agentes acompanhadas pelo workspace (`gemini`, `codex`, `opencode` e `claude`), comparar versões locais e remotas e solicitar confirmação `y/n` antes de aplicar qualquer atualização.
+* **Comportamento Esperado:** Em modo interativo, o comando exibe um relatório e pede confirmação antes de atualizar. Em modo não interativo, gera apenas o relatório.
 
 ## 3. Janela de Refatoração Estrutural (Ação Mensal/Pós-Mudança)
 Executada após modificação de `.dotfiles` ou após troca/reset de máquina:

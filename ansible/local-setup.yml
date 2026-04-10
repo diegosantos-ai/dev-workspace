@@ -38,6 +38,26 @@
       - settings.json
       - mcp.json
 
+    vscode_extensions:
+      - GitHub.copilot
+      - HashiCorp.terraform
+      - ms-azuretools.vscode-docker
+      - ms-python.python
+      - ms-python.vscode-pylance
+      - f1nzy.langsmith
+      - ms-kubernetes-tools.vscode-kubernetes-tools
+
+    workspace_agent_vscode_extensions:
+      - openai.chatgpt
+
+    workspace_agent_npm_packages:
+      - name: "@google/gemini-cli"
+        binary: gemini
+      - name: opencode-ai
+        binary: opencode
+      - name: "@anthropic-ai/claude-code"
+        binary: claude
+
     hashicorp_supported_releases:
       Ubuntu:
         - jammy
@@ -501,17 +521,97 @@
       args:
         creates: /usr/local/bin/lazygit
 
-    - name: Instalar extensoes do VS Code
+    - name: Detectar CLI do VS Code
       become_user: "{{ user }}"
-      shell: "command -v code > /dev/null && code --install-extension {{ item }} --force || true"
-      loop:
-        - GitHub.copilot
-        - HashiCorp.terraform
-        - ms-azuretools.vscode-docker
-        - ms-python.python
-        - ms-python.vscode-pylance
-        - f1nzy.langsmith
-        - ms-kubernetes-tools.vscode-kubernetes-tools
+      shell: command -v code
+      args:
+        executable: /bin/bash
+      register: vscode_cli_path
+      changed_when: false
+      failed_when: false
+      tags:
+        - vscode-extensions
+        - agent-clis
+
+    - name: Coletar extensoes atuais do VS Code
+      become_user: "{{ user }}"
+      shell: code --list-extensions
+      args:
+        executable: /bin/bash
+      register: vscode_installed_extensions
+      changed_when: false
+      when: vscode_cli_path.rc == 0
+      tags:
+        - vscode-extensions
+        - agent-clis
+
+    - name: Instalar extensoes base do VS Code ausentes
+      become_user: "{{ user }}"
+      shell: code --install-extension {{ item }} --force
+      args:
+        executable: /bin/bash
+      loop: "{{ vscode_extensions }}"
+      when:
+        - vscode_cli_path.rc == 0
+        - item not in (vscode_installed_extensions.stdout_lines | default([]))
+      tags:
+        - vscode-extensions
+
+    - name: Instalar extensoes de agentes do VS Code ausentes
+      become_user: "{{ user }}"
+      shell: code --install-extension {{ item }} --force
+      args:
+        executable: /bin/bash
+      loop: "{{ workspace_agent_vscode_extensions }}"
+      when:
+        - vscode_cli_path.rc == 0
+        - item not in (vscode_installed_extensions.stdout_lines | default([]))
+      tags:
+        - agent-clis
+
+    - name: Detectar npm via ASDF no ambiente do usuario
+      become_user: "{{ user }}"
+      shell: |
+        set -euo pipefail
+        export PATH="/home/{{ user }}/.asdf/shims:/home/{{ user }}/.asdf/bin:$PATH"
+        command -v npm
+      args:
+        executable: /bin/bash
+      register: npm_cli_path
+      changed_when: false
+      failed_when: false
+      tags:
+        - agent-clis
+
+    - name: Informar quando npm ainda nao esta disponivel para as CLIs de agentes
+      debug:
+        msg: "npm ainda nao esta disponivel no ambiente do usuario. Rode 'make asdf-install' e depois 'make setup-agent-clis' para concluir a instalacao das CLIs de agentes."
+      when: npm_cli_path.rc != 0
+      tags:
+        - agent-clis
+
+    - name: Garantir instalacao das CLIs de agentes via npm global
+      become_user: "{{ user }}"
+      shell: |
+        set -euo pipefail
+        export PATH="/home/{{ user }}/.asdf/shims:/home/{{ user }}/.asdf/bin:$PATH"
+
+        if npm list -g --depth=0 "{{ item.name }}" >/dev/null 2>&1; then
+          echo "UNCHANGED:already-installed"
+          exit 0
+        fi
+
+        npm install -g "{{ item.name }}"
+        asdf reshim nodejs >/dev/null 2>&1 || true
+        echo "CHANGED:installed"
+      args:
+        executable: /bin/bash
+      register: workspace_agent_cli_install
+      changed_when: "'CHANGED:installed' in workspace_agent_cli_install.stdout"
+      loop: "{{ workspace_agent_npm_packages }}"
+      when: npm_cli_path.rc == 0
+      tags:
+        - agent-clis
 
     - name: Instalar pre-commit no repositorio clonado (BLK-05)
       become_user: "{{ user }}"
