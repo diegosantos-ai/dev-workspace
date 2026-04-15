@@ -14,7 +14,17 @@ Executada via orquestrador para atualizar toolchains:
 ```bash
 make update-tools
 ```
-* **Objetivo Restrito:** Atualização dos submódulos do plugin Asdf e de agentes instalados no `pipx`. Não aplica mudanças de OS-level. Permite ao engenheiro adquirir novos pacotes subjacentes atrelados à governança do workspace.
+* **Objetivo Restrito:** Atualizar as ferramentas gerenciadas pelo workspace em canais controlados: extensoes do VS Code, CLIs globais em `npm`, ambientes `pipx`, plugins e runtimes declarados em `asdf` e o binario do VS Code quando o canal instalado suportar automacao local. Nao executa upgrade amplo do sistema operacional.
+
+Para inspecionar pendencias antes de aplicar alteracoes:
+```bash
+make update-report
+```
+
+Para sincronizar o repositorio e a toolchain na mesma rotina, use:
+```bash
+make update
+```
 
 ## 3. Janela de Refatoração Estrutural (Ação Mensal/Pós-Mudança)
 Executada após modificação de `.dotfiles` ou após troca/reset de máquina:

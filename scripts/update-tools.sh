@@ -1,0 +1,499 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+REPORT_DIR="${REPO_ROOT}/sanidade-ambiente/reports"
+
+MODE="report"
+
+NPM_TOOLS=(
+  "Gemini CLI|@google/gemini-cli"
+  "OpenCode CLI|opencode-ai"
+)
+
+VSCODE_TOOLS=(
+  "Codex CLI|openai.chatgpt"
+  "Claude Code|anthropic.claude-code"
+)
+
+COUNT_OK=0
+COUNT_UPDATE=0
+COUNT_MISSING=0
+COUNT_UNCHECKED=0
+ACTION_OK=0
+ACTION_FAIL=0
+ACTION_SKIP=0
+
+declare -a ACTION_LOG=()
+
+usage() {
+  cat <<'EOF'
+Uso:
+  ./scripts/update-tools.sh --report
+  ./scripts/update-tools.sh --apply
+
+Modos:
+  --report  Gera relatorio sem alterar o sistema.
+  --apply   Aplica updates suportados e registra o resultado.
+EOF
+}
+
+log_action() {
+  local status="$1"
+  local message="$2"
+
+  ACTION_LOG+=("  - [${status}] ${message}")
+
+  case "${status}" in
+    OK)
+      ACTION_OK=$((ACTION_OK + 1))
+      ;;
+    FAIL)
+      ACTION_FAIL=$((ACTION_FAIL + 1))
+      ;;
+    SKIP)
+      ACTION_SKIP=$((ACTION_SKIP + 1))
+      ;;
+  esac
+}
+
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+can_run_sudo_non_interactive() {
+  command_exists sudo && sudo -n true >/dev/null 2>&1
+}
+
+normalize_extension_id() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+write_report_header() {
+  printf 'Rotina de manutencao de ferramentas do workspace\n'
+  printf 'Repositorio: %s\n' "${REPO_ROOT}"
+  printf 'Relatorio: %s\n' "${REPORT_FILE}"
+  printf 'Data: %s\n' "$(date --iso-8601=seconds)"
+  printf '\n'
+  printf '%-18s | %-34s | %-17s | %-18s | %s\n' \
+    "Ferramenta" "Canal" "Local" "Disponivel" "Status"
+  printf '%s\n' \
+    '-------------------+------------------------------------+-------------------+--------------------+-----------------------'
+}
+
+record_status() {
+  local tool_name="$1"
+  local channel="$2"
+  local local_version="$3"
+  local available_version="$4"
+  local status="$5"
+
+  printf '%-18s | %-34s | %-17s | %-18s | %s\n' \
+    "${tool_name}" \
+    "${channel}" \
+    "${local_version:-n/a}" \
+    "${available_version:-n/a}" \
+    "${status}"
+
+  case "${status}" in
+    ok)
+      COUNT_OK=$((COUNT_OK + 1))
+      ;;
+    update-disponivel)
+      COUNT_UPDATE=$((COUNT_UPDATE + 1))
+      ;;
+    nao-instalado)
+      COUNT_MISSING=$((COUNT_MISSING + 1))
+      ;;
+    *)
+      COUNT_UNCHECKED=$((COUNT_UNCHECKED + 1))
+      ;;
+  esac
+}
+
+npm_local_version() {
+  local package_name="$1"
+
+  if ! command_exists npm || ! command_exists jq; then
+    return 0
+  fi
+
+  npm list -g --depth=0 --json 2>/dev/null \
+    | jq -r --arg package_name "${package_name}" '.dependencies[$package_name].version // empty'
+}
+
+npm_remote_version() {
+  local package_name="$1"
+
+  if ! command_exists npm; then
+    return 0
+  fi
+
+  npm view "${package_name}" version 2>/dev/null | head -n 1 || true
+}
+
+apply_npm_update() {
+  local display_name="$1"
+  local package_name="$2"
+  local npm_prefix
+
+  if ! command_exists npm; then
+    log_action "SKIP" "${display_name}: npm nao disponivel para aplicar update."
+    return 0
+  fi
+
+  npm_prefix="$(npm config get prefix 2>/dev/null || true)"
+
+  if [ -n "${npm_prefix}" ] && [ ! -w "${npm_prefix}" ]; then
+    if can_run_sudo_non_interactive; then
+      if sudo -n npm install -g "${package_name}@latest" >/dev/null 2>&1; then
+        log_action "OK" "${display_name}: pacote npm global atualizado via sudo."
+      else
+        log_action "FAIL" "${display_name}: falha ao atualizar pacote npm global via sudo."
+      fi
+    else
+      log_action "SKIP" "${display_name}: update requer sudo para gravar em ${npm_prefix}."
+    fi
+    return 0
+  fi
+
+  if npm install -g "${package_name}@latest" >/dev/null 2>&1; then
+    log_action "OK" "${display_name}: pacote npm global atualizado."
+  else
+    log_action "FAIL" "${display_name}: falha ao atualizar pacote npm global."
+  fi
+}
+
+vscode_local_version() {
+  local extension_id
+  extension_id="$(normalize_extension_id "$1")"
+
+  if ! command_exists code; then
+    return 0
+  fi
+
+  code --list-extensions --show-versions 2>/dev/null \
+    | awk -F '@' -v extension_id="${extension_id}" \
+      'tolower($1) == extension_id { print $2; exit }'
+}
+
+vscode_remote_version() {
+  local extension_id="$1"
+  local search_text payload
+
+  if ! command_exists curl || ! command_exists jq; then
+    return 0
+  fi
+
+  search_text="${extension_id//./ }"
+  payload="$(
+    jq -cn --arg search_text "${search_text}" \
+      '{filters:[{criteria:[{filterType:10,value:$search_text}],pageNumber:1,pageSize:50,sortBy:0,sortOrder:0}],assetTypes:[],flags:512}'
+  )"
+
+  curl -sS \
+    -X POST \
+    'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery?api-version=7.2-preview.1' \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json;api-version=7.2-preview.1;excludeUrls=true' \
+    --data "${payload}" 2>/dev/null \
+    | jq -r --arg extension_id "$(normalize_extension_id "${extension_id}")" '
+        .results[0].extensions[]
+        | select(((.publisher.publisherName + "." + .extensionName) | ascii_downcase) == $extension_id)
+        | .versions[0].version
+      ' \
+    | head -n 1 || true
+}
+
+apply_vscode_extension() {
+  local display_name="$1"
+  local extension_id="$2"
+
+  if ! command_exists code; then
+    log_action "SKIP" "${display_name}: VS Code CLI nao disponivel para instalar extensao."
+    return 0
+  fi
+
+  if code --install-extension "${extension_id}" --force >/dev/null 2>&1; then
+    log_action "OK" "${display_name}: extensao sincronizada para a ultima versao."
+  else
+    log_action "FAIL" "${display_name}: falha ao instalar ou atualizar extensao."
+  fi
+}
+
+collect_code_status() {
+  local local_version="" available_version="" status="sem-verificacao" channel="editor:code"
+  local code_version installed_rev pending_rev installed_pkg candidate_pkg
+
+  if ! command_exists code; then
+    record_status "VS Code" "${channel}" "" "" "nao-instalado"
+    return 0
+  fi
+
+  code_version="$(code --version 2>/dev/null | head -n 1 || true)"
+
+  if command_exists snap && snap list code >/dev/null 2>&1; then
+    channel="snap:code"
+    installed_rev="$(snap list code 2>/dev/null | awk 'NR == 2 { print $3 }')"
+    pending_rev="$(snap refresh --list 2>/dev/null | awk '$1 == "code" { print $3; exit }')"
+    local_version="${code_version:-desconhecida} (rev ${installed_rev:-?})"
+
+    if [ -n "${pending_rev}" ]; then
+      available_version="rev ${pending_rev}"
+      status="update-disponivel"
+    else
+      available_version="${local_version}"
+      status="ok"
+    fi
+
+    record_status "VS Code" "${channel}" "${local_version}" "${available_version}" "${status}"
+    return 0
+  fi
+
+  if command_exists dpkg-query && dpkg-query -W -f='${Status}' code >/dev/null 2>&1; then
+    channel="apt:code"
+    installed_pkg="$(dpkg-query -W -f='${Version}' code 2>/dev/null || true)"
+    candidate_pkg="$(apt-cache policy code 2>/dev/null | awk '/Candidate:/ { print $2; exit }')"
+    local_version="${code_version:-desconhecida} (pkg ${installed_pkg:-?})"
+
+    if [ -n "${candidate_pkg}" ] && [ "${candidate_pkg}" != "(none)" ] && [ "${candidate_pkg}" != "${installed_pkg}" ]; then
+      available_version="${candidate_pkg}"
+      status="update-disponivel"
+    elif [ -n "${installed_pkg}" ]; then
+      available_version="${installed_pkg}"
+      status="ok"
+    fi
+
+    record_status "VS Code" "${channel}" "${local_version}" "${available_version}" "${status}"
+    return 0
+  fi
+
+  record_status "VS Code" "${channel}" "${code_version}" "" "sem-verificacao"
+}
+
+apply_code_update() {
+  local code_channel="$1"
+
+  case "${code_channel}" in
+    snap:code)
+      if can_run_sudo_non_interactive; then
+        if sudo -n snap refresh code >/dev/null 2>&1; then
+          log_action "OK" "VS Code: snap refresh aplicado."
+        else
+          log_action "FAIL" "VS Code: falha ao executar snap refresh."
+        fi
+      else
+        log_action "SKIP" "VS Code: update via snap requer sudo nao interativo."
+      fi
+      ;;
+    apt:code)
+      if can_run_sudo_non_interactive; then
+        if sudo -n apt-get update >/dev/null 2>&1 && sudo -n apt-get install --only-upgrade -y code >/dev/null 2>&1; then
+          log_action "OK" "VS Code: pacote apt atualizado."
+        else
+          log_action "FAIL" "VS Code: falha ao atualizar pacote apt."
+        fi
+      else
+        log_action "SKIP" "VS Code: update via apt requer sudo nao interativo."
+      fi
+      ;;
+    *)
+      log_action "SKIP" "VS Code: canal de update nao suportado automaticamente (${code_channel})."
+      ;;
+  esac
+}
+
+apply_bulk_code_extensions_update() {
+  if ! command_exists code; then
+    log_action "SKIP" "VS Code: CLI indisponivel para code --update-extensions."
+    return 0
+  fi
+
+  if code --update-extensions >/dev/null 2>&1; then
+    log_action "OK" "VS Code: extensoes instaladas foram atualizadas em lote."
+  else
+    log_action "FAIL" "VS Code: falha no update em lote das extensoes."
+  fi
+}
+
+apply_pipx_updates() {
+  if ! command_exists pipx; then
+    log_action "SKIP" "pipx: comando nao encontrado."
+    return 0
+  fi
+
+  if pipx upgrade-all >/dev/null 2>&1; then
+    log_action "OK" "pipx: ambientes gerenciados foram atualizados."
+  else
+    log_action "FAIL" "pipx: falha ao atualizar ambientes."
+  fi
+}
+
+apply_asdf_updates() {
+  if [ ! -f "${HOME}/.asdf/asdf.sh" ]; then
+    log_action "SKIP" "asdf: bootstrap nao encontrado em ${HOME}/.asdf/asdf.sh."
+    return 0
+  fi
+
+  if bash -lc "source '${HOME}/.asdf/asdf.sh' && cd '${REPO_ROOT}' && asdf plugin update --all && asdf install" >/dev/null 2>&1; then
+    log_action "OK" "asdf: plugins e runtimes declarados foram sincronizados."
+  else
+    log_action "FAIL" "asdf: falha ao sincronizar plugins ou runtimes."
+  fi
+}
+
+print_summary() {
+  printf '\nResumo:\n'
+  printf '  - ok: %d\n' "${COUNT_OK}"
+  printf '  - com update: %d\n' "${COUNT_UPDATE}"
+  printf '  - nao instalados: %d\n' "${COUNT_MISSING}"
+  printf '  - sem verificacao ou fora do canal: %d\n' "${COUNT_UNCHECKED}"
+}
+
+print_actions() {
+  printf '\nAcoes executadas:\n'
+
+  if [ "${#ACTION_LOG[@]}" -eq 0 ]; then
+    printf '  - nenhuma acao registrada.\n'
+  else
+    printf '%s\n' "${ACTION_LOG[@]}"
+  fi
+
+  printf '\nResultado das acoes:\n'
+  printf '  - ok: %d\n' "${ACTION_OK}"
+  printf '  - falhas: %d\n' "${ACTION_FAIL}"
+  printf '  - ignoradas: %d\n' "${ACTION_SKIP}"
+}
+
+main() {
+  local timestamp code_channel="editor:code"
+  local display_name package_name extension_id local_version available_version
+  local code_update_status=""
+
+  case "${1:-}" in
+    ""|--report)
+      MODE="report"
+      ;;
+    --apply)
+      MODE="apply"
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+
+  mkdir -p "${REPORT_DIR}"
+
+  timestamp="$(date '+%Y-%m-%d_%H-%M-%S')"
+  REPORT_FILE="${REPORT_DIR}/update-tools-${timestamp}.log"
+  exec > >(tee "${REPORT_FILE}") 2>&1
+
+  export PATH="${HOME}/.local/bin:${PATH}"
+
+  write_report_header
+
+  if command_exists code; then
+    if command_exists snap && snap list code >/dev/null 2>&1; then
+      code_channel="snap:code"
+      if snap refresh --list 2>/dev/null | awk '$1 == "code" { found = 1 } END { exit(found ? 0 : 1) }'; then
+        code_update_status="update-disponivel"
+      fi
+    elif command_exists dpkg-query && dpkg-query -W -f='${Status}' code >/dev/null 2>&1; then
+      code_channel="apt:code"
+      if [ "$(apt-cache policy code 2>/dev/null | awk '/Installed:/ { print $2; exit }')" != \
+           "$(apt-cache policy code 2>/dev/null | awk '/Candidate:/ { print $2; exit }')" ]; then
+        code_update_status="update-disponivel"
+      fi
+    fi
+  fi
+
+  collect_code_status
+
+  for tool in "${NPM_TOOLS[@]}"; do
+    display_name="${tool%%|*}"
+    package_name="${tool#*|}"
+    local_version="$(npm_local_version "${package_name}")"
+    available_version="$(npm_remote_version "${package_name}")"
+
+    if [ -z "${local_version}" ]; then
+      record_status "${display_name}" "npm:${package_name}" "" "${available_version}" "nao-instalado"
+    elif [ -n "${available_version}" ] && [ "${local_version}" != "${available_version}" ]; then
+      record_status "${display_name}" "npm:${package_name}" "${local_version}" "${available_version}" "update-disponivel"
+    elif [ -n "${available_version}" ]; then
+      record_status "${display_name}" "npm:${package_name}" "${local_version}" "${available_version}" "ok"
+    else
+      record_status "${display_name}" "npm:${package_name}" "${local_version}" "" "sem-verificacao"
+    fi
+  done
+
+  for tool in "${VSCODE_TOOLS[@]}"; do
+    display_name="${tool%%|*}"
+    extension_id="${tool#*|}"
+    local_version="$(vscode_local_version "${extension_id}")"
+    available_version="$(vscode_remote_version "${extension_id}")"
+
+    if [ -z "${local_version}" ]; then
+      record_status "${display_name}" "vscode:${extension_id}" "" "${available_version}" "nao-instalado"
+    elif [ -n "${available_version}" ] && [ "${local_version}" != "${available_version}" ]; then
+      record_status "${display_name}" "vscode:${extension_id}" "${local_version}" "${available_version}" "update-disponivel"
+    elif [ -n "${available_version}" ]; then
+      record_status "${display_name}" "vscode:${extension_id}" "${local_version}" "${available_version}" "ok"
+    else
+      record_status "${display_name}" "vscode:${extension_id}" "${local_version}" "" "sem-verificacao"
+    fi
+  done
+
+  print_summary
+
+  if [ "${MODE}" = "apply" ]; then
+    if [ "${code_update_status}" = "update-disponivel" ]; then
+      apply_code_update "${code_channel}"
+    else
+      log_action "SKIP" "VS Code: nenhuma atualizacao pendente no canal detectado."
+    fi
+
+    apply_bulk_code_extensions_update
+
+    for tool in "${NPM_TOOLS[@]}"; do
+      display_name="${tool%%|*}"
+      package_name="${tool#*|}"
+      local_version="$(npm_local_version "${package_name}")"
+      available_version="$(npm_remote_version "${package_name}")"
+
+      if [ -z "${local_version}" ] || { [ -n "${available_version}" ] && [ "${local_version}" != "${available_version}" ]; }; then
+        apply_npm_update "${display_name}" "${package_name}"
+      else
+        log_action "SKIP" "${display_name}: sem update necessario."
+      fi
+    done
+
+    for tool in "${VSCODE_TOOLS[@]}"; do
+      display_name="${tool%%|*}"
+      extension_id="${tool#*|}"
+      local_version="$(vscode_local_version "${extension_id}")"
+      available_version="$(vscode_remote_version "${extension_id}")"
+
+      if [ -z "${local_version}" ] || { [ -n "${available_version}" ] && [ "${local_version}" != "${available_version}" ]; }; then
+        apply_vscode_extension "${display_name}" "${extension_id}"
+      else
+        log_action "SKIP" "${display_name}: sem update necessario."
+      fi
+    done
+
+    apply_pipx_updates
+    apply_asdf_updates
+    print_actions
+    printf '\nModo aplicacao: atualizacoes tentadas conforme suporte e permissao local.\n'
+  else
+    printf '\nModo relatorio: nenhuma alteracao foi aplicada.\n'
+  fi
+}
+
+main "$@"

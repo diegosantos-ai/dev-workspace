@@ -5,6 +5,7 @@ Este diretório contém scripts auxiliares que não pertencem exclusivamente a u
 ## 📂 Scripts Disponíveis
 
 - `new-project.sh`: Automação para alocar portas e estrutura base para novos labs.
+- `update-tools.sh`: Atualizacao controlada de ferramentas gerenciadas pelo workspace com relatorio em `sanidade-ambiente/reports/`.
 
 ## 🛠️ Filosofia de Desenvolvimento
 

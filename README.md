@@ -102,6 +102,9 @@ make lint && make test
 | `make bootstrap` | Onboarding completo: workstation, runtimes, pre-commit e agentes |
 | `make setup-workstation` | Reprovisionamento isolado da workstation |
 | `make doctor` | Diagnóstico de dependências e integridade do ambiente |
+| `make update-report` | Gera um relatorio de atualizacoes disponiveis sem alterar o sistema |
+| `make update-tools` | Atualiza ferramentas gerenciadas do workspace e gera relatorio |
+| `make update` | Sincroniza o repositorio e aplica a rotina de atualizacao das ferramentas |
 | `make lint` | Validação de segurança e estilo (gitleaks, tflint, tfsec, shellcheck) |
 | `make morning` | Check de sanidade + abertura do worklog diário |
 | `make log` | Registra entrada no worklog do dia |

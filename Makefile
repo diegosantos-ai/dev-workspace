@@ -26,6 +26,7 @@ SANIDADE_DIR    := $(DEV_WORKSPACE_ROOT)/sanidade-ambiente/scripts
 ROTINA_DIR      := $(DEV_WORKSPACE_ROOT)/rotina-devops/scripts
 AGENTS_DIR      := $(DEV_WORKSPACE_ROOT)/gestao-centralizada-agents
 INFRA_DIR       := $(DEV_WORKSPACE_ROOT)/infra-core
+SCRIPTS_DIR     := $(DEV_WORKSPACE_ROOT)/scripts
 
 CYAN   := \033[36m
 RESET  := \033[0m
@@ -44,7 +45,7 @@ BOLD   := \033[1m
         infra-up infra-down \
         setup-agents test-skills adopt \
         morning day-start log day-close week-close \
-        update
+        update-repo update-report update-tools update
 
 # ==============================================================================
 # HELP
@@ -294,5 +295,21 @@ week-close: ## Gera sumario executivo semanal
 # MANUTENCAO CONTINUA
 # ==============================================================================
 
-update: ## Sincroniza com repositorio remoto (git pull origin main)
+update-repo: assert-git-context ## Sincroniza com repositorio remoto (git pull origin main)
 	@git pull origin main
+
+update-report: ## Gera relatorio das atualizacoes disponiveis sem aplicar alteracoes
+	@if [ ! -f "$(SCRIPTS_DIR)/update-tools.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SCRIPTS_DIR)/update-tools.sh"; \
+	  exit 1; \
+	fi
+	@bash "$(SCRIPTS_DIR)/update-tools.sh" --report
+
+update-tools: ## Atualiza ferramentas gerenciadas do workspace e gera relatorio
+	@if [ ! -f "$(SCRIPTS_DIR)/update-tools.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SCRIPTS_DIR)/update-tools.sh"; \
+	  exit 1; \
+	fi
+	@bash "$(SCRIPTS_DIR)/update-tools.sh" --apply
+
+update: update-repo update-tools ## Sincroniza repositorio e aplica atualizacoes automatizadas
