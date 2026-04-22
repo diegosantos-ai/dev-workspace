@@ -32,8 +32,7 @@ load_dotenv_file() {
         fi
       fi
 
-      printf -v "$key" '%s' "$value"
-      export "$key"
+      export "$key=$value"
     fi
   done < "$dotenv_file"
 }
