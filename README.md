@@ -5,6 +5,7 @@
 ![Ansible](https://img.shields.io/badge/Ansible-Automation-455a64?labelColor=333333&style=flat-square&logo=ansible&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containers-455a64?labelColor=333333&style=flat-square&logo=docker&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-AI_Agents-455a64?labelColor=333333&style=flat-square&logo=probot&logoColor=white)
+![Release](https://img.shields.io/badge/Release-Automated-455a64?labelColor=333333&style=flat-square&logo=git&logoColor=white)
 ![Shell](https://img.shields.io/badge/Shell-Validated-455a64?labelColor=333333&style=flat-square&logo=gnubash&logoColor=white)
 ![Security](https://img.shields.io/badge/Shift--Left-Validated-455a64?labelColor=333333&style=flat-square)
 
