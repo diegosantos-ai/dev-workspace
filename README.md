@@ -1,22 +1,21 @@
-# DevOps Workspace — Plataforma Local de Engenharia
+# DevOps Workspace Central
 
-![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Security-2F363D?style=for-the-badge) ![Shell](https://img.shields.io/badge/Shell-Validated-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)
-
----
-
-## 1. Problema
-
-Máquinas de desenvolvimento acumulam inconsistências ao longo do tempo: ferramentas instaladas manualmente, versões divergentes entre ambientes, dotfiles fora de controle de versão, ausência de validação automatizada e onboarding dependente de memória operacional.
-
-O resultado prático é **drift de ambiente** — a máquina funciona, mas de forma não reproduzível. Cada reconfiguração consome tempo, gera erros silenciosos e aumenta o atrito entre desenvolvimento local e pipelines de CI/CD.
+![Make](https://img.shields.io/badge/GNU_Make-Orchestration-455a64?labelColor=333333&style=flat-square&logo=gnu&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-455a64?labelColor=333333&style=flat-square&logo=terraform&logoColor=white)
+![Ansible](https://img.shields.io/badge/Ansible-Automation-455a64?labelColor=333333&style=flat-square&logo=ansible&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containers-455a64?labelColor=333333&style=flat-square&logo=docker&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-AI_Agents-455a64?labelColor=333333&style=flat-square&logo=probot&logoColor=white)
+![Shell](https://img.shields.io/badge/Shell-Validated-455a64?labelColor=333333&style=flat-square&logo=gnubash&logoColor=white)
+![Security](https://img.shields.io/badge/Shift--Left-Validated-455a64?labelColor=333333&style=flat-square)
 
 ---
 
-## 2. Objetivo
+## 1. Escopo Técnico
 
-Tratar a workstation como infraestrutura gerenciada. O repositório define, de forma declarativa e idempotente, o estado esperado do ambiente de desenvolvimento: ferramentas instaladas, configurações versionadas, serviços core ativos e rotinas operacionais padronizadas.
+Este repositório gerencia o estado declarativo de uma workstation de engenharia. O objetivo é eliminar o drift de ambiente através de provisionamento idempotente, gestão de dotfiles versionados e padronização de runtimes.
 
-O entrypoint é único: `make`.
+A operacionalização é centralizada no `Makefile`, garantindo que toda ação de manutenção seja rastreável e reproduzível.
+
 
 ---
 
@@ -169,17 +168,4 @@ O escopo cobre uma máquina de desenvolvimento (workstation) e, por extensão, i
 
 ---
 
-## What this repository demonstrates
-
-This repository is a personal engineering platform built to manage a development workstation as managed infrastructure. It serves as a practical demonstration of the following capabilities:
-
-| Capability | Implementation |
-|---|---|
-| Workstation bootstrap | Idempotent provisioning via Ansible (`make bootstrap`) |
-| Environment standardization | ASDF runtimes, GNU Stow dotfiles, unified toolchain manifest |
-| Automation via Make + Ansible | Single entrypoint (`make`) for all platform operations |
-| Validation and troubleshooting | `make doctor` for environment diagnosis; runbooks for incident response |
-| Security shift-left | gitleaks, tflint, tfsec, shellcheck enforced via pre-commit hooks |
-| Reusable developer platform patterns | `make adopt` propagates governance to external projects; shared `infra-core/` network |
-
-Full case documentation: [`docs/case-evidence.md`](docs/case-evidence.md)
+Documentação detalhada disponível em [`docs/`](docs/) e [`reference-docs/`](reference-docs/).

@@ -5,8 +5,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 REPORT_DIR="${REPO_ROOT}/sanidade-ambiente/reports"
+AGENTS_DIR="${REPO_ROOT}/gestao-centralizada-agents"
+
+# Carregar variaveis de ambiente locais se existirem
+if [ -f "${AGENTS_DIR}/.env" ]; then
+  # shellcheck disable=SC2046
+  export $(grep -v '^#' "${AGENTS_DIR}/.env" | xargs) >/dev/null 2>&1 || true
+fi
 
 MODE="report"
+LOCAL_SUDO_PASS="${LOCAL_SUDO_PASS:-}"
 
 NPM_TOOLS=(
   "Gemini CLI|@google/gemini-cli"
@@ -64,7 +72,34 @@ command_exists() {
 }
 
 can_run_sudo_non_interactive() {
-  command_exists sudo && sudo -n true >/dev/null 2>&1
+  if ! command_exists sudo; then
+    return 1
+  fi
+
+  # 1. Tenta sem senha (nopasswd no sudoers)
+  if sudo -n true >/dev/null 2>&1; then
+    return 0
+  fi
+
+  # 2. Tenta com senha da env var via stdin (-S)
+  if [ -n "${LOCAL_SUDO_PASS}" ]; then
+    if printf "%s\n" "${LOCAL_SUDO_PASS}" | sudo -S true >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+# Wrapper para rodar sudo de forma nao interativa
+sudo_exec() {
+  if sudo -n true >/dev/null 2>&1; then
+    sudo -n "$@"
+  elif [ -n "${LOCAL_SUDO_PASS}" ]; then
+    printf "%s\n" "${LOCAL_SUDO_PASS}" | sudo -S "$@"
+  else
+    return 1
+  fi
 }
 
 normalize_extension_id() {
@@ -148,13 +183,13 @@ apply_npm_update() {
 
   if [ -n "${npm_prefix}" ] && [ ! -w "${npm_prefix}" ]; then
     if can_run_sudo_non_interactive; then
-      if sudo -n npm install -g "${package_name}@latest" >/dev/null 2>&1; then
+      if sudo_exec npm install -g "${package_name}@latest" >/dev/null 2>&1; then
         log_action "OK" "${display_name}: pacote npm global atualizado via sudo."
       else
         log_action "FAIL" "${display_name}: falha ao atualizar pacote npm global via sudo."
       fi
     else
-      log_action "SKIP" "${display_name}: update requer sudo para gravar em ${npm_prefix}."
+      log_action "SKIP" "${display_name}: update requer sudo/senha (LOCAL_SUDO_PASS) para gravar em ${npm_prefix}."
     fi
     return 0
   fi
@@ -279,24 +314,24 @@ apply_code_update() {
   case "${code_channel}" in
     snap:code)
       if can_run_sudo_non_interactive; then
-        if sudo -n snap refresh code >/dev/null 2>&1; then
+        if sudo_exec snap refresh code >/dev/null 2>&1; then
           log_action "OK" "VS Code: snap refresh aplicado."
         else
           log_action "FAIL" "VS Code: falha ao executar snap refresh."
         fi
       else
-        log_action "SKIP" "VS Code: update via snap requer sudo nao interativo."
+        log_action "SKIP" "VS Code: update requer sudo/senha (LOCAL_SUDO_PASS) para snap."
       fi
       ;;
     apt:code)
       if can_run_sudo_non_interactive; then
-        if sudo -n apt-get update >/dev/null 2>&1 && sudo -n apt-get install --only-upgrade -y code >/dev/null 2>&1; then
+        if sudo_exec apt-get update >/dev/null 2>&1 && sudo_exec apt-get install --only-upgrade -y code >/dev/null 2>&1; then
           log_action "OK" "VS Code: pacote apt atualizado."
         else
           log_action "FAIL" "VS Code: falha ao atualizar pacote apt."
         fi
       else
-        log_action "SKIP" "VS Code: update via apt requer sudo nao interativo."
+        log_action "SKIP" "VS Code: update requer sudo/senha (LOCAL_SUDO_PASS) para apt."
       fi
       ;;
     *)
