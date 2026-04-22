@@ -181,11 +181,11 @@ O escopo cobre uma máquina de desenvolvimento (workstation) e, por extensão, i
 | Gestão de dotfiles com GNU Stow | Concluído |
 | Infra core unificada (Docker + rede interna) | Concluído |
 | Rotina matinal + worklogs automatizados | Concluído |
-| Integração de agentes IA via MCP | Em andamento |
-| Provisionamento de VPS via `cloud-setup` | Em andamento |
+| Integração de agentes IA via MCP | Concluído |
+| Provisionamento de VPS via `cloud-setup` | Concluído |
 | PR de promocao `develop` -> `main` via Makefile | Concluído |
-| Documentação arquitetural completa (ADRs) | Em andamento |
-| Testes de idempotência automatizados end-to-end | Planejado |
+| Documentação arquitetural completa (ADRs) | Concluído |
+| Testes de idempotência automatizados end-to-end | Concluído |
 
 ---
 
