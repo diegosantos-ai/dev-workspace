@@ -180,13 +180,19 @@ record_status() {
 
 npm_local_version() {
   local package_name="$1"
+  local package_path=""
 
-  if ! command_exists npm || ! command_exists jq; then
+  if ! command_exists npm; then
     return 0
   fi
 
-  npm list -g --depth=0 --json 2>/dev/null \
-    | jq -r --arg package_name "${package_name}" '.dependencies[$package_name].version // empty'
+  package_path="$(npm list -g --depth=0 --parseable "${package_name}" 2>/dev/null | tail -n +2 | head -n 1 || true)"
+
+  if [ -z "${package_path}" ] || [ ! -f "${package_path}/package.json" ]; then
+    return 0
+  fi
+
+  sed -nE 's/^[[:space:]]*"version":[[:space:]]*"([^"]+)".*/\1/p' "${package_path}/package.json" | head -n 1
 }
 
 npm_remote_version() {
