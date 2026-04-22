@@ -163,3 +163,30 @@ security_tools:
       purpose: Análise de segurança estática em IaC Terraform
     - name: shellcheck
       purpose: Validação de scripts Bash/Shell
+workspace_agent_tools:
+  install_manager: make setup-agent-clis
+  update_manager: make update
+  description: Ferramentas de agentes acompanhadas pelo bootstrap e pela rotina interativa de manutenção do workspace
+  install_mode: ensure instalado; se a ferramenta ja existir no canal esperado, a automacao apenas confirma e segue
+  update_mode: relatorio com confirmação y/n antes de aplicar mudanças
+  tools:
+    - name: gemini-cli
+      manager: npm-global
+      package: "@google/gemini-cli"
+      binary: gemini
+      purpose: CLI do Gemini no terminal
+    - name: codex-cli
+      manager: vscode-extension
+      extension: openai.chatgpt
+      binary: codex
+      purpose: CLI do Codex distribuída pela extensão OpenAI do VS Code
+    - name: opencode-cli
+      manager: npm-global
+      package: opencode-ai
+      binary: opencode
+      purpose: CLI do OpenCode no terminal
+    - name: claude-code
+      manager: npm-global
+      package: "@anthropic-ai/claude-code"
+      binary: claude
+      purpose: Claude Code no terminal

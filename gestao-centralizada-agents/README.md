@@ -19,7 +19,7 @@ Módulo de infraestrutura e governança para agentes de IA operando no workspace
 
 ## Relação com o Core
 
-Módulo especializado. Não interfere no bootstrap da workstation. Consome serviços do `infra-core/` via rede interna Docker. O `Makefile` raiz expõe targets de entrada: `make setup-agents`, `make test-skills`, `make start-orquestrador`.
+Módulo especializado. Não interfere no bootstrap da workstation. Consome serviços do `infra-core/` via rede interna Docker. O `Makefile` raiz expõe targets de entrada: `make setup-agents`, `make test-skills`, `make start-skills-mcp`, `make start-orquestrador`.
 
 ## Entrypoint Local
 
@@ -27,6 +27,7 @@ Módulo especializado. Não interfere no bootstrap da workstation. Consome servi
 # A partir da raiz do workspace:
 make setup-agents       # Instala dependências do servidor MCP
 make test-skills        # Valida se as Skills estão operacionais
+make start-skills-mcp   # Sobe o servidor MCP local via STDIO
 make start-orquestrador # Sobe observabilidade e motor de agentes
 ```
 

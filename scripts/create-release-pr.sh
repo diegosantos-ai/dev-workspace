@@ -11,6 +11,7 @@ HEAD_BRANCH="${HEAD_BRANCH:-develop}"
 DEFAULT_TITLE="release: promover develop para main"
 PR_TITLE="${TITLE:-${PR_TITLE:-${DEFAULT_TITLE}}}"
 MAX_ITEMS="${MAX_ITEMS:-30}"
+PR_BODY_FILE=""
 
 error() {
   printf '[ERRO] %s\n' "$1" >&2
@@ -18,6 +19,12 @@ error() {
 
 info() {
   printf '[INFO] %s\n' "$1"
+}
+
+cleanup() {
+  if [ -n "${PR_BODY_FILE:-}" ]; then
+    rm -f -- "${PR_BODY_FILE}"
+  fi
 }
 
 require_command() {
@@ -131,7 +138,7 @@ create_pr_body() {
 }
 
 main() {
-  local body_file existing_pr_url
+  local existing_pr_url
 
   cd "${REPO_ROOT}"
 
@@ -178,16 +185,16 @@ main() {
     exit 0
   fi
 
-  body_file="$(mktemp)"
-  trap 'rm -f "${body_file}"' EXIT
-  create_pr_body "${body_file}"
+  PR_BODY_FILE="$(mktemp)"
+  trap cleanup EXIT
+  create_pr_body "${PR_BODY_FILE}"
 
   info "Abrindo PR ${HEAD_BRANCH} -> ${BASE_BRANCH}."
   gh pr create \
     --base "${BASE_BRANCH}" \
     --head "${HEAD_BRANCH}" \
     --title "${PR_TITLE}" \
-    --body-file "${body_file}"
+    --body-file "${PR_BODY_FILE}"
 }
 
 main "$@"

@@ -12,7 +12,7 @@ make env-check
 ## 2. Janela de Manutenção Rápida (Ação Semanal)
 Executada via orquestrador para atualizar toolchains:
 ```bash
-make update-tools
+make update
 ```
 * **Objetivo Restrito:** Atualizar as ferramentas gerenciadas pelo workspace em canais controlados: extensoes do VS Code, CLIs globais em `npm`, ambientes `pipx`, plugins e runtimes declarados em `asdf` e o binario do VS Code quando o canal instalado suportar automacao local. Nao executa upgrade amplo do sistema operacional.
 

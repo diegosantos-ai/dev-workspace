@@ -57,7 +57,7 @@ Referência completa: [`docs/structure-map.md`](docs/structure-map.md).
 git clone → make bootstrap → make doctor → make morning → trabalho diário
 ```
 
-1. `make bootstrap` instala o Ansible, provisiona workstation, ativa dotfiles, configura pre-commit e sobe os serviços core.
+1. `make bootstrap` instala o Ansible, provisiona workstation, ativa dotfiles, instala runtimes, garante as CLIs de agentes declaradas, configura pre-commit e sobe os serviços core.
 2. `make doctor` verifica se todas as dependências críticas estão presentes e operacionais.
 3. `make morning` executa o check de sanidade matinal e abre o worklog do dia.
 4. Para adotar um projeto existente com governança: `make adopt TARGET=<caminho>`.
@@ -98,8 +98,9 @@ make lint && make test
 
 | Comando | Descrição |
 |---|---|
-| `make bootstrap` | Onboarding completo: workstation, runtimes, pre-commit e agentes |
+| `make bootstrap` | Onboarding completo: workstation, runtimes, CLIs de agentes, pre-commit e agentes |
 | `make setup-workstation` | Reprovisionamento isolado da workstation |
+| `make setup-agent-clis` | Garante instalação inicial das CLIs e extensões de agentes declaradas |
 | `make doctor` | Diagnóstico de dependências e integridade do ambiente |
 | `make update-report` | Gera um relatorio de atualizacoes disponiveis sem alterar o sistema |
 | `make update-tools` | Atualiza ferramentas gerenciadas do workspace e gera relatorio |
