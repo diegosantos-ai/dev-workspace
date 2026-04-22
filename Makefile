@@ -117,7 +117,7 @@ doctor: ## Diagnostico completo do ambiente (ferramentas, hooks, repos)
 	@printf "$(BOLD)Diagnostico do ambiente DevOps...$(RESET)\n"
 	@printf "Workspace root: %s\n" "$(DEV_WORKSPACE_ROOT)"
 	@printf "\n$(CYAN)-- Ferramentas essenciais --$(RESET)\n"
-	@for cmd in bash git make docker terraform aws gh pre-commit; do \
+	@for cmd in bash git make docker terraform openstack gh pre-commit; do \
 	  if command -v $$cmd >/dev/null 2>&1; then \
 	    printf "  $(GREEN)[OK]$(RESET)   %-20s %s\n" "$$cmd" "$$($$cmd --version 2>&1 | head -1)"; \
 	  else \
