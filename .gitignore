@@ -15,6 +15,11 @@ __pycache__/
 .vscode/
 *.swp
 
+# Artefato local do sandbox do Codex quando .codex/ ainda nao existe.
+/.codex
+!/.codex/
+!/.codex/**
+
 # Ansible
 *.retry
 
