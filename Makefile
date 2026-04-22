@@ -45,7 +45,8 @@ BOLD   := \033[1m
         infra-up infra-down \
         setup-agents test-skills adopt \
         morning day-start log day-close week-close \
-        update-repo update-report update-tools update
+        update-repo update-report update-tools update \
+        release-pr
 
 # ==============================================================================
 # HELP
@@ -313,3 +314,10 @@ update-tools: ## Atualiza ferramentas gerenciadas do workspace e gera relatorio
 	@bash "$(SCRIPTS_DIR)/update-tools.sh" --apply
 
 update: update-repo update-tools ## Sincroniza repositorio e aplica atualizacoes automatizadas
+
+release-pr: assert-git-context ## Abre PR de promocao develop -> main com descricao gerada por Git
+	@if [ ! -f "$(SCRIPTS_DIR)/create-release-pr.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SCRIPTS_DIR)/create-release-pr.sh"; \
+	  exit 1; \
+	fi
+	@TITLE="$(TITLE)" BASE_BRANCH="$(BASE_BRANCH)" HEAD_BRANCH="$(HEAD_BRANCH)" bash "$(SCRIPTS_DIR)/create-release-pr.sh"

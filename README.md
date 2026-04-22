@@ -104,6 +104,7 @@ make lint && make test
 | `make update-report` | Gera um relatorio de atualizacoes disponiveis sem alterar o sistema |
 | `make update-tools` | Atualiza ferramentas gerenciadas do workspace e gera relatorio |
 | `make update` | Sincroniza o repositorio e aplica a rotina de atualizacao das ferramentas |
+| `make release-pr` | Abre PR de promocao `develop` -> `main` com titulo padrao e corpo gerado pelo historico Git |
 | `make lint` | Validação de segurança e estilo (gitleaks, tflint, tfsec, shellcheck) |
 | `make morning` | Check de sanidade + abertura do worklog diário |
 | `make log` | Registra entrada no worklog do dia |
@@ -111,6 +112,24 @@ make lint && make test
 | `make infra-up` | Inicializa os serviços core (Postgres, Redis, ChromaDB, MLFlow) |
 | `make adopt TARGET=<path>` | Aplica governança (Makefile, pre-commit) em um projeto externo |
 | `make help` | Lista todos os targets disponíveis com descrição |
+
+### Release `develop` -> `main`
+
+O target `make release-pr` padroniza a abertura do PR de promocao da branch `develop` para `main`.
+
+O fluxo valida que a execucao ocorre na branch `develop`, exige worktree limpo, sincroniza referencias remotas, executa `make lint`, publica a branch e abre o PR via GitHub CLI (`gh`). Se ja existir um PR aberto com `develop` como origem e `main` como destino, a automacao informa a URL existente e nao cria duplicidade.
+
+O titulo padrao do PR e:
+
+```text
+release: promover develop para main
+```
+
+O corpo do PR e gerado a partir do contexto real entre `origin/main` e `origin/develop`, usando commits incluidos, arquivos alterados e estatisticas do diff. Para sobrescrever o titulo pontualmente:
+
+```bash
+make release-pr TITLE="release: estabilizar fase de governanca"
+```
 
 ---
 
@@ -163,6 +182,7 @@ O escopo cobre uma máquina de desenvolvimento (workstation) e, por extensão, i
 | Rotina matinal + worklogs automatizados | Concluído |
 | Integração de agentes IA via MCP | Em andamento |
 | Provisionamento de VPS via `cloud-setup` | Em andamento |
+| PR de promocao `develop` -> `main` via Makefile | Concluído |
 | Documentação arquitetural completa (ADRs) | Em andamento |
 | Testes de idempotência automatizados end-to-end | Planejado |
 
