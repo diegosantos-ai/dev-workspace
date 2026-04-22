@@ -7,10 +7,40 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 REPORT_DIR="${REPO_ROOT}/sanidade-ambiente/reports"
 AGENTS_DIR="${REPO_ROOT}/gestao-centralizada-agents"
 
+load_dotenv_file() {
+  local dotenv_file="$1"
+  local line key value first_char last_char
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    [[ "$line" =~ ^[[:space:]]*($|#) ]] && continue
+
+    if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
+      key="${BASH_REMATCH[2]}"
+      value="${BASH_REMATCH[3]}"
+
+      value="${value#"${value%%[![:space:]]*}"}"
+      value="${value%"${value##*[![:space:]]}"}"
+
+      if [ "${#value}" -ge 2 ]; then
+        first_char="${value:0:1}"
+        last_char="${value: -1}"
+
+        if [[ "$first_char" == '"' && "$last_char" == '"' ]]; then
+          value="${value:1:${#value}-2}"
+        elif [[ "$first_char" == "'" && "$last_char" == "'" ]]; then
+          value="${value:1:${#value}-2}"
+        fi
+      fi
+
+      printf -v "$key" '%s' "$value"
+      export "$key"
+    fi
+  done < "$dotenv_file"
+}
+
 # Carregar variaveis de ambiente locais se existirem
 if [ -f "${AGENTS_DIR}/.env" ]; then
-  # shellcheck disable=SC2046
-  export $(grep -v '^#' "${AGENTS_DIR}/.env" | xargs) >/dev/null 2>&1 || true
+  load_dotenv_file "${AGENTS_DIR}/.env"
 fi
 
 MODE="report"
