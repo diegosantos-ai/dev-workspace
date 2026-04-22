@@ -26,6 +26,7 @@ SANIDADE_DIR    := $(DEV_WORKSPACE_ROOT)/sanidade-ambiente/scripts
 ROTINA_DIR      := $(DEV_WORKSPACE_ROOT)/rotina-devops/scripts
 AGENTS_DIR      := $(DEV_WORKSPACE_ROOT)/gestao-centralizada-agents
 INFRA_DIR       := $(DEV_WORKSPACE_ROOT)/infra-core
+SCRIPTS_DIR     := $(DEV_WORKSPACE_ROOT)/scripts
 
 CYAN   := \033[36m
 RESET  := \033[0m
@@ -44,7 +45,8 @@ BOLD   := \033[1m
         infra-up infra-down \
         setup-agents test-skills start-skills-mcp adopt \
         morning day-start log day-close week-close \
-        update update-tools update-repo
+        update-repo update-report update-tools update \
+        release-pr
 
 # ==============================================================================
 # HELP
@@ -134,7 +136,7 @@ doctor: ## Diagnostico completo do ambiente (ferramentas, hooks, repos)
 	@printf "$(BOLD)Diagnostico do ambiente DevOps...$(RESET)\n"
 	@printf "Workspace root: %s\n" "$(DEV_WORKSPACE_ROOT)"
 	@printf "\n$(CYAN)-- Ferramentas essenciais --$(RESET)\n"
-	@for cmd in bash git make docker terraform aws gh pre-commit; do \
+	@for cmd in bash git make docker terraform openstack gh pre-commit; do \
 	  if command -v $$cmd >/dev/null 2>&1; then \
 	    printf "  $(GREEN)[OK]$(RESET)   %-20s %s\n" "$$cmd" "$$($$cmd --version 2>&1 | head -1)"; \
 	  else \
@@ -320,14 +322,28 @@ week-close: ## Gera sumario executivo semanal
 # MANUTENCAO CONTINUA
 # ==============================================================================
 
-update: update-tools ## Verifica CLIs do workspace e pede confirmacao para atualizar
+update-repo: assert-git-context ## Sincroniza o clone local com o repositorio remoto (git pull origin main)
+	@git pull origin main
 
-update-tools: ## Gera relatorio de atualizacao das CLIs do workspace e aplica com confirmacao y/n
-	@if [ ! -f "$(SANIDADE_DIR)/update-tools.sh" ]; then \
-	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SANIDADE_DIR)/update-tools.sh"; \
+update-report: ## Gera relatorio das atualizacoes disponiveis sem aplicar alteracoes
+	@if [ ! -f "$(SCRIPTS_DIR)/update-tools.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SCRIPTS_DIR)/update-tools.sh"; \
 	  exit 1; \
 	fi
-	@bash "$(SANIDADE_DIR)/update-tools.sh"
+	@bash "$(SCRIPTS_DIR)/update-tools.sh" --report
 
-update-repo: ## Sincroniza o clone local com o repositorio remoto (git pull origin main)
-	@git pull origin main
+update-tools: ## Atualiza ferramentas gerenciadas do workspace e gera relatorio
+	@if [ ! -f "$(SCRIPTS_DIR)/update-tools.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SCRIPTS_DIR)/update-tools.sh"; \
+	  exit 1; \
+	fi
+	@bash "$(SCRIPTS_DIR)/update-tools.sh" --apply
+
+update: update-repo update-tools ## Sincroniza repositorio e aplica atualizacoes automatizadas
+
+release-pr: assert-git-context ## Abre PR de promocao develop -> main com descricao gerada por Git
+	@if [ ! -f "$(SCRIPTS_DIR)/create-release-pr.sh" ]; then \
+	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SCRIPTS_DIR)/create-release-pr.sh"; \
+	  exit 1; \
+	fi
+	@TITLE="$(TITLE)" BASE_BRANCH="$(BASE_BRANCH)" HEAD_BRANCH="$(HEAD_BRANCH)" bash "$(SCRIPTS_DIR)/create-release-pr.sh"

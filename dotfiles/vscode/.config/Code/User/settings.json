@@ -28,5 +28,6 @@
         "kilo-code.new.agentManagerOpen",
         "kilo-code.new.agentManager.showTerminal"
     ],
+    "githubPullRequests.pullBranch": "never",
     "explorer.confirmPasteNative": false
 }

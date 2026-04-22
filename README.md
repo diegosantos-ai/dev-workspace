@@ -1,22 +1,21 @@
-# DevOps Workspace — Plataforma Local de Engenharia
+# DevOps Workspace Central
 
-![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform&logoColor=white) ![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Pre-commit](https://img.shields.io/badge/Pre--commit-Security-2F363D?style=for-the-badge) ![Shell](https://img.shields.io/badge/Shell-Validated-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)
-
----
-
-## 1. Problema
-
-Máquinas de desenvolvimento acumulam inconsistências ao longo do tempo: ferramentas instaladas manualmente, versões divergentes entre ambientes, dotfiles fora de controle de versão, ausência de validação automatizada e onboarding dependente de memória operacional.
-
-O resultado prático é **drift de ambiente** — a máquina funciona, mas de forma não reproduzível. Cada reconfiguração consome tempo, gera erros silenciosos e aumenta o atrito entre desenvolvimento local e pipelines de CI/CD.
+![Make](https://img.shields.io/badge/GNU_Make-Orchestration-455a64?labelColor=333333&style=flat-square&logo=gnu&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-455a64?labelColor=333333&style=flat-square&logo=terraform&logoColor=white)
+![Ansible](https://img.shields.io/badge/Ansible-Automation-455a64?labelColor=333333&style=flat-square&logo=ansible&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containers-455a64?labelColor=333333&style=flat-square&logo=docker&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-AI_Agents-455a64?labelColor=333333&style=flat-square&logo=probot&logoColor=white)
+![Shell](https://img.shields.io/badge/Shell-Validated-455a64?labelColor=333333&style=flat-square&logo=gnubash&logoColor=white)
+![Security](https://img.shields.io/badge/Shift--Left-Validated-455a64?labelColor=333333&style=flat-square)
 
 ---
 
-## 2. Objetivo
+## 1. Escopo Técnico
 
-Tratar a workstation como infraestrutura gerenciada. O repositório define, de forma declarativa e idempotente, o estado esperado do ambiente de desenvolvimento: ferramentas instaladas, configurações versionadas, serviços core ativos e rotinas operacionais padronizadas.
+Este repositório gerencia o estado declarativo de uma workstation de engenharia. O objetivo é eliminar o drift de ambiente através de provisionamento idempotente, gestão de dotfiles versionados e padronização de runtimes.
 
-O entrypoint é único: `make`.
+A operacionalização é centralizada no `Makefile`, garantindo que toda ação de manutenção seja rastreável e reproduzível.
+
 
 ---
 
@@ -103,6 +102,10 @@ make lint && make test
 | `make setup-workstation` | Reprovisionamento isolado da workstation |
 | `make setup-agent-clis` | Garante instalação inicial das CLIs e extensões de agentes declaradas |
 | `make doctor` | Diagnóstico de dependências e integridade do ambiente |
+| `make update-report` | Gera um relatorio de atualizacoes disponiveis sem alterar o sistema |
+| `make update-tools` | Atualiza ferramentas gerenciadas do workspace e gera relatorio |
+| `make update` | Sincroniza o repositorio e aplica a rotina de atualizacao das ferramentas |
+| `make release-pr` | Abre PR de promocao `develop` -> `main` com titulo padrao e corpo gerado pelo historico Git |
 | `make lint` | Validação de segurança e estilo (gitleaks, tflint, tfsec, shellcheck) |
 | `make morning` | Check de sanidade + abertura do worklog diário |
 | `make log` | Registra entrada no worklog do dia |
@@ -110,6 +113,24 @@ make lint && make test
 | `make infra-up` | Inicializa os serviços core (Postgres, Redis, ChromaDB, MLFlow) |
 | `make adopt TARGET=<path>` | Aplica governança (Makefile, pre-commit) em um projeto externo |
 | `make help` | Lista todos os targets disponíveis com descrição |
+
+### Release `develop` -> `main`
+
+O target `make release-pr` padroniza a abertura do PR de promocao da branch `develop` para `main`.
+
+O fluxo valida que a execucao ocorre na branch `develop`, exige worktree limpo, sincroniza referencias remotas, executa `make lint`, publica a branch e abre o PR via GitHub CLI (`gh`). Se ja existir um PR aberto com `develop` como origem e `main` como destino, a automacao informa a URL existente e nao cria duplicidade.
+
+O titulo padrao do PR e:
+
+```text
+release: promover develop para main
+```
+
+O corpo do PR e gerado a partir do contexto real entre `origin/main` e `origin/develop`, usando commits incluidos, arquivos alterados e estatisticas do diff. Para sobrescrever o titulo pontualmente:
+
+```bash
+make release-pr TITLE="release: estabilizar fase de governanca"
+```
 
 ---
 
@@ -162,22 +183,10 @@ O escopo cobre uma máquina de desenvolvimento (workstation) e, por extensão, i
 | Rotina matinal + worklogs automatizados | Concluído |
 | Integração de agentes IA via MCP | Em andamento |
 | Provisionamento de VPS via `cloud-setup` | Em andamento |
+| PR de promocao `develop` -> `main` via Makefile | Concluído |
 | Documentação arquitetural completa (ADRs) | Em andamento |
 | Testes de idempotência automatizados end-to-end | Planejado |
 
 ---
 
-## What this repository demonstrates
-
-This repository is a personal engineering platform built to manage a development workstation as managed infrastructure. It serves as a practical demonstration of the following capabilities:
-
-| Capability | Implementation |
-|---|---|
-| Workstation bootstrap | Idempotent provisioning via Ansible (`make bootstrap`) |
-| Environment standardization | ASDF runtimes, GNU Stow dotfiles, unified toolchain manifest |
-| Automation via Make + Ansible | Single entrypoint (`make`) for all platform operations |
-| Validation and troubleshooting | `make doctor` for environment diagnosis; runbooks for incident response |
-| Security shift-left | gitleaks, tflint, tfsec, shellcheck enforced via pre-commit hooks |
-| Reusable developer platform patterns | `make adopt` propagates governance to external projects; shared `infra-core/` network |
-
-Full case documentation: [`docs/case-evidence.md`](docs/case-evidence.md)
+Documentação detalhada disponível em [`docs/`](docs/) e [`reference-docs/`](reference-docs/).

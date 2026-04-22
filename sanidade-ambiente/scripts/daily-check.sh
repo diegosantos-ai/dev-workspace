@@ -68,7 +68,7 @@ check_docker_daemon() {
     if docker info >/dev/null 2>&1; then
         COUNT_OK=$((COUNT_OK + 1))
     else
-        FAILS+=("Docker Daemon offline ou sem permissão de acesso ao socket (Dica: systemctl start docker / usermod -aG docker)")
+        FAILS+=("Docker Daemon (Nativo) offline ou sem permissão. Tente: sudo systemctl start docker && sudo usermod -aG docker \$USER")
     fi
 }
 
@@ -99,12 +99,12 @@ check_github_ssh() {
 }
 
 check_cloud_auth() {
-    # Testa autenticação AWS CLI (OVH compatível ou Cloud Providers)
-    if command -v aws >/dev/null 2>&1; then
-        if timeout 5 aws sts get-caller-identity >/dev/null 2>&1; then
+    # Testa autenticação OpenStack (OVHcloud)
+    if command -v openstack >/dev/null 2>&1; then
+        if [ -n "${OS_PROJECT_ID:-}" ] && timeout 5 openstack token issue >/dev/null 2>&1; then
             COUNT_OK=$((COUNT_OK + 1))
         else
-            WARNS+=("AWS CLI detectado, mas sessão local parece deslogada ou sem internet. (Opcional)")
+            WARNS+=("OpenStack CLI (OVH) detectado, mas sessão deslogada. (Dica: source .ovh-env)")
         fi
     fi
 }
@@ -140,7 +140,7 @@ fi
 check_cmd "python3" "Python 3"
 check_cmd "pipx" "Gestor de Agentes (PIPX)" "WARN"
 check_cmd "terraform" "Terraform (IaC)"
-check_cmd "aws" "AWS CLI (OVH / Cloud)" "WARN"
+check_cmd "openstack" "OpenStack CLI (OVHcloud)" "WARN"
 check_cmd "gh" "GitHub CLI" "WARN"
 check_cmd "code" "VSCode CLI" "WARN"
 check_cmd "termius-app" "Terminus (SSH Client)" "WARN"
