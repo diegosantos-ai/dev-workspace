@@ -341,6 +341,9 @@ update-tools: ## Atualiza ferramentas gerenciadas do workspace e gera relatorio
 
 update: update-repo update-tools ## Sincroniza repositorio e aplica atualizacoes automatizadas
 
+test-e2e: ## Executa suite de testes de idempotencia e baseline (E2E)
+	@bash scripts/test-e2e.sh
+
 release-pr: assert-git-context ## Abre PR de promocao develop -> main com descricao gerada por Git
 	@if [ ! -f "$(SCRIPTS_DIR)/create-release-pr.sh" ]; then \
 	  printf "$(RED)[ERRO]$(RESET) Script nao encontrado: %s\n" "$(SCRIPTS_DIR)/create-release-pr.sh"; \
