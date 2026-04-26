@@ -45,11 +45,6 @@ fi
 MODE="report"
 LOCAL_SUDO_PASS="${LOCAL_SUDO_PASS:-}"
 
-# Em algumas instalacoes novas, o binario `code` ou o snap pode falhar com exit 139.
-# Por padrao, o relatorio nao deve quebrar por causa do VS Code.
-# Para reativar: UPDATE_TOOLS_CHECK_VSCODE=1 make update-report
-UPDATE_TOOLS_CHECK_VSCODE="${UPDATE_TOOLS_CHECK_VSCODE:-0}"
-
 NPM_TOOLS=(
   "Gemini CLI|@google/gemini-cli"
   "OpenCode CLI|opencode-ai"
@@ -103,10 +98,6 @@ log_action() {
 
 command_exists() {
   command -v "$1" >/dev/null 2>&1
-}
-
-vscode_checks_enabled() {
-  [ "${UPDATE_TOOLS_CHECK_VSCODE:-0}" = "1" ]
 }
 
 snap_refresh_list_safe() {
@@ -277,10 +268,6 @@ vscode_local_version() {
   local extension_id
   extension_id="$(normalize_extension_id "$1")"
 
-  if ! vscode_checks_enabled; then
-    return 0
-  fi
-
   if ! command_exists code; then
     return 0
   fi
@@ -293,10 +280,6 @@ vscode_local_version() {
 vscode_remote_version() {
   local extension_id="$1"
   local search_text payload
-
-  if ! vscode_checks_enabled; then
-    return 0
-  fi
 
   if ! command_exists curl || ! command_exists jq; then
     return 0
@@ -514,7 +497,7 @@ main() {
 
   write_report_header
 
-  if vscode_checks_enabled && command_exists code; then
+  if command_exists code; then
     if command_exists snap && snap_list_safe code | awk 'NR == 2 { found = 1 } END { exit(found ? 0 : 1) }'; then
       code_channel="snap:code"
       if snap_refresh_list_safe | awk '$1 == "code" { found = 1 } END { exit(found ? 0 : 1) }'; then

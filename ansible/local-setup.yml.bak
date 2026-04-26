@@ -1,0 +1,628 @@
+---
+- name: Setup Local Workstation
+  hosts: localhost
+  connection: local
+  become: yes
+  become_method: sudo
+
+  vars:
+    # Defina aqui os pacotes base para seu ambiente de engenharia
+    system_packages:
+      - curl
+      - git
+      - stow
+      - tmux
+      - zsh
+      - unzip
+      - jq
+      - wget
+      - htop
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - vim
+      - ripgrep
+      - fzf
+      - bat
+      - traceroute
+      - python3-pip
+      - pipx
+      - gh
+      - pass
+      - qemu-kvm
+      - uidmap
+      - shellcheck
+
+    vscode_managed_files:
+      - settings.json
+      - mcp.json
+
+    vscode_extensions:
+      - GitHub.copilot
+      - HashiCorp.terraform
+      - ms-azuretools.vscode-docker
+      - ms-python.python
+      - ms-python.vscode-pylance
+      - f1nzy.langsmith
+      - ms-kubernetes-tools.vscode-kubernetes-tools
+
+    workspace_agent_vscode_extensions:
+      - openai.chatgpt
+
+    workspace_agent_npm_packages:
+      - name: "@google/gemini-cli"
+        binary: gemini
+      - name: opencode-ai
+        binary: opencode
+      - name: "@anthropic-ai/claude-code"
+        binary: claude
+
+    hashicorp_supported_releases:
+      Ubuntu:
+        - jammy
+        - noble
+      Debian:
+        - bullseye
+        - bookworm
+
+    ide_cache_dir: /var/cache/dev-workspace/ides
+    ide_install_root: /opt/dev-workspace/ides
+
+    cursor_version: "3.0.12"
+    cursor_deb_name: "cursor_{{ cursor_version }}_amd64.deb"
+    cursor_deb_url: "https://downloads.cursor.com/production/a80ff7dfcaa45d7750f6e30be457261379c29b06/linux/x64/deb/amd64/deb/cursor_3.0.12_amd64.deb"
+
+    intellij_version: "2026.1"
+    intellij_archive_name: "ideaIU-{{ intellij_version }}.tar.gz"
+    intellij_archive_url: "https://download.jetbrains.com/idea/ideaIU-2026.1.tar.gz"
+    intellij_install_dir: "{{ ide_install_root }}/intellij-idea-{{ intellij_version }}"
+    intellij_current_link: "{{ ide_install_root }}/intellij-idea-current"
+
+    eclipse_version: "2026-03-r"
+    eclipse_archive_name: "eclipse-jee-2026-03-R-linux-gtk-x86_64.tar.gz"
+    eclipse_archive_url: "https://download.eclipse.org/technology/epp/downloads/release/2026-03/R/eclipse-jee-2026-03-R-linux-gtk-x86_64.tar.gz"
+    eclipse_install_dir: "{{ ide_install_root }}/eclipse-jee-{{ eclipse_version }}"
+    eclipse_current_link: "{{ ide_install_root }}/eclipse-jee-current"
+
+    user: "{{ lookup('env', 'USER') }}"
+
+  tasks:
+    - name: Atualizar apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Instalar pacotes de sistema essenciais (Debian/Ubuntu)
+      apt:
+        name: "{{ system_packages }}"
+        state: present
+      when: ansible_facts['os_family'] == "Debian"
+
+    # Preparacao para GNU Stow
+    - name: Garantir que diretorio base Code User existe na home
+      become_user: "{{ user }}"
+      file:
+        path: "/home/{{ user }}/.config/Code/User"
+        state: directory
+        mode: '0755'
+
+    - name: Coletar estado atual dos arquivos gerenciados do VS Code
+      become_user: "{{ user }}"
+      stat:
+        path: "/home/{{ user }}/.config/Code/User/{{ item }}"
+        follow: false
+      loop: "{{ vscode_managed_files }}"
+      register: vscode_user_files
+
+    - name: Fazer backup seguro de configs antigas do VSCode para nao quebrar o Stow
+      become_user: "{{ user }}"
+      command:
+        argv:
+          - mv
+          - "/home/{{ user }}/.config/Code/User/{{ item.item }}"
+          - "/home/{{ user }}/.config/Code/User/{{ item.item }}.bak"
+      loop: "{{ vscode_user_files.results }}"
+      when:
+        - item.stat.exists
+        - not (item.stat.islnk | default(false))
+      register: vscode_backups
+      changed_when: true
+
+    - name: Remover links do VS Code apontando para qualquer clone do dev-workspace
+      become_user: "{{ user }}"
+      file:
+        path: "/home/{{ user }}/.config/Code/User/{{ item.item }}"
+        state: absent
+      loop: "{{ vscode_user_files.results }}"
+      when:
+        - item.stat.exists
+        - item.stat.islnk | default(false)
+        - item.stat.lnk_source is match('^.*/dev-workspace/dotfiles/vscode/\\.config/Code/User/' ~ (item.item | replace('.', '\\.')) ~ '$')
+
+    - name: Recoletar estado dos arquivos do VS Code apos limpeza de legados
+      become_user: "{{ user }}"
+      stat:
+        path: "/home/{{ user }}/.config/Code/User/{{ item }}"
+        follow: false
+      loop: "{{ vscode_managed_files }}"
+      register: vscode_post_backup_files
+
+    - name: Validar pre-condicao do GNU Stow para dotfiles do VSCode
+      assert:
+        that:
+          - not item.stat.exists
+        fail_msg: "Conflito no VS Code: /home/{{ user }}/.config/Code/User/{{ item.item }} ainda existe fora do controle do Stow apos a limpeza automatica."
+      loop: "{{ vscode_post_backup_files.results }}"
+
+    - name: Executar GNU Stow para dotfiles (vscode)
+      become_user: "{{ user }}"
+      command:
+        argv:
+          - stow
+          - --restow
+          - -v
+          - -d
+          - "{{ playbook_dir }}/../dotfiles"
+          - -t
+          - "/home/{{ user }}"
+          - vscode
+      register: stow_output
+      changed_when: "'LINK:' in stow_output.stderr or 'UNLINK:' in stow_output.stderr or 'RESTOW:' in stow_output.stderr"
+
+    # Custom additions for DevOps Checklist
+    - name: Garantir que Zsh seja o shell padrão
+      user:
+        name: "{{ user }}"
+        shell: /bin/zsh
+
+    - name: Instalar Oh My Zsh
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/ohmyzsh/ohmyzsh.git
+        dest: "/home/{{ user }}/.oh-my-zsh"
+        depth: 1
+
+    - name: Configurar zshrc padrao do Oh My Zsh
+      become_user: "{{ user }}"
+      copy:
+        src: "/home/{{ user }}/.oh-my-zsh/templates/zshrc.zsh-template"
+        dest: "/home/{{ user }}/.zshrc"
+        remote_src: yes
+        force: no
+
+    - name: Instalar Zsh autosuggestions
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/zsh-users/zsh-autosuggestions
+        dest: "/home/{{ user }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+
+    - name: Instalar Zsh syntax highlighting
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+        dest: "/home/{{ user }}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+
+    - name: Instalar ASDF
+      become_user: "{{ user }}"
+      git:
+        repo: https://github.com/asdf-vm/asdf.git
+        dest: "/home/{{ user }}/.asdf"
+        version: v0.14.0
+
+    - name: Instalar pacotes via Snap (Modo Classico)
+      community.general.snap:
+        name: "{{ item }}"
+        classic: yes
+      loop:
+        - code
+        - kubectl
+      failed_when: false # Ignore if Snap is broken/missing (e.g. WSL)
+
+    - name: Instalar pacotes via Snap (Modo Normal)
+      community.general.snap:
+        name: "{{ item }}"
+      loop:
+        - termius-app
+        - insomnia
+      failed_when: false
+
+    - name: Verificar se DBeaver já está instalado
+      shell: "command -v dbeaver-ce || command -v dbeaver || snap list dbeaver-ce || dpkg -l | grep -q dbeaver"
+      register: dbeaver_check
+      changed_when: false
+
+    - name: Instalar DBeaver CE via Snap
+      community.general.snap:
+        name: dbeaver-ce
+      when: dbeaver_check.rc != 0
+      failed_when: false
+
+    - name: Verificar se Docker Desktop já está instalado
+      stat:
+        path: /usr/bin/docker-desktop
+      register: docker_desktop_installed
+
+    - name: Baixar Docker Desktop (.deb)
+      get_url:
+        url: "https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb"
+        dest: "/tmp/docker-desktop.deb"
+        timeout: 120
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - not docker_desktop_installed.stat.exists
+
+    - name: Instalar Docker Desktop
+      apt:
+        deb: "/tmp/docker-desktop.deb"
+        state: present
+        update_cache: yes
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - not docker_desktop_installed.stat.exists
+
+    - name: Garantir diretorios de cache e instalacao das IDEs gerenciadas
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ ide_cache_dir }}"
+        - "{{ ide_install_root }}"
+
+    - name: Baixar Cursor IDE (.deb)
+      get_url:
+        url: "{{ cursor_deb_url }}"
+        dest: "{{ ide_cache_dir }}/{{ cursor_deb_name }}"
+        mode: '0644'
+        timeout: 120
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Instalar Cursor IDE
+      apt:
+        deb: "{{ ide_cache_dir }}/{{ cursor_deb_name }}"
+        state: present
+        update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Localizar repositorios apt adicionados pela Cursor
+      find:
+        paths: /etc/apt/sources.list.d
+        patterns: "*cursor*.list"
+        file_type: file
+      register: cursor_apt_lists
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Remover repositorios apt adicionados pela Cursor para manter upgrades pinados
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ cursor_apt_lists.files }}"
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - cursor_apt_lists.matched | int > 0
+
+    - name: Localizar keyrings da Cursor adicionados pelo pacote
+      find:
+        paths: /usr/share/keyrings
+        patterns: "*cursor*"
+        file_type: file
+      register: cursor_keyrings
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Remover keyrings da Cursor para evitar drift de repositorio externo
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ cursor_keyrings.files }}"
+      when:
+        - ansible_facts['os_family'] == "Debian"
+        - cursor_keyrings.matched | int > 0
+
+    - name: Baixar IntelliJ IDEA Ultimate
+      get_url:
+        url: "{{ intellij_archive_url }}"
+        dest: "{{ ide_cache_dir }}/{{ intellij_archive_name }}"
+        mode: '0644'
+        timeout: 120
+
+    - name: Garantir diretorio de instalacao da IntelliJ IDEA
+      file:
+        path: "{{ intellij_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Extrair IntelliJ IDEA Ultimate
+      unarchive:
+        src: "{{ ide_cache_dir }}/{{ intellij_archive_name }}"
+        dest: "{{ intellij_install_dir }}"
+        remote_src: yes
+        extra_opts:
+          - --strip-components=1
+        creates: "{{ intellij_install_dir }}/bin/idea.sh"
+
+    - name: Publicar symlink estavel da IntelliJ IDEA
+      file:
+        src: "{{ intellij_install_dir }}"
+        dest: "{{ intellij_current_link }}"
+        state: link
+        force: yes
+
+    - name: Expor launcher da IntelliJ IDEA no PATH
+      file:
+        src: "{{ intellij_current_link }}/bin/idea.sh"
+        dest: /usr/local/bin/idea
+        state: link
+        force: yes
+
+    - name: Criar desktop entry da IntelliJ IDEA
+      copy:
+        dest: /usr/share/applications/intellij-idea.desktop
+        mode: '0644'
+        content: |
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=IntelliJ IDEA Ultimate
+          Comment=IDE para desenvolvimento Java, Kotlin e JVM
+          Exec={{ intellij_current_link }}/bin/idea.sh %f
+          Icon={{ intellij_current_link }}/bin/idea.svg
+          Terminal=false
+          Categories=Development;IDE;
+          StartupNotify=true
+          StartupWMClass=jetbrains-idea
+
+    - name: Baixar Eclipse IDE for Enterprise Java and Web Developers
+      get_url:
+        url: "{{ eclipse_archive_url }}"
+        dest: "{{ ide_cache_dir }}/{{ eclipse_archive_name }}"
+        mode: '0644'
+        timeout: 120
+
+    - name: Garantir diretorio de instalacao do Eclipse
+      file:
+        path: "{{ eclipse_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Extrair Eclipse IDE for Enterprise Java and Web Developers
+      unarchive:
+        src: "{{ ide_cache_dir }}/{{ eclipse_archive_name }}"
+        dest: "{{ eclipse_install_dir }}"
+        remote_src: yes
+        extra_opts:
+          - --strip-components=1
+        creates: "{{ eclipse_install_dir }}/eclipse"
+
+    - name: Publicar symlink estavel do Eclipse
+      file:
+        src: "{{ eclipse_install_dir }}"
+        dest: "{{ eclipse_current_link }}"
+        state: link
+        force: yes
+
+    - name: Expor launcher do Eclipse no PATH
+      file:
+        src: "{{ eclipse_current_link }}/eclipse"
+        dest: /usr/local/bin/eclipse
+        state: link
+        force: yes
+
+    - name: Criar desktop entry do Eclipse Enterprise Java
+      copy:
+        dest: /usr/share/applications/eclipse-enterprise-java.desktop
+        mode: '0644'
+        content: |
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=Eclipse IDE for Enterprise Java and Web Developers
+          Comment=IDE completa para Java, Jakarta EE e desenvolvimento web
+          Exec={{ eclipse_current_link }}/eclipse %f
+          Icon={{ eclipse_current_link }}/icon.xpm
+          Terminal=false
+          Categories=Development;IDE;
+          StartupNotify=true
+          StartupWMClass=Eclipse
+
+    - name: Verificar se diretorio Downloads existe para limpeza de legados
+      become_user: "{{ user }}"
+      stat:
+        path: "/home/{{ user }}/Downloads"
+      register: downloads_dir
+
+    - name: Localizar extracoes legadas do Spring Tools
+      become_user: "{{ user }}"
+      find:
+        paths: "/home/{{ user }}/Downloads"
+        patterns: "spring-tools-for-eclipse-*"
+        file_type: directory
+      register: legacy_spring_tools_dirs
+      when: downloads_dir.stat.exists
+
+    - name: Remover extracoes legadas do Spring Tools para evitar ambiguidade
+      become_user: "{{ user }}"
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ legacy_spring_tools_dirs.files }}"
+      when:
+        - downloads_dir.stat.exists
+        - legacy_spring_tools_dirs.matched | int > 0
+
+    - name: Baixar script de instalacao do instalador da AWS CLI
+      unarchive:
+        src: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp
+        remote_src: yes
+      changed_when: false
+
+    - name: Rodar instalador da AWS CLI
+      command: /tmp/aws/install --update
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Adicionar chave GPG do Hashicorp (Terraform)
+      shell: "wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg"
+      args:
+        creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: Definir release suportada do repositorio Hashicorp
+      set_fact:
+        hashicorp_apt_release: >-
+          {{
+            ansible_distribution_release
+            if ansible_distribution_release in hashicorp_supported_releases.get(ansible_distribution, [])
+            else (hashicorp_supported_releases.get(ansible_distribution, ['']) | last)
+          }}
+
+    - name: Informar fallback de release para o repositorio Hashicorp
+      debug:
+        msg: "Release {{ ansible_distribution_release }} nao suportada pela Hashicorp. Usando {{ hashicorp_apt_release }} para instalar Terraform."
+      when: hashicorp_apt_release != ansible_distribution_release
+
+    - name: Configurar repositorio do Hashicorp (Terraform)
+      copy:
+        dest: /etc/apt/sources.list.d/hashicorp.list
+        mode: '0644'
+        content: |
+          deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ hashicorp_apt_release }} main
+
+    - name: Instalar Terraform
+      apt:
+        name: terraform
+        state: present
+        update_cache: yes
+
+    - name: Configurar plugins do ASDF (NodeJS e Python)
+      become_user: "{{ user }}"
+      shell: "source /home/{{ user }}/.asdf/asdf.sh && asdf plugin add python || true && asdf plugin add nodejs || true"
+      args:
+        executable: /bin/bash
+
+    - name: Baixar script e instalar Ollama
+      shell: "curl -fsSL https://ollama.com/install.sh | sh"
+      args:
+        creates: /usr/local/bin/ollama
+
+    - name: Baixar script e instalar gerenciador uv
+      become_user: "{{ user }}"
+      shell: "curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/home/{{ user }}/.local/bin sh"
+      args:
+        creates: "/home/{{ user }}/.local/bin/uv"
+
+    - name: Download e setup do Lazygit
+      shell: |
+        LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+        curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+        cd /tmp && tar xzf lazygit.tar.gz lazygit
+        install /tmp/lazygit /usr/local/bin
+      args:
+        creates: /usr/local/bin/lazygit
+
+    - name: Detectar CLI do VS Code
+      become_user: "{{ user }}"
+      shell: command -v code
+      args:
+        executable: /bin/bash
+      register: vscode_cli_path
+      changed_when: false
+      failed_when: false
+      tags:
+        - vscode-extensions
+        - agent-clis
+
+    - name: Coletar extensoes atuais do VS Code
+      become_user: "{{ user }}"
+      shell: code --list-extensions
+      args:
+        executable: /bin/bash
+      register: vscode_installed_extensions
+      changed_when: false
+      when: vscode_cli_path.rc == 0
+      tags:
+        - vscode-extensions
+        - agent-clis
+
+    - name: Instalar extensoes base do VS Code ausentes
+      become_user: "{{ user }}"
+      shell: code --install-extension {{ item }} --force
+      args:
+        executable: /bin/bash
+      loop: "{{ vscode_extensions }}"
+      when:
+        - vscode_cli_path.rc == 0
+        - item not in (vscode_installed_extensions.stdout_lines | default([]))
+      tags:
+        - vscode-extensions
+
+    - name: Instalar extensoes de agentes do VS Code ausentes
+      become_user: "{{ user }}"
+      shell: code --install-extension {{ item }} --force
+      args:
+        executable: /bin/bash
+      loop: "{{ workspace_agent_vscode_extensions }}"
+      when:
+        - vscode_cli_path.rc == 0
+        - item not in (vscode_installed_extensions.stdout_lines | default([]))
+      tags:
+        - agent-clis
+
+    - name: Detectar npm via ASDF no ambiente do usuario
+      become_user: "{{ user }}"
+      shell: |
+        set -euo pipefail
+        export PATH="/home/{{ user }}/.asdf/shims:/home/{{ user }}/.asdf/bin:$PATH"
+        command -v npm
+      args:
+        executable: /bin/bash
+      register: npm_cli_path
+      changed_when: false
+      failed_when: false
+      tags:
+        - agent-clis
+
+    - name: Informar quando npm ainda nao esta disponivel para as CLIs de agentes
+      debug:
+        msg: "npm ainda nao esta disponivel no ambiente do usuario. Rode 'make asdf-install' e depois 'make setup-agent-clis' para concluir a instalacao das CLIs de agentes."
+      when: npm_cli_path.rc != 0
+      tags:
+        - agent-clis
+
+    - name: Garantir instalacao das CLIs de agentes via npm global
+      become_user: "{{ user }}"
+      shell: |
+        set -euo pipefail
+        export PATH="/home/{{ user }}/.asdf/shims:/home/{{ user }}/.asdf/bin:$PATH"
+
+        if npm list -g --depth=0 "{{ item.name }}" >/dev/null 2>&1; then
+          echo "UNCHANGED:already-installed"
+          exit 0
+        fi
+
+        npm install -g "{{ item.name }}"
+        asdf reshim nodejs >/dev/null 2>&1 || true
+        echo "CHANGED:installed"
+      args:
+        executable: /bin/bash
+      register: workspace_agent_cli_install
+      changed_when: "'CHANGED:installed' in workspace_agent_cli_install.stdout"
+      loop: "{{ workspace_agent_npm_packages }}"
+      when: npm_cli_path.rc == 0
+      tags:
+        - agent-clis
+
+    - name: Instalar pre-commit no repositorio clonado (BLK-05)
+      become_user: "{{ user }}"
+      shell: |
+        export PATH="$HOME/.local/bin:$PATH"
+        if [ -f "{{ playbook_dir }}/../.git/hooks/pre-commit" ]; then
+          echo "pre-commit hook ja instalado, ignorando."
+        else
+          cd "{{ playbook_dir }}/.." && pre-commit install
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false

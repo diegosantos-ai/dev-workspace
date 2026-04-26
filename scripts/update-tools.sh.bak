@@ -45,11 +45,6 @@ fi
 MODE="report"
 LOCAL_SUDO_PASS="${LOCAL_SUDO_PASS:-}"
 
-# Em algumas instalacoes novas, o binario `code` ou o snap pode falhar com exit 139.
-# Por padrao, o relatorio nao deve quebrar por causa do VS Code.
-# Para reativar: UPDATE_TOOLS_CHECK_VSCODE=1 make update-report
-UPDATE_TOOLS_CHECK_VSCODE="${UPDATE_TOOLS_CHECK_VSCODE:-0}"
-
 NPM_TOOLS=(
   "Gemini CLI|@google/gemini-cli"
   "OpenCode CLI|opencode-ai"
@@ -103,34 +98,6 @@ log_action() {
 
 command_exists() {
   command -v "$1" >/dev/null 2>&1
-}
-
-vscode_checks_enabled() {
-  [ "${UPDATE_TOOLS_CHECK_VSCODE:-0}" = "1" ]
-}
-
-snap_refresh_list_safe() {
-  timeout 15s snap_refresh_list_safe || true
-}
-
-snap_list_safe() {
-  timeout 15s snap list "$@" 2>/dev/null || true
-}
-
-code_version_safe() {
-  code_version_safe || true
-}
-
-code_list_extensions_safe() {
-  timeout 15s code_list_extensions_safe || true
-}
-
-dpkg_query_safe() {
-  dpkg-query "$@" 2>/dev/null || true
-}
-
-apt_cache_policy_safe() {
-  apt-cache policy "$@" 2>/dev/null || true
 }
 
 snap_refresh_list_safe() {
@@ -277,15 +244,11 @@ vscode_local_version() {
   local extension_id
   extension_id="$(normalize_extension_id "$1")"
 
-  if ! vscode_checks_enabled; then
-    return 0
-  fi
-
   if ! command_exists code; then
     return 0
   fi
 
-  code_list_extensions_safe \
+  code --list-extensions --show-versions 2>/dev/null \
     | awk -F '@' -v extension_id="${extension_id}" \
       'tolower($1) == extension_id { print $2; exit }'
 }
@@ -293,10 +256,6 @@ vscode_local_version() {
 vscode_remote_version() {
   local extension_id="$1"
   local search_text payload
-
-  if ! vscode_checks_enabled; then
-    return 0
-  fi
 
   if ! command_exists curl || ! command_exists jq; then
     return 0
@@ -340,18 +299,18 @@ apply_vscode_extension() {
 
 collect_code_status() {
   local local_version="" available_version="" status="sem-verificacao" channel="editor:code"
-  local code_version installed_rev pending_rev installed_pkg candidate_pkg code_rc
+  local code_version installed_rev pending_rev installed_pkg candidate_pkg
 
   if ! command_exists code; then
     record_status "VS Code" "${channel}" "" "" "nao-instalado"
     return 0
   fi
 
-  code_version="$(code_version_safe)"
+  code_version="$(code --version 2>/dev/null | head -n 1 || true)"
 
-  if command_exists snap && snap_list_safe code | awk 'NR == 2 { found = 1 } END { exit(found ? 0 : 1) }'; then
+  if command_exists snap && snap list code >/dev/null 2>&1; then
     channel="snap:code"
-    installed_rev="$(snap_list_safe code | awk 'NR == 2 { print $3 }')"
+    installed_rev="$(snap list code 2>/dev/null | awk 'NR == 2 { print $3 }')"
     pending_rev="$(snap_refresh_list_safe | awk '$1 == "code" { print $3; exit }')"
     local_version="${code_version:-desconhecida} (rev ${installed_rev:-?})"
 
@@ -367,10 +326,10 @@ collect_code_status() {
     return 0
   fi
 
-  if command_exists dpkg-query && dpkg_query_safe -W -f='${Status}' code | grep -q 'install ok installed'; then
+  if command_exists dpkg-query && dpkg-query -W -f='${Status}' code >/dev/null 2>&1; then
     channel="apt:code"
-    installed_pkg="$(dpkg_query_safe -W -f='${Version}' code)"
-    candidate_pkg="$(apt_cache_policy_safe code | awk '/Candidate:/ { print $2; exit }')"
+    installed_pkg="$(dpkg-query -W -f='${Version}' code 2>/dev/null || true)"
+    candidate_pkg="$(apt-cache policy code 2>/dev/null | awk '/Candidate:/ { print $2; exit }')"
     local_version="${code_version:-desconhecida} (pkg ${installed_pkg:-?})"
 
     if [ -n "${candidate_pkg}" ] && [ "${candidate_pkg}" != "(none)" ] && [ "${candidate_pkg}" != "${installed_pkg}" ]; then
@@ -385,7 +344,7 @@ collect_code_status() {
     return 0
   fi
 
-  record_status "VS Code" "${channel}" "${code_version:-desconhecida}" "" "sem-verificacao"
+  record_status "VS Code" "${channel}" "${code_version}" "" "sem-verificacao"
 }
 
 apply_code_update() {
@@ -514,16 +473,16 @@ main() {
 
   write_report_header
 
-  if vscode_checks_enabled && command_exists code; then
-    if command_exists snap && snap_list_safe code | awk 'NR == 2 { found = 1 } END { exit(found ? 0 : 1) }'; then
+  if command_exists code; then
+    if command_exists snap && snap list code >/dev/null 2>&1; then
       code_channel="snap:code"
       if snap_refresh_list_safe | awk '$1 == "code" { found = 1 } END { exit(found ? 0 : 1) }'; then
         code_update_status="update-disponivel"
       fi
-    elif command_exists dpkg-query && dpkg_query_safe -W -f='${Status}' code | grep -q 'install ok installed'; then
+    elif command_exists dpkg-query && dpkg-query -W -f='${Status}' code >/dev/null 2>&1; then
       code_channel="apt:code"
-      if [ "$(apt_cache_policy_safe code | awk '/Installed:/ { print $2; exit }')" != \
-           "$(apt_cache_policy_safe code | awk '/Candidate:/ { print $2; exit }')" ]; then
+      if [ "$(apt-cache policy code 2>/dev/null | awk '/Installed:/ { print $2; exit }')" != \
+           "$(apt-cache policy code 2>/dev/null | awk '/Candidate:/ { print $2; exit }')" ]; then
         code_update_status="update-disponivel"
       fi
     fi
