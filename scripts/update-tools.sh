@@ -110,7 +110,7 @@ vscode_checks_enabled() {
 }
 
 snap_refresh_list_safe() {
-  timeout 15s snap_refresh_list_safe || true
+  timeout 15s snap refresh --list 2>/dev/null || true
 }
 
 snap_list_safe() {
@@ -118,11 +118,11 @@ snap_list_safe() {
 }
 
 code_version_safe() {
-  code_version_safe || true
+  code --version 2>/dev/null | head -n 1 || true
 }
 
 code_list_extensions_safe() {
-  timeout 15s code_list_extensions_safe || true
+  timeout 15s code --list-extensions 2>/dev/null || true
 }
 
 dpkg_query_safe() {
@@ -131,10 +131,6 @@ dpkg_query_safe() {
 
 apt_cache_policy_safe() {
   apt-cache policy "$@" 2>/dev/null || true
-}
-
-snap_refresh_list_safe() {
-  snap_refresh_list_safe || true
 }
 
 can_run_sudo_non_interactive() {
