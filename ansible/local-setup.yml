@@ -30,7 +30,7 @@
       - pipx
       - gh
       - pass
-      - qemu-kvm
+      - qemu-system-x86
       - uidmap
       - shellcheck
 
@@ -86,6 +86,7 @@
     eclipse_current_link: "{{ ide_install_root }}/eclipse-jee-current"
 
     user: "{{ lookup('env', 'USER') }}"
+    install_docker_desktop: false
 
   tasks:
     - name: Atualizar apt cache
@@ -229,9 +230,14 @@
       failed_when: false
 
     - name: Verificar se DBeaver já está instalado
-      shell: "command -v dbeaver-ce || command -v dbeaver || snap list dbeaver-ce || dpkg -l | grep -q dbeaver"
+      shell: |
+        command -v dbeaver-ce >/dev/null 2>&1 ||
+        command -v dbeaver >/dev/null 2>&1 ||
+        snap list dbeaver-ce >/dev/null 2>&1 ||
+        dpkg -l | grep -q '^ii  dbeaver'
       register: dbeaver_check
       changed_when: false
+      failed_when: false
 
     - name: Instalar DBeaver CE via Snap
       community.general.snap:
@@ -252,6 +258,7 @@
       when:
         - ansible_facts['os_family'] == "Debian"
         - not docker_desktop_installed.stat.exists
+        - install_docker_desktop | bool
 
     - name: Instalar Docker Desktop
       apt:
@@ -261,6 +268,7 @@
       when:
         - ansible_facts['os_family'] == "Debian"
         - not docker_desktop_installed.stat.exists
+        - install_docker_desktop | bool
 
     - name: Garantir diretorios de cache e instalacao das IDEs gerenciadas
       file:
